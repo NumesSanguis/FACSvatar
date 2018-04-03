@@ -85,6 +85,9 @@ class FACSMsgFromCSV:
                 # currently can send about 3000 fps
                 await asyncio.sleep(time_sleep)  # time_sleep (~0.031)
 
+            # Blender rendering slow down
+            # await asyncio.sleep(.2)
+
             # only publish message if we have data
             if msg_dict['data']:
                 # publish FACS + gaze to topic; convert to JSON
