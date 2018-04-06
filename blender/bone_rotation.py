@@ -1,4 +1,4 @@
-# script = "/home/nishida-stef-ubuntu/github/FACSvatar/blender/bone_rotation.py"
+# script = "/*path*/blender/facsvatar_zeromq.py"
 # exec(compile(open(script).read(), script, 'exec'))
 import bpy
 import math

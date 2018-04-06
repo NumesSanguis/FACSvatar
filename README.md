@@ -1,4 +1,4 @@
-# FACSvatar v0.2.0-Alpha
+# FACSvatar v0.2.1-Alpha
 
 Affective computing and avatar animation both share that a person's facial expression contains useful information. Up until now, these fields use different processes to obtain and use these data. FACSvatar combines both purposes in a single framework. Empower your Embodied Conversational Agents (ECAs)!
 
@@ -36,7 +36,7 @@ The modularity is made possible by using [ZeroMQ - brokerless messaging library]
 
 * Stream your facial expressions in real-time into Unity 3D
 * [near-future] Set Shape Keys in Blender with your facial expressions for high-quality rendering and/or export your facial animation for classic trigger-based animation in e.g. games.
-[![Manuel Bastioni FACS expressions](https://img.youtube.com/vi/eu0eLYY3vF4/0.jpg)](https://www.youtube.com/watch?v=eu0eLYY3vF4)
+[![Manuel Bastioni FACS expressions](https://img.youtube.com/vi/iLMHeD8pixA/0.jpg)](https://www.youtube.com/watch?v=iLMHeD8pixA)
 * [near-future] Deep Neural Network generation of facial expressions for Human-Agent Interaction.
 * [your modules] Please add your own modules, release your code, and let's expand the functionality of this framework :) More details in the documentation.
 

@@ -1,4 +1,4 @@
-# script = "/media/nishida-stef-ubuntu/3A625DAF625D711D/FACS_pipeline/blender/facsvatar_zeromq.py"
+# script = "/*path*/blender/facsvatar_zeromq.py"
 # exec(compile(open(script).read(), script, 'exec'))
 import bpy
 import os
