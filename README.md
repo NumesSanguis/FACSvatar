@@ -1,4 +1,4 @@
-# FACSvatar v0.2.1-Alpha
+# FACSvatar v0.2.2-Alpha
 
 Affective computing and avatar animation both share that a person's facial expression contains useful information. Up until now, these fields use different processes to obtain and use these data. FACSvatar combines both purposes in a single framework. Empower your Embodied Conversational Agents (ECAs)!
 
