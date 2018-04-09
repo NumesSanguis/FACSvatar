@@ -42,6 +42,7 @@ class BlendShapeMsg:
 
         # publish blendshapes
         # TODO double json.dump
+        # TODO return dict instead of JSON string (do message packing in network)
         print(json.dumps(msg_dict, indent=4))
         return json.dumps(msg_dict)
 
@@ -75,10 +76,10 @@ class NetworkSetup:
 
         # activate publishers / subscribers
         asyncio.get_event_loop().run_until_complete(asyncio.wait([
-            self.blenshape_sub(),
+            self.blenshape_sub_pub(),
         ]))
 
-    async def blenshape_sub(self):
+    async def blenshape_sub_pub(self):
         # setup subscriber
         sub = self.ctx.socket(zmq.SUB)
         sub.connect(self.url)
@@ -91,11 +92,12 @@ class NetworkSetup:
 
         # without try statement, no error output
         try:
-            # keep listening to all published message on topic 'world'
+            # keep listening to all published message on topic 'facs'
             while True:
                 [topic, msg_sub] = await sub.recv_multipart()
                 print("FACS sub; topic: {}\tmessage: {}".format(topic, msg_sub))
                 # process message
+                # TODO move JSON decoding to here (network part)
                 msg_pub = await self.blendshape.facs_to_blendshape(msg_sub.decode('utf-8'))
 
                 # await asyncio.sleep(.2)

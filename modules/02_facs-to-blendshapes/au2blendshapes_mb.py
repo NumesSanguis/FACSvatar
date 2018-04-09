@@ -78,12 +78,12 @@ class AUtoBlendShapes:
 
     # https://stackoverflow.com/a/35689816/3399066
     # sum 2 dicts
-    def npe_method(self, tests):
-        ret = defaultdict(int)
-        for d in tests:
-            for k, v in d.items():
-                ret[k] += v
-        return dict(ret)
+    # def npe_method(self, tests):
+    #     ret = defaultdict(int)
+    #     for d in tests:
+    #         for k, v in d.items():
+    #             ret[k] += v
+    #     return dict(ret)
 
     # receive AU values and change to blendshapes
     def calc_blendshapes(self, facs_dict):

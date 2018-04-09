@@ -37,7 +37,7 @@ class FACSMsgFromCSV:
         self.filter_csv = FilterCSV
 
     # generator for FACS messages
-    async def facs_msg_gen(self, file='demo.csv'):
+    async def facs_msg_gen(self, file='head_test.csv'):
         # # global sleep for showing video
         # global global_publish_time
         # global global_start_video
@@ -67,6 +67,9 @@ class FACSMsgFromCSV:
             print("FRAME TRACKER: {}".format(frame_tracker))
 
             # get AU/other values of 1 frame and transform it to a dict
+            # TODO pandas to_json
+            # https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+            # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.to_json.html
             msg_dict = self.structure_dict(self.df_au.iloc[frame_tracker])
 
             # show json contents
@@ -290,6 +293,7 @@ class NetworkSetup:
             print(msg)
             # send message if we have data
             if msg:
+                # TODO seperate data from meta-data
                 await pub.send_multipart([topic.encode('ascii'), msg.encode('utf-8')])
 
             # done

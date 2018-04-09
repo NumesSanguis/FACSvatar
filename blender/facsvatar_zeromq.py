@@ -68,6 +68,13 @@ class FACSvatarZeroMQ(bpy.types.Operator):
         self.mb_body.data.shape_keys.key_blocks["Expressions_chestExpansion_max"] \
             .keyframe_insert(data_path="value", frame=self.frame)
 
+    # match head pose name with bones in blender
+    def rotate_head_bones(self, xyz, pose_name, inv=1):
+        # head bone
+        self.head_bones[0].rotation_euler[xyz] = self.msg_json['data']['head_pose'][pose_name] * .95 * inv
+        # neck bone
+        self.head_bones[1].rotation_euler[xyz] = self.msg_json['data']['head_pose'][pose_name] * .5 * inv
+
     def modal(self, context, event):
         if event.type in {'ESC'}:  # 'RIGHTMOUSE',
             self.cancel(context)
@@ -82,7 +89,7 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
             # message data is not None
             if msg_data:
-                msg_json = json.loads(msg_data)
+                self.msg_json = json.loads(msg_data)
 
                 print(dir(self.mb_obj))
 
@@ -91,12 +98,10 @@ class FACSvatarZeroMQ(bpy.types.Operator):
                     bpy.context.scene.objects.active = self.mb_obj
                     bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
 
-                    for i, rot_name in enumerate(msg_json['data']['head_pose']):
-                        # head bone
-                        self.head_bones[0].rotation_euler[i] = msg_json['data']['head_pose'][rot_name] * .75
-                        # neck bone
-                        self.head_bones[1].rotation_euler[i] = msg_json['data']['head_pose'][rot_name] * .25
-                        # print(self.head_bones[0].rotation_euler[i])
+                    # for pose_name in enumerate(msg_json['data']['head_pose']):
+                    self.rotate_head_bones(0, 'pose_Rx')
+                    self.rotate_head_bones(1, 'pose_Ry', -1)
+                    self.rotate_head_bones(2, 'pose_Rz', -1)
 
                     # set key frames
                     bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
@@ -108,13 +113,13 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
                 # set all shape keys values
                 bpy.context.scene.objects.active = self.mb_body
-                for bs in msg_json['data']['blend_shape']:
+                for bs in self.msg_json['data']['blend_shape']:
                     # skip setting shape keys for breathing from data
                     if not bs.startswith("Expressions_chestExpansion"):
                         # print(bs)
                         # MB fix Caucasian female
                         # if not bs == "Expressions_eyeClosedR_max":
-                        val = msg_json['data']['blend_shape'][bs]
+                        val = self.msg_json['data']['blend_shape'][bs]
                         self.mb_body.data.shape_keys.key_blocks[bs].value = val
                         self.mb_body.data.shape_keys.key_blocks[bs] \
                             .keyframe_insert(data_path="value", frame=self.frame)
@@ -157,7 +162,7 @@ class FACSvatarZeroMQ(bpy.types.Operator):
         if self.mb_obj:
             print("Found Manuel Bastioni object")
             wm = context.window_manager
-            self._timer = wm.event_timer_add(0.1, context.window)
+            self._timer = wm.event_timer_add(0.04, context.window)
             wm.modal_handler_add(self)
         else:
             print("No Manuel Bastioni object in scene")
