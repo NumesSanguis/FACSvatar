@@ -1,6 +1,23 @@
-"""Opens a proxy bus between 2 ports for a N-proxy-M PubSub pattern
+"""Opens a proxy/function bus between 2 ports for a N-proxy-M PubSub pattern
 
+  Additional info:
+2 modes:
+1. proxy (no data copying) - DEFAULT
+2. function (modify pass through data)
 Similar to a ROS topic (named bus)
+
+  ZeroMQ:
+Default address listening to pubs: 127.0.0.1:5570
+Default address publishing to subs: 127.0.0.1:5571
+Sub listen and Pub style: 4+ part envelope (including key)
+Subscription Key: all (humanxx, agentxx)
+Message parts:
+0. sub_key
+1. frame
+2. timestamp
+3. data
+4. (data2)
+
 TODO: register somewhere for a bus overview"""
 
 # Copyright (c) Stef van der Struijk.
@@ -10,9 +27,11 @@ TODO: register somewhere for a bus overview"""
 import sys
 import zmq
 # from zmq import Context
-from smooth_data import SmoothData
 import traceback
 import logging
+
+# own import
+from smooth_data import SmoothData
 
 
 class ProxyPub:
