@@ -150,7 +150,7 @@ class NetworkSetup:
             if msg:
                 # seperate data from meta-data in different envelops
                 await pub.send_multipart([sub_key.encode('ascii'),
-                                          msg[0],  # row
+                                          msg[0],  # frame
                                           msg[1],  # timestamp
                                           msg[2].to_json().encode('utf-8'),  # FACS data; pandas data frame
                                           # TODO separate msg

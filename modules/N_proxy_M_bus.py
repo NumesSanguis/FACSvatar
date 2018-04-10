@@ -29,6 +29,7 @@ import zmq
 # from zmq import Context
 import traceback
 import logging
+import asyncio
 
 # own import
 from smooth_data import SmoothData
@@ -95,18 +96,26 @@ class ProxyPub:
         try:
             # keep listening to all published message on topic 'facs'
             while True:
-                [topic, msg] = await frontend_pubs.recv_multipart()
+                msg = await frontend_pubs.recv_multipart()
                 # print(msg_sub)
-                msg = json.loads(msg.decode('utf-8'))
-                facs = await smooth_func(msg['data']['facs'], queue_no=0)
-                head_pose = await smooth_func(msg['data']['head_pose'], queue_no=1)
-                # put new data in msg dict
-                msg['facs'] = facs
-                msg['head_pose'] = head_pose
-                # encode as string
-                msg = json.dumps(msg)
+                # msg = json.loads(msg.decode('utf-8'))
+                # prepare for asynchronous execution; convert byte to string
+                fut = asyncio.ensure_future
+                facs = fut(smooth_func(msg[3].decode('utf-8'), queue_no=0))
+                head_pose = fut(smooth_func(msg[4].decode('utf-8'), queue_no=1))
 
-                await backend_subs.send_multipart([topic, msg.encode('utf-8')])
+                # run concurrently
+                msg[3:] = await asyncio.gather(facs, head_pose)
+
+                # send modified message
+                print(msg)
+                await backend_subs.send_multipart([msg[0],
+                                          msg[1],  # frame
+                                          msg[2],  # timestamp
+                                          msg[3].encode('utf-8'),  # FACS data; pandas data frame
+                                          # TODO separate msg
+                                          msg[4].encode('utf-8')  # head pose data; pandas data frame
+                                          ])
 
         except:
             print("Error with sub")
