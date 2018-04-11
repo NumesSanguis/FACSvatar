@@ -71,9 +71,9 @@ class FACSvatarZeroMQ(bpy.types.Operator):
     # match head pose name with bones in blender
     def rotate_head_bones(self, xyz, pose_name, inv=1):
         # head bone
-        self.head_bones[0].rotation_euler[xyz] = self.msg_json['data']['head_pose'][pose_name] * .95 * inv
+        self.head_bones[0].rotation_euler[xyz] = self.head_json[pose_name] * .95 * inv
         # neck bone
-        self.head_bones[1].rotation_euler[xyz] = self.msg_json['data']['head_pose'][pose_name] * .5 * inv
+        self.head_bones[1].rotation_euler[xyz] = self.head_json[pose_name] * .5 * inv
 
     def modal(self, context, event):
         if event.type in {'ESC'}:  # 'RIGHTMOUSE',
@@ -85,11 +85,12 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
             # if self.pause_loop_count >= 5:
             # get ZeroMQ message
-            msg_data = self.sub.recv_multipart()[1].decode('utf-8')
+            msg = self.sub.recv_multipart()
 
-            # message data is not None
-            if msg_data:
-                self.msg_json = json.loads(msg_data)
+            # check not finished; frame is empty (b'')
+            if msg[1]:
+                self.blendshapes_json = json.loads(msg[3].encode('utf8'))
+                self.head_json = json.loads(msg[4].encode('utf8'))
 
                 print(dir(self.mb_obj))
 
@@ -113,13 +114,13 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
                 # set all shape keys values
                 bpy.context.scene.objects.active = self.mb_body
-                for bs in self.msg_json['data']['blend_shape']:
+                for bs in self.blendshapes_json:
                     # skip setting shape keys for breathing from data
                     if not bs.startswith("Expressions_chestExpansion"):
                         # print(bs)
                         # MB fix Caucasian female
                         # if not bs == "Expressions_eyeClosedR_max":
-                        val = self.msg_json['data']['blend_shape'][bs]
+                        val = self.blendshapes_json[bs]
                         self.mb_body.data.shape_keys.key_blocks[bs].value = val
                         self.mb_body.data.shape_keys.key_blocks[bs] \
                             .keyframe_insert(data_path="value", frame=self.frame)

@@ -36,7 +36,7 @@ class FACSMsgFromCSV:
         self.filter_csv = FilterCSV
 
     # generator for FACS and head pose messages
-    async def facs_msg_gen(self, file='demo.csv'):
+    async def facs_msg_gen(self, file='head_test.csv'):
         # load OpenFace csv as dataframe
         df_csv = FilterCSV(file).df_csv
         print(df_csv.head())
@@ -159,7 +159,7 @@ class NetworkSetup:
 
             # done
             else:
-                print("FACS done")
+                print("No more messages to publish; FACS done")
 
                 # tell network messages finished (frame == timestamp == None)
                 await pub.send_multipart([sub_key.encode('ascii'), b'', b'', b'', b''])

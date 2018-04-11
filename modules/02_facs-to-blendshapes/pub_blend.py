@@ -42,7 +42,6 @@ class BlendShapeMsg:
 
         # publish blendshapes
         # TODO double json.dump
-        # TODO return dict instead of JSON string (do message packing in network)
         print(json.dumps(msg_dict, indent=4))
         return json.dumps(msg_dict)
 
@@ -63,7 +62,7 @@ class BlendShapeMsg:
 # client to message broker server
 class NetworkSetup:
     """
-    Our WAMP session class .. setup register/subscriber/publisher here
+    ZeroMQ network setup
     """
     def __init__(self, address='127.0.0.1', port_facs='5571', port_blend='5572'):
         self.url = "tcp://{}:{}".format(address, port_facs)
@@ -94,17 +93,31 @@ class NetworkSetup:
         try:
             # keep listening to all published message on topic 'facs'
             while True:
-                [topic, msg_sub] = await sub.recv_multipart()
-                print("FACS sub; topic: {}\tmessage: {}".format(topic, msg_sub))
-                # process message
-                # TODO move JSON decoding to here (network part)
-                msg_pub = await self.blendshape.facs_to_blendshape(msg_sub.decode('utf-8'))
+                msg = await sub.recv_multipart()
+                print("message: {}".format(msg))
 
-                # await asyncio.sleep(.2)
+                # check not finished; frame is empty (b'')
+                if msg[1]:
+                    # process message
+                    # TODO move JSON decoding to here (network part)
+                    msg[3] = await self.blendshape.facs_to_blendshape(msg[3].decode('utf-8'))
 
-                # publish message to topic 'sekai'
-                # async always needs `send_multipart()`
-                await pub.send_multipart([topic, msg_pub.encode('utf-8')])
+                    # await asyncio.sleep(.2)
+
+                    # publish message to topic 'sekai'
+                    # async always needs `send_multipart()`
+                    print(msg)
+                    await pub.send_multipart([msg[0],  # topic
+                                              msg[1],  # frame
+                                              msg[2],  # timestamp
+                                              msg[3].encode('utf-8'),  # Blend Shape data; json
+                                              # TODO separate msg
+                                              msg[4].encode('utf-8')  # head pose data; json
+                                              ])
+                # send message we're done
+                else:
+                    print("No more messages to publish; Blend Shapes done")
+                    await pub.send_multipart([msg[0], b'', b'', b'', b''])
 
         except Exception as e:
             print("Error with sub world")
