@@ -97,25 +97,36 @@ class ProxyPub:
             # keep listening to all published message on topic 'facs'
             while True:
                 msg = await frontend_pubs.recv_multipart()
-                # print(msg_sub)
-                # msg = json.loads(msg.decode('utf-8'))
-                # prepare for asynchronous execution; convert byte to string
-                fut = asyncio.ensure_future
-                facs = fut(smooth_func(msg[3].decode('utf-8'), queue_no=0))
-                head_pose = fut(smooth_func(msg[4].decode('utf-8'), queue_no=1))
 
-                # run concurrently
-                msg[3:] = await asyncio.gather(facs, head_pose)
+                # check not finished; frame is empty (b'')
+                if msg[1]:
+                    # print(msg_sub)
+                    # msg = json.loads(msg.decode('utf-8'))
+                    # prepare for asynchronous execution; convert byte to string
+                    # fut = asyncio.ensure_future
+                    # facs = fut(smooth_func(msg[3].decode('utf-8'), queue_no=0))
+                    # head_pose = fut(smooth_func(msg[4].decode('utf-8'), queue_no=1))
 
-                # send modified message
-                print(msg)
-                await backend_subs.send_multipart([msg[0],
-                                          msg[1],  # frame
-                                          msg[2],  # timestamp
-                                          msg[3].encode('utf-8'),  # FACS data; pandas data frame
-                                          # TODO separate msg
-                                          msg[4].encode('utf-8')  # head pose data; pandas data frame
-                                          ])
+                    msg[3] = smooth_func(msg[3].decode('utf-8'), queue_no=0)
+                    msg[4] = smooth_func(msg[4].decode('utf-8'), queue_no=1)
+
+                    # run concurrently
+                    # msg[3:] = await asyncio.gather(facs, head_pose)
+
+                    # send modified message
+                    print(msg)
+                    await backend_subs.send_multipart([msg[0],
+                                              msg[1],  # frame
+                                              msg[2],  # timestamp
+                                              msg[3].encode('utf-8'),  # FACS data; pandas data frame
+                                              # TODO separate msg
+                                              msg[4].encode('utf-8')  # head pose data; pandas data frame
+                                              ])
+
+                # send message we're done
+                else:
+                    print("No more messages to pass; finished")
+                    await backend_subs.send_multipart([msg[0], b'', b'', b'', b''])
 
         except:
             print("Error with sub")

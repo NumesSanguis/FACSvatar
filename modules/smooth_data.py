@@ -1,5 +1,7 @@
+import math
 import asyncio
 import pandas as pd
+import sys
 import copy
 import json
 from collections import defaultdict
@@ -13,122 +15,82 @@ class SmoothData:
 
     def __init__(self):
         # store dicts from previous time steps; e.g. [0] = facs, [1] = head_pose
-        self.queue_list = []
+        self.dataframe_list = []
 
-    async def trailing_moving_average(self, data_json, queue_no, trail=2, alpha=1):
+    # smoothing function similar to softmax
+    def softmax_smooth(self, series, steep=1):
+        # series: 1 column as a pandas data series from a dataframe
+        # steep: close to 0 means taking average, high steep means only looking at new data
+
+        # print(f"Smoothing:\n{series}")
+
+        # sum_0_n(e^(-steepness*n) x_n) / sum_0_n(e^(-steepness*n))
+        numerator = 0
+        denominator = 0
+        for n, x in enumerate(series):  # reversed()
+            numerator += math.exp(-steep * n) * x
+            denominator += math.exp(-steep * n)  # TODO calculate once
+
+        # print(f"numerator: {numerator}")
+        # print(f"denominator: {denominator}")
+        smooth = numerator / denominator
+        # print(f"smooth: {smooth}\n")
+
+        return smooth
+
+    # use window of size 'window_size' data to smooth; window=1 is no smoothing
+    def trailing_moving_average(self, data_json, queue_no, window_size=3, steep=1):
         # data_json: json formatted string containing data
         # queue_no: which data history should be used
         # trail: how many previous dicts should be remembered
 
-        print("Smoothing FACS / head_pose data with past data...")
+        # no smoothing
+        if window_size <= 1:
+            return data_json
 
-        # convert json to pandas dataframe
-        d_series = pd.read_json(data_json, typ='series')
-        print(d_series)
-        # print(d_series.type())
-
-        # create a new queue to store a new type of data
-        if len(self.queue_list) <= queue_no:
-            # convert series to data frame
-            d_frame = d_series.to_frame()
-            print(d_frame)
-
-            print("Add new queue")
-            self.queue_list.append([d_frame])
-            # return data frame in json format
-            return d_series.to_json()
-
-        # # don't smooth if queue is not full
-        # elif len(self.queue_list[queue_no]) < trail:
-        #     print("Queue not full yet")
-        #     self.queue_list[queue_no].append(data_dict)
-        #     # return unchanged data
-        #     return data_dict
-
-        # use [trail] previous data dicts for moving average
         else:
-            print("\n\n")
-            print(d_series)
+            # convert json to pandas dataframe
+            d_series = pd.read_json(data_json, typ='series')
 
-            # get data frame
-            d_frame = self.queue_list[queue_no]
+            # create a new queue to store a new type of data when no queue exist yet
+            if len(self.dataframe_list) <= queue_no:
+                # convert series to data frame
+                d_frame = d_series.to_frame()
+                # use labels as column names; switch index with columns
+                d_frame = d_frame.transpose()
+                print(d_frame)
 
-            # add data series to data frame
+                # add calculated denominator as meta-data
+                # d_frame.steep = steep
 
+                print("Add new queue")
+                self.dataframe_list.append(d_frame)
+                # return data frame in json format
+                return data_json
 
-            # add unmodified dict to queue (position 3, not use for smoothing
-            # .append(json.loads(json.dumps(data_dict))); thread safe deep copy
-            self.queue_list[queue_no].append(data_dict)
-            print("len queue list: {}".format(len(self.queue_list[queue_no])))
-            print(self.queue_list[queue_no][0])
-            print(self.queue_list[queue_no][1])
-            print(self.queue_list[queue_no][2])
+            # use [trail] previous data dicts for moving average
+            else:
+                # get data frame
+                d_frame = self.dataframe_list[queue_no]
 
-
-            # weighted smooth with previous dict
-            # https://stackoverflow.com/a/35689816/3399066
-            # TODO different trail length than 3
-            data_dict = {e: data_dict[e] * .7 +
-                            self.queue_list[queue_no][0][e] * .2 +
-                            self.queue_list[queue_no][1][e] * .1
-                         for e in data_dict}
-
-            # remove oldest dict
-            print("\n\nPopping: {}".format(self.queue_list[queue_no].pop(0)))
-
-            print("")
-            print(data_dict)
-            print(self.queue_list[queue_no][0])
-            print(self.queue_list[queue_no][1])
-            return data_dict
-
-    async def trailing_moving_average_old(self, data_dict, queue_no, trail=2):
-        # data_dict: dict containing data
-        # queue_no: which data history should be used
-        # trail: how many previous dicts should be remembered
-
-        print("Smoothing FACS data with trailing average...")
-
-        # store a new queue for new type of data
-        if len(self.queue_list) <= queue_no:
-            print("Add new queue")
-            self.queue_list.append([data_dict])
-            return data_dict
-
-        # don't smooth if queue is not full
-        elif len(self.queue_list[queue_no]) < trail:
-            print("Queue not full yet")
-            self.queue_list[queue_no].append(data_dict)
-            # return unchanged data
-            return data_dict
-
-        # use [trail] previous data dicts for moving average
-        else:
-            print("\n\n")
-            print(data_dict)
-
-            # add unmodified dict to queue (position 3, not use for smoothing
-            # .append(json.loads(json.dumps(data_dict))); thread safe deep copy
-            self.queue_list[queue_no].append(data_dict)
-            print("len queue list: {}".format(len(self.queue_list[queue_no])))
-            print(self.queue_list[queue_no][0])
-            print(self.queue_list[queue_no][1])
-            print(self.queue_list[queue_no][2])
+                # add data series to data frame at first postion
+                # d_frame = d_frame.append(d_series, ignore_index=True)  # , ignore_index=True
+                d_frame.loc[-1] = d_series  # adding a row
+                d_frame.index = d_frame.index + 1  # shifting index
+                d_frame = d_frame.sort_index()  # sorting by index
 
 
-            # weighted smooth with previous dict
-            # https://stackoverflow.com/a/35689816/3399066
-            # TODO different trail length than 3
-            data_dict = {e: data_dict[e] * .7 +
-                            self.queue_list[queue_no][0][e] * .2 +
-                            self.queue_list[queue_no][1][e] * .1
-                         for e in data_dict}
+                # drop row when row count longer than trail
+                if d_frame.shape[0] > window_size:
+                    # drop first row (frame)
+                    # d_frame.drop(d_frame.index[0], inplace=True)
+                    # drop last row (oldest frame)
+                    d_frame.drop(d_frame.tail(1).index, inplace=True)
 
-            # remove oldest dict
-            print("\n\nPopping: {}".format(self.queue_list[queue_no].pop(0)))
+                # put our data frame back for next time
+                self.dataframe_list[queue_no] = d_frame
 
-            print("")
-            print(data_dict)
-            print(self.queue_list[queue_no][0])
-            print(self.queue_list[queue_no][1])
-            return data_dict
+                # use softmax-like function to smooth
+                smooth_data = d_frame.apply(self.softmax_smooth, args=(steep,))  # axis=1,
+
+                return smooth_data.to_json()

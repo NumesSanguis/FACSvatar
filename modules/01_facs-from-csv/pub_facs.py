@@ -36,7 +36,7 @@ class FACSMsgFromCSV:
         self.filter_csv = FilterCSV
 
     # generator for FACS and head pose messages
-    async def facs_msg_gen(self, file='head_test.csv'):
+    async def facs_msg_gen(self, file='demo.csv'):
         # load OpenFace csv as dataframe
         df_csv = FilterCSV(file).df_csv
         print(df_csv.head())
@@ -87,9 +87,9 @@ class FACSMsgFromCSV:
             print("waiting {} seconds before sending next FACS".format(time_sleep))
 
             # don't sleep negative time
-            if time_sleep >= 0:
-                # currently can send about 3000 fps
-                await asyncio.sleep(time_sleep)  # time_sleep (~0.031)
+            # if time_sleep >= 0:
+            #     # currently can send about 3000 fps
+            #     await asyncio.sleep(time_sleep)  # time_sleep (~0.031)
 
             # return msg data; yield in async gen (Python >= 3.6)
             yield row['frame'], timestamp, facs, head_pose
@@ -162,7 +162,7 @@ class NetworkSetup:
                 print("FACS done")
 
                 # tell network messages finished (frame == timestamp == None)
-                await pub.send_multipart([sub_key.encode('ascii'), None, None, None, None])
+                await pub.send_multipart([sub_key.encode('ascii'), b'', b'', b'', b''])
 
 
 if __name__ == '__main__':
