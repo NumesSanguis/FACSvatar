@@ -36,7 +36,7 @@ class FACSMsgFromCSV:
         self.filter_csv = FilterCSV
 
     # generator for FACS and head pose messages
-    async def facs_msg_gen(self, file='head_test.csv'):
+    async def facs_msg_gen(self, file='demo.csv'):
         # load OpenFace csv as dataframe
         df_csv = FilterCSV(file).df_csv
         print(df_csv.head())

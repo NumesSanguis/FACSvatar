@@ -108,11 +108,13 @@ class ProxyPub:
                     # facs = fut(smooth_func(msg[3].decode('utf-8'), queue_no=0))
                     # head_pose = fut(smooth_func(msg[4].decode('utf-8'), queue_no=1))
 
-                    msg[3] = smooth_func(msg[3].decode('utf-8'), queue_no=0)
-                    msg[4] = smooth_func(msg[4].decode('utf-8'), queue_no=1, window_size=6)
-
                     # run concurrently
                     # msg[3:] = await asyncio.gather(facs, head_pose)
+
+                    # smooth facial expressions; window_size: number of past data points; steep: weight to newer data
+                    msg[3] = smooth_func(msg[3].decode('utf-8'), queue_no=0, window_size=3, steep=.6)
+                    # smooth head position
+                    msg[4] = smooth_func(msg[4].decode('utf-8'), queue_no=1, window_size=5, steep=.15)
 
                     # send modified message
                     print(msg)

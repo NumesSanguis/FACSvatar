@@ -7,9 +7,6 @@ public class HeadRotator : MonoBehaviour {
 
 	//Quaternion rotation = Quaternion.identity;
 
-	// Radians to degree
-	float Rad2Degree = 180 / Mathf.PI;
-
 	//   Human muscle stuff
 	HumanPoseHandler humanPoseHandler;
 	HumanPose humanPose;
@@ -121,15 +118,15 @@ public class HeadRotator : MonoBehaviour {
 		//   25% neck rotation, 75% head rotation
 		//Debug.Log("Head rotation: " + head_rotation[0] + ", " + head_rotation[1] + ", " + head_rotation[2]);
 		// pitch (head up/down); OpenFace returns opposite values, hence *-1
-		ChangeMuscleValue(9, head_rotation[0] * -.25f);
+		ChangeMuscleValue(9, head_rotation[0] * -.5f);
 		ChangeMuscleValue(12, head_rotation[0] * -1);  //  * .75f
 
 		// yaw (turn head left/right)
-		ChangeMuscleValue(11, head_rotation[1] * .25f);
+		ChangeMuscleValue(11, head_rotation[1] * .5f);
 		ChangeMuscleValue(14, head_rotation[1]);  //  * .75f
 
 		// roll
-		ChangeMuscleValue(10, head_rotation[2] * -.25f);
+		ChangeMuscleValue(10, head_rotation[2] * -.5f);
 		ChangeMuscleValue(13, head_rotation[2] * -1);  //  * .75f
 
 		// do the animation

@@ -23,27 +23,27 @@ class BlendShapeMsg:
     async def facs_to_blendshape(self, facs_json):  # , id_cb, type_cb
         # facs_json: received facs values in JSON format
 
-        print("----------------------------")
-        print(type(facs_json))
-        # change JSON to Python internal dict
-        facs_dict = json.loads(facs_json)
-        print(type(facs_dict))
-        print("---")
+        # print("----------------------------")
+        # print(type(facs_json))
+        # # change JSON to Python internal dict
+        # facs_dict = json.loads(facs_json)
+        # print(type(facs_dict))
+        # print("---")
         # pretty printing
         #print(json.dumps(facs_dict, indent=4))  # , indent=4, sort_keys=True
 
         # change facs to blendshapes
         # TODO if None (should not receive any None prob)
-        blend_dict = self.au_to_blendshapes.output_blendshapes(facs_dict['data']['facs'])
+        blend_dict = self.au_to_blendshapes.output_blendshapes(json.loads(facs_json))
         # print(blend_dict)
 
         # add blend dict under 'data' to received message and remove FACS
-        msg_dict = self.structure_dict(facs_dict, blend_dict)
+        # msg_dict = self.structure_dict(facs_dict, blend_dict)
 
         # publish blendshapes
         # TODO double json.dump
-        print(json.dumps(msg_dict, indent=4))
-        return json.dumps(msg_dict)
+        print(json.dumps(blend_dict, indent=4))
+        return json.dumps(blend_dict)
 
     # restructure to frame, timestamp, data={head_pose, blendshape}
     def structure_dict(self, facs_dict, blend_dict):
@@ -99,7 +99,6 @@ class NetworkSetup:
                 # check not finished; frame is empty (b'')
                 if msg[1]:
                     # process message
-                    # TODO move JSON decoding to here (network part)
                     msg[3] = await self.blendshape.facs_to_blendshape(msg[3].decode('utf-8'))
 
                     # await asyncio.sleep(.2)
@@ -112,7 +111,7 @@ class NetworkSetup:
                                               msg[2],  # timestamp
                                               msg[3].encode('utf-8'),  # Blend Shape data; json
                                               # TODO separate msg
-                                              msg[4].encode('utf-8')  # head pose data; json
+                                              msg[4]  # head pose data; json
                                               ])
                 # send message we're done
                 else:

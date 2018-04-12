@@ -1,4 +1,5 @@
 ﻿//https://github.com/valkjsaaa/Unity-ZeroMQ-Example
+using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading;
 using NetMQ;
@@ -6,43 +7,81 @@ using UnityEngine;
 using NetMQ.Sockets;
 using Newtonsoft.Json.Linq;
 
+// connect with ZeroMQ
 public class NetMqListener
 {
     private readonly Thread _listenerWorker;
     private bool _listenerCancelled;
-    public delegate void MessageDelegate(string message);
+    public delegate void MessageDelegate(List<string> msg_list);
     private readonly MessageDelegate _messageDelegate;
-    private readonly ConcurrentQueue<string> _messageQueue = new ConcurrentQueue<string>();
+    private readonly ConcurrentQueue<List<string>> _messageQueue = new ConcurrentQueue<List<string>>();
     private void ListenerWork()
     {
         Debug.Log("Setting up subscriber sock");
         AsyncIO.ForceDotNet.Force();
         using (var subSocket = new SubscriberSocket())
         {
+            // set limit on how many messages in memory
             subSocket.Options.ReceiveHighWatermark = 1000;
+            // socket connection
             subSocket.Connect("tcp://localhost:5572");
+            // subscribe to topics; "" == all topics
             subSocket.Subscribe("");
             Debug.Log("sub socket initiliased");
+
+            string topic;
+            string frame;
+            string timestamp;
+            string blend_shapes;
+            string head_pose;
             while (!_listenerCancelled)
             {
-                string frameString;
-                if (!subSocket.TryReceiveFrameString(out frameString)) continue;
+                //string frameString;
+                // wait for full message
+                //if (!subSocket.TryReceiveFrameString(out frameString)) continue;
                 //Debug.Log(frameString);
-                _messageQueue.Enqueue(frameString);
+                //_messageQueue.Enqueue(frameString);
+
+                List<string> msg_list = new List<string>();
+                if (!subSocket.TryReceiveFrameString(out topic)) continue;
+                if (!subSocket.TryReceiveFrameString(out frame)) continue;
+                if (!subSocket.TryReceiveFrameString(out timestamp)) continue;
+                if (!subSocket.TryReceiveFrameString(out blend_shapes)) continue;
+                if (!subSocket.TryReceiveFrameString(out head_pose)) continue;
+
+                //Debug.Log("Received messages:");
+                //Debug.Log(frame);
+                //Debug.Log(timestamp);
+                //Debug.Log(blend_shapes);
+                //Debug.Log(head_pose);
+
+                // check if we're not done
+                if (frame != "")
+                {
+                    msg_list.Add(blend_shapes);
+                    msg_list.Add(head_pose);
+                    _messageQueue.Enqueue(msg_list);
+                }
+                // done
+                else
+                {
+                    Debug.Log("Received all messages");
+                }
             }
             subSocket.Close();
         }
         NetMQConfig.Cleanup();
     }
 
+    // check queue for messages
     public void Update()
     {
         while (!_messageQueue.IsEmpty)
         {
-            string message;
-            if (_messageQueue.TryDequeue(out message))
+            List<string> msg_list;
+            if (_messageQueue.TryDequeue(out msg_list))
             {
-                _messageDelegate(message);
+                _messageDelegate(msg_list);
             }
             else
             {
@@ -51,6 +90,7 @@ public class NetMqListener
         }
     }
 
+    // threaded message listener
     public NetMqListener(MessageDelegate messageDelegate)
     {
         _messageDelegate = messageDelegate;
@@ -70,6 +110,7 @@ public class NetMqListener
     }
 }
 
+// act on messages received
 public class ZeroMQFACSvatar : MonoBehaviour
 {
     private NetMqListener _netMqListener;
@@ -79,18 +120,17 @@ public class ZeroMQFACSvatar : MonoBehaviour
     // Head rotations: Assign by dragging the GameObject with HeadAnimator into the inspector before running the game.
     public HeadRotator RiggedModel;
 
-    private void HandleMessage(string subMsg)
+    // receive data in JSON format
+    private void HandleMessage(List<string> msg_list)
     {
-        //Debug.Log(subMsg);
-        JObject jsonMsg = JObject.Parse(subMsg);
-
-        // get head pose data and send to main tread
-        JObject head_pose = jsonMsg["data"]["head_pose"].ToObject<JObject>();
-        UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel.RequestHeadRotation(head_pose));
+        JObject blend_shapes = JObject.Parse(msg_list[0]);
+        JObject head_pose = JObject.Parse(msg_list[1]);
 
         // get Blend Shape dict
-        JObject blend_shapes = jsonMsg["data"]["blend_shape"].ToObject<JObject>();
         UnityMainThreadDispatcher.Instance().Enqueue(FACSModel.RequestBlendshapes(blend_shapes));
+
+        // get head pose data and send to main tread
+        UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel.RequestHeadRotation(head_pose));
     }
 
     private void Start()
