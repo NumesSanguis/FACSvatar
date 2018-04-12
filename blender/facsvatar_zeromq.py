@@ -89,8 +89,8 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
             # check not finished; frame is empty (b'')
             if msg[1]:
-                self.blendshapes_json = json.loads(msg[3].encode('utf8'))
-                self.head_json = json.loads(msg[4].encode('utf8'))
+                self.blendshapes_json = json.loads(msg[3].decode('utf8'))
+                self.head_json = json.loads(msg[4].decode('utf8'))
 
                 print(dir(self.mb_obj))
 
