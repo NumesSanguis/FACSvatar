@@ -216,7 +216,7 @@ namespace OpenFaceOffline
             // Added by Huang
             pubSocket = new PublisherSocket();
             pubSocket.Options.SendHighWatermark = 1000;
-            pubSocket.Bind("tcp://" + myaddress + ":5570");
+            pubSocket.Connect("tcp://" + myaddress + ":5570");  //bind
 
         }
 
