@@ -39,25 +39,30 @@ class SmoothData:
         return smooth
 
     # use window of size 'window_size' data to smooth; window=1 is no smoothing
-    def trailing_moving_average(self, data_json, queue_no, window_size=3, steep=1):
-        # data_json: json formatted string containing data
+    def trailing_moving_average(self, data_dict, queue_no, window_size=3, steep=1):
+        # data_dict: json formatted string containing data
         # queue_no: which data history should be used
         # trail: how many previous dicts should be remembered
 
         # no smoothing
         if window_size <= 1:
-            return data_json
+            return data_dict
 
         else:
-            # convert json to pandas dataframe
-            d_series = pd.read_json(data_json, typ='series')
+            # convert dict to pandas dataframe
+            # d_series = data_dict  # pd.read_json(data_dict, typ='series')
 
             # create a new queue to store a new type of data when no queue exist yet
             if len(self.dataframe_list) <= queue_no:
                 # convert series to data frame
-                d_frame = d_series.to_frame()
+                # d_frame = d_series.to_frame()
                 # use labels as column names; switch index with columns
+                # d_frame = d_frame.transpose()
+
+                print(data_dict)
+                d_frame = pd.DataFrame.from_dict(data_dict, orient='index')
                 d_frame = d_frame.transpose()
+                # d_frame = pd.DataFrame.from_dict(list(data_dict.items()))
                 print(d_frame)
 
                 # add calculated denominator as meta-data
@@ -66,10 +71,13 @@ class SmoothData:
                 print("Add new queue")
                 self.dataframe_list.append(d_frame)
                 # return data frame in json format
-                return data_json
+                return data_dict
 
             # use [trail] previous data dicts for moving average
             else:
+                # transform dict to series
+                d_series = pd.Series(data_dict)
+
                 # get data frame
                 d_frame = self.dataframe_list[queue_no]
 
@@ -78,7 +86,6 @@ class SmoothData:
                 d_frame.loc[-1] = d_series  # adding a row
                 d_frame.index = d_frame.index + 1  # shifting index
                 d_frame = d_frame.sort_index()  # sorting by index
-
 
                 # drop row when row count longer than trail
                 if d_frame.shape[0] > window_size:
@@ -93,4 +100,4 @@ class SmoothData:
                 # use softmax-like function to smooth
                 smooth_data = d_frame.apply(self.softmax_smooth, args=(steep,))  # axis=1,
 
-                return smooth_data.to_json()
+                return smooth_data.to_dict()

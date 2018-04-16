@@ -10,7 +10,7 @@ Similar to a ROS topic (named bus)
 Default address listening to pubs: 127.0.0.1:5570
 Default address publishing to subs: 127.0.0.1:5571
 Sub listen and Pub style: 4+ part envelope (including key)
-Subscription Key: all (humanxx, agentxx)
+Subscription Key: all (openface, dnn)
 Message parts:
 0. sub_key
 1. frame
@@ -30,6 +30,7 @@ import zmq
 import traceback
 import logging
 import asyncio
+import json
 
 # own import
 from smooth_data import SmoothData
@@ -41,6 +42,7 @@ class ProxyPub:
         # self.context = Context.instance()
         # 2 sockets, because we can only bind once to a socket (as opposed to connect)
         self.url1 = "tcp://{}:{}".format(address, port_pubs)
+        # self.url1 = "tcp://{}:{}".format('192.168.11.3', port_pubs)
         self.url2 = "tcp://{}:{}".format(address, port_subs)
 
         # don't duplicate the message, just pass through
@@ -99,8 +101,9 @@ class ProxyPub:
                 msg = await frontend_pubs.recv_multipart()
                 print(msg)
 
-                # check not finished; frame is empty (b'')
+                # check not finished; timestamp is empty (b'')
                 if msg[1]:
+                    msg[2] = json.loads(msg[2].decode('utf-8'))
                     # print(msg_sub)
                     # msg = json.loads(msg.decode('utf-8'))
                     # prepare for asynchronous execution; convert byte to string
@@ -112,24 +115,30 @@ class ProxyPub:
                     # msg[3:] = await asyncio.gather(facs, head_pose)
 
                     # smooth facial expressions; window_size: number of past data points; steep: weight to newer data
-                    msg[3] = smooth_func(msg[3].decode('utf-8'), queue_no=0, window_size=4, steep=.5)
+                    msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=4, steep=.5)
                     # smooth head position
-                    msg[4] = smooth_func(msg[4].decode('utf-8'), queue_no=1, window_size=5, steep=.15)
+                    msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=5, steep=.15)
 
                     # send modified message
                     print(msg)
+                    # await backend_subs.send_multipart([msg[0],  # topic
+                    #                           msg[1],  # frame
+                    #                           msg[2],  # timestamp
+                    #                           msg[3].encode('utf-8'),  # FACS data; json
+                    #                           # TODO separate msg
+                    #                           msg[4].encode('utf-8')  # head pose data; json
+                    #                           ])
+
                     await backend_subs.send_multipart([msg[0],  # topic
-                                              msg[1],  # frame
-                                              msg[2],  # timestamp
-                                              msg[3].encode('utf-8'),  # FACS data; json
-                                              # TODO separate msg
-                                              msg[4].encode('utf-8')  # head pose data; json
-                                              ])
+                                                       msg[1],  # timestamp
+                                                       # data in JSON format or empty byte
+                                                       json.dumps(msg[2]).encode('utf-8')
+                                                       ])
 
                 # send message we're done
                 else:
                     print("No more messages to pass; finished")
-                    await backend_subs.send_multipart([msg[0], b'', b'', b'', b''])
+                    await backend_subs.send_multipart([msg[0], b'', b''])
 
         except:
             print("Error with sub")

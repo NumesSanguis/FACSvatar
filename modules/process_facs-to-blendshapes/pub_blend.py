@@ -20,13 +20,13 @@ class BlendShapeMsg:
     def __init__(self):
         self.au_to_blendshapes = AUtoBlendShapes()
 
-    async def facs_to_blendshape(self, facs_json):  # , id_cb, type_cb
-        # facs_json: received facs values in JSON format
+    async def facs_to_blendshape(self, au_dict):  # , id_cb, type_cb
+        # au_dict: received facs values in JSON format
 
         # print("----------------------------")
-        # print(type(facs_json))
+        # print(type(au_dict))
         # # change JSON to Python internal dict
-        # facs_dict = json.loads(facs_json)
+        # facs_dict = json.loads(au_dict)
         # print(type(facs_dict))
         # print("---")
         # pretty printing
@@ -34,29 +34,28 @@ class BlendShapeMsg:
 
         # change facs to blendshapes
         # TODO if None (should not receive any None prob)
-        blend_dict = self.au_to_blendshapes.output_blendshapes(json.loads(facs_json))
+        blend_dict = self.au_to_blendshapes.output_blendshapes(au_dict)
         # print(blend_dict)
 
         # add blend dict under 'data' to received message and remove FACS
         # msg_dict = self.structure_dict(facs_dict, blend_dict)
 
         # publish blendshapes
-        # TODO double json.dump
-        print(json.dumps(blend_dict, indent=4))
-        return json.dumps(blend_dict)
+        # print(blend_dict)
+        return blend_dict
 
-    # restructure to frame, timestamp, data={head_pose, blendshape}
-    def structure_dict(self, facs_dict, blend_dict):
-        #   restructure
-        # copy whole message except data part
-        msg_dict = {k: v for k, v in facs_dict.items() if k is not 'data'}
-        # init key 'data' again
-        msg_dict['data'] = {}
-        # copy 'head_pose' back into data
-        msg_dict['data']['head_pose'] = deepcopy(facs_dict['data']['head_pose'])
-        msg_dict['data']['blend_shape'] = deepcopy(blend_dict)
-
-        return msg_dict
+    # # restructure to frame, timestamp, data={head_pose, blendshape}
+    # def structure_dict(self, facs_dict, blend_dict):
+    #     #   restructure
+    #     # copy whole message except data part
+    #     msg_dict = {k: v for k, v in facs_dict.items() if k is not 'data'}
+    #     # init key 'data' again
+    #     msg_dict['data'] = {}
+    #     # copy 'head_pose' back into data
+    #     msg_dict['data']['head_pose'] = deepcopy(facs_dict['data']['head_pose'])
+    #     msg_dict['data']['blend_shape'] = deepcopy(blend_dict)
+    #
+    #     return msg_dict
 
 
 # client to message broker server
@@ -96,27 +95,28 @@ class NetworkSetup:
                 msg = await sub.recv_multipart()
                 print("message: {}".format(msg))
 
-                # check not finished; frame is empty (b'')
+                # check not finished; timestamp is empty (b'')
                 if msg[1]:
                     # process message
-                    msg[3] = await self.blendshape.facs_to_blendshape(msg[3].decode('utf-8'))
+                    msg[2] = json.loads(msg[2].decode('utf-8'))
+                    # transform Action Units to Blend Shapes
+                    msg[2]['blendshapes'] = await self.blendshape.facs_to_blendshape(msg[2]['au_r'])
+                    # remove au_r from dict
+                    msg[2].pop('au_r')
 
-                    # await asyncio.sleep(.2)
-
-                    # publish message to topic 'sekai'
                     # async always needs `send_multipart()`
                     print(msg)
+
                     await pub.send_multipart([msg[0],  # topic
-                                              msg[1],  # frame
-                                              msg[2],  # timestamp
-                                              msg[3].encode('utf-8'),  # Blend Shape data; json
-                                              # TODO separate msg
-                                              msg[4]  # head pose data; json
+                                              msg[1],  # timestamp
+                                              # data in JSON format or empty byte
+                                              json.dumps(msg[2]).encode('utf-8')
                                               ])
+
                 # send message we're done
                 else:
                     print("No more messages to publish; Blend Shapes done")
-                    await pub.send_multipart([msg[0], b'', b'', b'', b''])
+                    await pub.send_multipart([msg[0], b'', b''])
 
         except Exception as e:
             print("Error with sub world")

@@ -30,10 +30,11 @@ public class NetMqListener
             Debug.Log("sub socket initiliased");
 
             string topic;
-            string frame;
+            //string frame;
             string timestamp;
-            string blend_shapes;
-            string head_pose;
+            //string blend_shapes;
+            //string head_pose;
+            string facsvatar_json;
             while (!_listenerCancelled)
             {
                 //string frameString;
@@ -44,10 +45,11 @@ public class NetMqListener
 
                 List<string> msg_list = new List<string>();
                 if (!subSocket.TryReceiveFrameString(out topic)) continue;
-                if (!subSocket.TryReceiveFrameString(out frame)) continue;
+                //if (!subSocket.TryReceiveFrameString(out frame)) continue;
                 if (!subSocket.TryReceiveFrameString(out timestamp)) continue;
-                if (!subSocket.TryReceiveFrameString(out blend_shapes)) continue;
-                if (!subSocket.TryReceiveFrameString(out head_pose)) continue;
+                //if (!subSocket.TryReceiveFrameString(out blend_shapes)) continue;
+                //if (!subSocket.TryReceiveFrameString(out head_pose)) continue;
+                if (!subSocket.TryReceiveFrameString(out facsvatar_json)) continue;
 
                 //Debug.Log("Received messages:");
                 //Debug.Log(frame);
@@ -55,11 +57,12 @@ public class NetMqListener
                 //Debug.Log(blend_shapes);
                 //Debug.Log(head_pose);
 
-                // check if we're not done
-                if (frame != "")
+                // check if we're not done; timestamp is empty
+                if (timestamp != "")
                 {
-                    msg_list.Add(blend_shapes);
-                    msg_list.Add(head_pose);
+                    //msg_list.Add(blend_shapes);
+                    //msg_list.Add(head_pose);
+                    msg_list.Add(facsvatar_json);
                     _messageQueue.Enqueue(msg_list);
                 }
                 // done
@@ -123,13 +126,16 @@ public class ZeroMQFACSvatar : MonoBehaviour
     // receive data in JSON format
     private void HandleMessage(List<string> msg_list)
     {
-        JObject blend_shapes = JObject.Parse(msg_list[0]);
-        JObject head_pose = JObject.Parse(msg_list[1]);
+        //JObject blend_shapes = JObject.Parse(msg_list[0]);
+        //JObject head_pose = JObject.Parse(msg_list[1]);
+        JObject facsvatar = JObject.Parse(msg_list[0]);
 
         // get Blend Shape dict
+        JObject blend_shapes = facsvatar["blendshapes"].ToObject<JObject>();
         UnityMainThreadDispatcher.Instance().Enqueue(FACSModel.RequestBlendshapes(blend_shapes));
 
         // get head pose data and send to main tread
+        JObject head_pose = facsvatar["pose"].ToObject<JObject>();
         UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel.RequestHeadRotation(head_pose));
     }
 

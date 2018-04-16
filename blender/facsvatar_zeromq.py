@@ -69,11 +69,11 @@ class FACSvatarZeroMQ(bpy.types.Operator):
             .keyframe_insert(data_path="value", frame=self.frame)
 
     # match head pose name with bones in blender
-    def rotate_head_bones(self, xyz, pose_name, inv=1):
+    def rotate_head_bones(self, xyz, pose, inv=1):
         # head bone
-        self.head_bones[0].rotation_euler[xyz] = self.head_json[pose_name] * .95 * inv
+        self.head_bones[0].rotation_euler[xyz] = pose * .95 * inv
         # neck bone
-        self.head_bones[1].rotation_euler[xyz] = self.head_json[pose_name] * .5 * inv
+        self.head_bones[1].rotation_euler[xyz] = pose * .5 * inv
 
     def modal(self, context, event):
         if event.type in {'ESC'}:  # 'RIGHTMOUSE',
@@ -87,10 +87,11 @@ class FACSvatarZeroMQ(bpy.types.Operator):
             # get ZeroMQ message
             msg = self.sub.recv_multipart()
 
-            # check not finished; frame is empty (b'')
+            # check not finished; timestamp is empty (b'')
             if msg[1]:
-                self.blendshapes_json = json.loads(msg[3].decode('utf8'))
-                self.head_json = json.loads(msg[4].decode('utf8'))
+                # self.blendshapes_json = json.loads(msg[3].decode('utf8'))
+                # self.head_json = json.loads(msg[4].decode('utf8'))
+                msg[2] = json.loads(msg[2].decode('utf8'))
 
                 print(dir(self.mb_obj))
 
@@ -100,9 +101,10 @@ class FACSvatarZeroMQ(bpy.types.Operator):
                     bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
 
                     # for pose_name in enumerate(msg_json['data']['head_pose']):
-                    self.rotate_head_bones(0, 'pose_Rx')
-                    self.rotate_head_bones(1, 'pose_Ry', -1)
-                    self.rotate_head_bones(2, 'pose_Rz', -1)
+                    pose_head = msg[2]['pose']
+                    self.rotate_head_bones(0, pose_head['pose_Rx'])
+                    self.rotate_head_bones(1, pose_head['pose_Ry'], -1)
+                    self.rotate_head_bones(2, pose_head['pose_Rz'], -1)
 
                     # set key frames
                     bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
@@ -114,13 +116,13 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
                 # set all shape keys values
                 bpy.context.scene.objects.active = self.mb_body
-                for bs in self.blendshapes_json:
+                for bs in msg[2]['blendshapes']:
                     # skip setting shape keys for breathing from data
                     if not bs.startswith("Expressions_chestExpansion"):
                         # print(bs)
                         # MB fix Caucasian female
                         # if not bs == "Expressions_eyeClosedR_max":
-                        val = self.blendshapes_json[bs]
+                        val = msg[2]['blendshapes'][bs]
                         self.mb_body.data.shape_keys.key_blocks[bs].value = val
                         self.mb_body.data.shape_keys.key_blocks[bs] \
                             .keyframe_insert(data_path="value", frame=self.frame)
