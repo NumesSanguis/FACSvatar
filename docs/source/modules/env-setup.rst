@@ -1,3 +1,7 @@
+============================================
+Environment setup for running Python modules
+============================================
+
 The easiest way to use the modules will be through Docker images, but since those are not ready yet, we'll have to set-up a Python environment.
 
 FACSvatar recommends using `Anaconda <https://www.anaconda.com/download/>`_ for managing packages and virtual environments for Python, therefore code instructions assume Anaconda. Probably ``pip install ..`` will do the same without problems.
@@ -8,28 +12,35 @@ You can still create your modules with Python < 3.6, but it will be harder to se
 For cross-language & cross-platform support for modules (or to only use some of FACSvatar's modules), we use a pub-sub distributed messaging pattern through `ØMQ (ZeroMQ) <http://zeromq.org/>`_ . `Pip install <http://zeromq.org/bindings:python>`_ .
 More information about creating your own modules can be found ...
 
+--------------
+Anaconda setup
+--------------
+
 .. code-block:: bash
 
-   conda create --name zeromq python=3.6  # new virtual env and force python 3.6
-   conda install python=3.6  # IF you already have an existing env
-   source activate zeromq  # activate env
+   conda create --name facsvatar python=3.6  # new virtual env and force python 3.6
+   #conda install python=3.6  # IF you already have an existing env
+   source activate facsvatar  # activate env (Windows: conda activate facsvatar)
    
    conda install pyzmq  # make sure it's for py3.6
-   python  # let's test our installation
-
    conda install pandas  # library for dataframes; used for .csv reading and JSON-to-Dataframe
 
-   # Sorry for the six error, going to remove that package
-   
+   # maybe test new env first with instructions below
    conda install ipykernel  # allows the use of env kernels
-   python -m ipykernel install --user --display-name "py3 zeromq"  # enable our env as kernel
+   python -m ipykernel install --user --display-name "py3 facsvatar"  # enable our env as kernel
+
+--------------------
+Test new environment
+--------------------
 
 .. code-block:: python
 
+   import zmq
    print("Current libzmq version is %s" % zmq.zmq_version())  # 4.2.3 in my case
    print("Current  pyzmq version is %s" % zmq.__version__)  # 17.0.0 in my case
-   
+
+-------
 Modules
-=======
+-------
 
 :doc:`input-facsfromcsv`

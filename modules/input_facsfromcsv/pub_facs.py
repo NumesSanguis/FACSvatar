@@ -4,7 +4,6 @@
 
 import os
 import sys
-import six
 import time
 import glob
 import json

@@ -10,9 +10,13 @@ from zmq.asyncio import Context
 import traceback
 import logging
 
-# own imports
-from au2blendshapes_mb import AUtoBlendShapes  # when using Manuel Bastioni models
-#from au2blendshapes_mh import AUtoBlendShapes  # when using FACSHuman models
+# own imports; if statement for documentation
+if __name__ == '__main__':
+    from au2blendshapes_mb import AUtoBlendShapes  # when using Manuel Bastioni models
+    #from au2blendshapes_mh import AUtoBlendShapes  # when using FACSHuman models
+else:
+    from .au2blendshapes_mb import AUtoBlendShapes  # when using Manuel Bastioni models
+    # from .au2blendshapes_mh import AUtoBlendShapes  # when using FACSHuman models
 
 
 # process everything that is received
@@ -119,7 +123,7 @@ class NetworkSetup:
                     await pub.send_multipart([msg[0], b'', b''])
 
         except Exception as e:
-            print("Error with sub world")
+            print("Error with blendshape")
             # print(e)
             logging.error(traceback.format_exc())
             print()

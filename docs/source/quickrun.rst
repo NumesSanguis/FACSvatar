@@ -15,32 +15,46 @@ FACSvatar can currently be ran in 2 modes:
 
 We hope this process will be simplified with the use of Docker containers in the future.
 
--------
+------------
+Prerequisite
+------------
+^^^^^^^
+Both
+^^^^^^^
+
+1. Follow Python env setup here: :doc:`modules/env-setup`
+#. Install Unity 3D (Personal, tested with 2017.3)
+
+   - `Windows <https://store.unity.com/download?ref=personal>`_
+   - `Ubuntu <https://forum.unity.com/threads/unity-on-linux-release-notes-and-known-issues.350256/page-2>`_
+
+^^^^^^^
 Offline
--------
+^^^^^^^
 pub_facs.py requires Python 3.6 due to a async generator function.
 
 
--------
+^^^^^^
 Online
--------
+^^^^^^
 
 1. Download modified OpenFace (more info coming)
 
 
--------
-Both
--------
+-----------------
+Running FACSvatar
+-----------------
 These steps are intended to work on a single PC, due the address being localhost.
-For across computer data transport, give address arguments to the functions.
+For across computer data transport, give address arguments to the functions (more instructions in the future).
 
-0. Follow setup here: :doc:`modules/env-setup`
+0. Open Unity 3D, navigate to FACSvatar/unity_FACSvatar and open project
 #. Press 'play' in the Unity editor
+#. Open new terminals and don't forget to run :code:`source/conda activate facsvatar`!
 #. Terminal: :code:`python n_proxy_m_bus.py` (/modules/)
 #. Terminal: :code:`python pub_blend.py` (/modules/process_facstoblend/)
 #. One of the following:
 
    - Offline, Terminal: :code:`python pub_facs.py` (/modules/input_facsfromcsv/)
-   - Online (On Windows): run :code:`OpenFaceOffline.exe`
+   - Online (On Windows): run :code:`OpenFaceOffline.exe` --> File --> Open Webcam
 
 #. See an avatar move its head and make facial expressions!

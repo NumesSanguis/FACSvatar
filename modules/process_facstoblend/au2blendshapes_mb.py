@@ -103,6 +103,7 @@ class AUtoBlendShapes:
 
                     # loop over all blendshapes related to that AU
                     #print(self.au_dict[au])
+                    # TODO error: KeyError: 'AU'
                     for exp, exp_v in self.au_dict[au].items():
                         #print(exp, exp_v)
                         # multiply AU value with au_dict to get blendshape values and
