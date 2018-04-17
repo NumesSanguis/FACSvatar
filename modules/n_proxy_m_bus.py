@@ -147,7 +147,6 @@ class ProxyPub:
             print()
 
 
-
 if __name__ == '__main__':
     # get ZeroMQ version
     print("Current libzmq version is %s" % zmq.zmq_version())

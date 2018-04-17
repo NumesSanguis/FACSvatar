@@ -1,7 +1,10 @@
-.. FACSvatar documentation master file, created by
-   sphinx-quickstart on Thu Mar  1 15:19:45 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. _# with overline, for parts
+   * with overline, for chapters
+   =, for sections
+   -, for subsections
+   ^, for subsubsections
+   ", for paragraphs
+
 
 Welcome to FACSvatar's documentation!
 =====================================
@@ -10,11 +13,11 @@ Welcome to FACSvatar's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   quickrun
+   modules/env-setup
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

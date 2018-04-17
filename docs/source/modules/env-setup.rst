@@ -17,7 +17,9 @@ More information about creating your own modules can be found ...
    conda install pyzmq  # make sure it's for py3.6
    python  # let's test our installation
 
-   conda install pandas  # library for dataframes; used for .csv reading
+   conda install pandas  # library for dataframes; used for .csv reading and JSON-to-Dataframe
+
+   # Sorry for the six error, going to remove that package
    
    conda install ipykernel  # allows the use of env kernels
    python -m ipykernel install --user --display-name "py3 zeromq"  # enable our env as kernel
@@ -27,3 +29,7 @@ More information about creating your own modules can be found ...
    print("Current libzmq version is %s" % zmq.zmq_version())  # 4.2.3 in my case
    print("Current  pyzmq version is %s" % zmq.__version__)  # 17.0.0 in my case
    
+Modules
+=======
+
+:doc:`input-facsfromcsv`

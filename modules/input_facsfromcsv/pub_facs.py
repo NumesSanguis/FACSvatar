@@ -1,17 +1,3 @@
-"""Publishes FACS (Action Units) and head pos data from an OpenFace .csv
-
-  ZeroMQ:
-Default address pub: 127.0.0.1:5570
-Pub style: 5 part envelope (including key)
-Subscription Key: humanxx
-Message parts:
-0: sub_key
-1: frame
-2: timestamp
-3: facs
-4: head_pose
-"""
-
 # Copyright (c) Stef van der Struijk
 # License: GNU Lesser General Public License
 
@@ -27,8 +13,11 @@ import asyncio
 import zmq.asyncio
 from zmq.asyncio import Context
 
-# own imports
-from openfacefiltercsv import FilterCSV
+# own imports; if statement for documentation
+if __name__ == '__main__':
+    from openfacefiltercsv import FilterCSV
+else:
+    from .openfacefiltercsv import FilterCSV
 
 
 # class OpenFaceMessage:
@@ -43,11 +32,33 @@ from openfacefiltercsv import FilterCSV
 
 # generator for rows in FACS / head pose dataframe from FilterCSV
 class OpenFaceMsgFromCSV:
+    """
+    Publishes FACS (Action Units) and head pos data from an OpenFace .csv
+
+    ZeroMQ:
+    Default address pub: 127.0.0.1:5570
+    Pub style: 5 part envelope (including key)
+    Subscription Key: humanxx
+    Message parts:
+    0: sub_key
+    1: frame
+    2: timestamp
+    3: facs
+    4: head_pose
+    """
+
     def __init__(self,):  # client
         self.filter_csv = FilterCSV
 
     # generator for FACS and head pose messages
     async def msg_gen(self, file='demo.csv'):
+        """
+        Generates messages from a csv file
+
+        :param file: path + file name of csv file
+        :return: data of a message to be send in JSON
+        """
+
         # load OpenFace csv as dataframe
         df_csv = FilterCSV(file).df_csv
         print(df_csv.head())
@@ -117,6 +128,10 @@ class OpenFaceMsgFromCSV:
 
 # goes through 'openface' folder to find latest .csv
 class CrawlerCSV:
+    """
+    Crawls through a directory to look for .csv generate by OpenFace
+    """
+
     # return latest .csv
     def search(self, folder='openface'):
         csv_list = sorted(glob.glob(os.path.join(folder, '*.csv')))
@@ -141,6 +156,7 @@ class NetworkSetup:
     """
     ZeroMQ network setup
     """
+
     def __init__(self, address='127.0.0.1', port='5570'):
         self.url = "tcp://{}:{}".format(address, port)
         self.ctx = Context.instance()

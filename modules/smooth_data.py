@@ -101,3 +101,7 @@ class SmoothData:
                 smooth_data = d_frame.apply(self.softmax_smooth, args=(steep,))  # axis=1,
 
                 return smooth_data.to_dict()
+
+
+if __name__ == '__main__':
+    print("Don't run this module standalone")
