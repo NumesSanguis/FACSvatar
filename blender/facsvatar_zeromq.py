@@ -102,9 +102,9 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
                     # for pose_name in enumerate(msg_json['data']['head_pose']):
                     pose_head = msg[2]['pose']
-                    self.rotate_head_bones(0, pose_head['pose_Rx'])
-                    self.rotate_head_bones(1, pose_head['pose_Ry'], -1)
-                    self.rotate_head_bones(2, pose_head['pose_Rz'], -1)
+                    self.rotate_head_bones(0, pose_head['pose_Rx'])  # pitch
+                    self.rotate_head_bones(1, pose_head['pose_Ry'], -1)  # jaw
+                    self.rotate_head_bones(2, pose_head['pose_Rz'], -1)  # roll
 
                     # set key frames
                     bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
