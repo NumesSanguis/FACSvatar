@@ -10,7 +10,7 @@ class FilterCSV:
 
         self.df_csv = None
         # Action Units and head rotation
-        self.col_keep = ['AU.*_r', 'pose_R.*']  # , 'gaze_angle*'
+        self.col_keep = ['AU.*_r', 'pose_R.*', 'gaze_angle*']  # , 'gaze_angle*'
 
         # skip cleaning and load clean as dataframe
         if Path(csv_file[:-4] + "_clean.csv").exists():

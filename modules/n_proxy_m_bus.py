@@ -32,17 +32,20 @@ import logging
 import asyncio
 import json
 
-# own import
-from smooth_data import SmoothData
+# own import; if statement for documentation
+if __name__ == '__main__':
+    from smooth_data import SmoothData
+else:
+    from .smooth_data import SmoothData
 
 
 class ProxyPub:
-    def __init__(self, address='127.0.0.1', port_pubs='5570', port_subs='5571',
-                 data_func='trailing_moving_average'):
+    def __init__(self, address='127.0.0.1', port_pubs='5570', port_subs='5571',  # '127.0.0.1'
+                 data_func='trailing_moving_average'):  # 'trailing_moving_average'
         # self.context = Context.instance()
         # 2 sockets, because we can only bind once to a socket (as opposed to connect)
-        self.url1 = "tcp://{}:{}".format(address, port_pubs)
-        # self.url1 = "tcp://{}:{}".format('192.168.11.3', port_pubs)
+        #self.url1 = "tcp://{}:{}".format(address, port_pubs)
+        self.url1 = "tcp://{}:{}".format('192.168.11.3', port_pubs)
         self.url2 = "tcp://{}:{}".format(address, port_subs)
 
         # don't duplicate the message, just pass through
@@ -115,9 +118,9 @@ class ProxyPub:
                     # msg[3:] = await asyncio.gather(facs, head_pose)
 
                     # smooth facial expressions; window_size: number of past data points; steep: weight to newer data
-                    msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=4, steep=.5)
+                    msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=3, steep=.45)
                     # smooth head position
-                    msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=5, steep=.15)
+                    msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=3, steep=.2)
 
                     # send modified message
                     print(msg)

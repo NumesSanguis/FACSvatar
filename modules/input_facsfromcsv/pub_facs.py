@@ -34,23 +34,13 @@ class OpenFaceMsgFromCSV:
     """
     Publishes FACS (Action Units) and head pos data from an OpenFace .csv
 
-    ZeroMQ:
-    Default address pub: 127.0.0.1:5570
-    Pub style: 5 part envelope (including key)
-    Subscription Key: humanxx
-    Message parts:
-    0: sub_key
-    1: frame
-    2: timestamp
-    3: facs
-    4: head_pose
     """
 
     def __init__(self,):  # client
         self.filter_csv = FilterCSV
 
     # generator for FACS and head pose messages
-    async def msg_gen(self, file='demo.csv'):
+    async def msg_gen(self, file='head_test.csv'):
         """
         Generates messages from a csv file
 
@@ -70,10 +60,14 @@ class OpenFaceMsgFromCSV:
         # au_regression data frame
         au_regression_col = df_csv.columns.str.contains("AU.*_r")
         df_au_regression = df_csv.loc[:, au_regression_col]
+        # rename cols from AU**_r to AU**
+        df_au_regression.rename(columns=lambda x: x.replace('_r', ''), inplace=True)
 
         # head pose data frame
         head_pose_col = df_csv.columns.str.contains("pose_*")
         df_head_pose = df_csv.loc[:, head_pose_col]
+        # rename cols from pose_* to pitch, roll, yaw
+        #df_au_regression.rename({'pose_Rx': 'pitch', 'pose_Ry': 'roll', 'pose_Rz': 'yaw'}, axis='columns', inplace=True)
 
         # get current time to match timestamp when publishing
         timer = time.time()
@@ -154,6 +148,16 @@ class CrawlerCSV:
 class NetworkSetup:
     """
     ZeroMQ network setup
+
+    Default address pub: 127.0.0.1:5570
+    Pub style: 5 part envelope (including key)
+    Subscription Key: openface
+    Message parts:
+    0: sub_key
+    1: frame
+    2: timestamp
+    3: facs
+    4: head_pose
     """
 
     def __init__(self, address='127.0.0.1', port='5570'):

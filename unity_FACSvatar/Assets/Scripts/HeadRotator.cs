@@ -97,12 +97,13 @@ public class HeadRotator : MonoBehaviour {
 	public IEnumerator RequestHeadRotation(JObject head_pose)
 	{
 		// rotate head of character with received x, y, z rotations in radian
-		List<float> head_rotation = new List<float> ();
-		foreach (KeyValuePair<string, JToken> pair in head_pose) {
-			//Debug.Log(pair);
-			// store head rotation in radian (not degree)
-			head_rotation.Add(float.Parse(pair.Value.ToString()));  // *Rad2Degree
-		}
+		//List<float> head_rotation = new List<float> ();
+		//foreach (KeyValuePair<string, JToken> pair in head_pose) {
+            //Debug.Log(pair);
+            // store head rotation in radian (not degree)
+            //head_rotation.Add(float.Parse(pair.Value.ToString()));  // *Rad2Degree
+            //head_pose[pair.Key] = float.Parse(pair.Value.ToString());
+		//}
 
 		// Rotation OpenFace: https://github.com/TadasBaltrusaitis/OpenFace/wiki/Output-Format
 		// pitch (Rx), yaw (Ry), and roll (Rz)
@@ -118,16 +119,16 @@ public class HeadRotator : MonoBehaviour {
 		//   25% neck rotation, 75% head rotation
 		//Debug.Log("Head rotation: " + head_rotation[0] + ", " + head_rotation[1] + ", " + head_rotation[2]);
 		// pitch (head up/down); OpenFace returns opposite values, hence *-1
-		ChangeMuscleValue(9, head_rotation[0] * -.5f);
-		ChangeMuscleValue(12, head_rotation[0] * -1);  //  * .75f
+        ChangeMuscleValue(9, head_pose["pose_Rx"].ToObject<float>() * -.5f);
+        ChangeMuscleValue(12, head_pose["pose_Rx"].ToObject<float>() * -1);  //  * .75f
 
 		// yaw (turn head left/right)
-		ChangeMuscleValue(11, head_rotation[1] * .5f);
-		ChangeMuscleValue(14, head_rotation[1]);  //  * .75f
+        ChangeMuscleValue(11, head_pose["pose_Ry"].ToObject<float>() * .5f);
+        ChangeMuscleValue(14, head_pose["pose_Ry"].ToObject<float>());  //  * .75f
 
 		// roll
-		ChangeMuscleValue(10, head_rotation[2] * -.5f);
-		ChangeMuscleValue(13, head_rotation[2] * -1);  //  * .75f
+        ChangeMuscleValue(10, head_pose["pose_Rz"].ToObject<float>() * -.5f);
+        ChangeMuscleValue(13, head_pose["pose_Rz"].ToObject<float>() * -1);  //  * .75f
 
 		// do the animation
 		humanPoseHandler.SetHumanPose(ref humanPose);

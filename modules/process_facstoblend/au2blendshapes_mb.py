@@ -98,7 +98,7 @@ class AUtoBlendShapes:
                 # TODO make if statement about difference previous AU
                 if au_v > 0.001:
                     # remove '_r'
-                    au = au[:-2]
+                    #au = au[:-2]
                     #print(au, au_v)
 
                     # loop over all blendshapes related to that AU
