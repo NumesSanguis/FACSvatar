@@ -67,6 +67,8 @@ using NetMQ;
 using NetMQ.Sockets;
 using Newtonsoft.Json;
 using System.Net;
+using System.IO;
+using System.Xml;
 
 namespace OpenFaceOffline
 {
@@ -78,24 +80,30 @@ namespace OpenFaceOffline
         public double confidence;
         public struct Pose
         {
-            public double x;
-            public double y;
-            public double z;
-            public double pitch;
-            public double roll;
-            public double yaw;
+            public double pose_Tx;
+            public double pose_Ty;
+            public double pose_Tz;
+            public double pose_Rx;
+            public double pose_Ry;
+            public double pose_Rz;
         }
         public Pose pose;
         public struct Gaze
         {
-            public double x;
-            public double y;
-            //public Point 
+            public double gaze_angle_x;
+            public double gaze_angle_y;
+            public double gaze_0_x;
+            public double gaze_0_y;
+            public double gaze_0_z;
+            public double gaze_1_x;
+            public double gaze_1_y;
+            public double gaze_1_z;
         }
         public Gaze gaze;
         public Dictionary<string, double> au_c;
         public Dictionary<string, double> au_r;
     }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -104,6 +112,8 @@ namespace OpenFaceOffline
         // By Huang
         PublisherSocket pubSocket = null;
         long frame_no = 0;
+        string topic = "openface";
+        //Mode running_mode = Mode.standalone;
 
         // Timing for measuring FPS
         #region High-Resolution Timing
@@ -184,10 +194,43 @@ namespace OpenFaceOffline
 
         public MainWindow()
         {
-            String hostName = Dns.GetHostName(); 
+            bool bPush = false;
+
+            string configfile_name = "config.xml";
+
+            FileStream stream = new FileStream(configfile_name, FileMode.Open);
+            XmlDocument document = new XmlDocument();
+            document.Load(stream);
+
+            string serveraddress = "localhost";
+            int port = 5570;
+
+
+            XmlNodeList list = document.GetElementsByTagName("Mode");
+            if (list.Count > 0 && ((XmlElement)list[0]).InnerText.ToLower().Equals("push"))
+                bPush = true;
+            list = document.GetElementsByTagName("IP");
+            if(list.Count > 0)
+            {
+                serveraddress = ((XmlElement)list[0]).InnerText;
+            }
+            list = document.GetElementsByTagName("Port");
+            if(list.Count > 0)
+            {
+                port = Int32.Parse(((XmlElement)list[0]).InnerText);
+            }
+            list = document.GetElementsByTagName("Topic");
+            if(list.Count > 0)
+            {
+                topic = ((XmlElement)list[0]).InnerText;
+            }
+
+
+            String hostName = Dns.GetHostName();
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
 
             string myaddress = "localhost";
+
 
             foreach (IPAddress address in addresses)
             {
@@ -216,7 +259,10 @@ namespace OpenFaceOffline
             // Added by Huang
             pubSocket = new PublisherSocket();
             pubSocket.Options.SendHighWatermark = 1000;
-            pubSocket.Connect("tcp://" + myaddress + ":5570");  //bind
+            if(bPush)
+                pubSocket.Connect("tcp://" + serveraddress + ":" + port);
+            else
+                pubSocket.Bind("tcp://" + myaddress + ":" + port);
 
         }
 
@@ -467,7 +513,6 @@ namespace OpenFaceOffline
         // added by Huang
         private void SendZeroMQMessage(bool success, float fx, float fy, float cx, float cy, double openface_timestamp)
         {
-            //List<Tuple<double, double>> eye_landmarks = null;
             Tuple<double, double> gaze_angle = new Tuple<double, double>(0, 0);
             List<double> pose = new List<double>();
             List<double> non_rigid_params = landmark_detector.GetNonRigidParams();
@@ -475,7 +520,7 @@ namespace OpenFaceOffline
 
 
             NetMQMessage output_message = new NetMQMessage();
-            output_message.Append("openface");
+            output_message.Append(topic);
 
             JsonData json_data = new JsonData();
 
@@ -496,27 +541,28 @@ namespace OpenFaceOffline
 
             pose = new List<double>();
             landmark_detector.GetPose(pose, fx, fy, cx, cy);
-            //json_data.pose.yaw = pose[4] * 180 / Math.PI + 0.5; 
-            //json_data.pose.roll = pose[5] * 180 / Math.PI + 0.5;
-            //json_data.pose.pitch = pose[3] * 180 / Math.PI + 0.5;
-            json_data.pose.yaw = pose[4];
-            json_data.pose.roll = pose[5];
-            json_data.pose.pitch = pose[3];
-            json_data.pose.x = pose[0];
-            json_data.pose.y = pose[1];
-            json_data.pose.z = pose[2];
+
+            json_data.pose.pose_Tx = pose[0];
+            json_data.pose.pose_Ty = pose[1];
+            json_data.pose.pose_Tz = pose[2];
+            json_data.pose.pose_Rx = pose[3];
+            json_data.pose.pose_Ry = pose[4];
+            json_data.pose.pose_Rz = pose[5];
 
             gaze_angle = gaze_analyser.GetGazeAngle();
-            //json_data.gaze.x = gaze_angle.Item1 * (180.0 / Math.PI);
-            //json_data.gaze.y = gaze_angle.Item2 * (180.0 / Math.PI);
-            json_data.gaze.x = gaze_angle.Item1;
-            json_data.gaze.y = gaze_angle.Item2;
+            var gaze = gaze_analyser.GetGazeCamera();
+
+            json_data.gaze.gaze_angle_x = gaze_angle.Item1;
+            json_data.gaze.gaze_angle_y = gaze_angle.Item2;
+            json_data.gaze.gaze_0_x = gaze.Item1.Item1;
+            json_data.gaze.gaze_0_y = gaze.Item1.Item2;
+            json_data.gaze.gaze_0_z = gaze.Item1.Item3;
+            json_data.gaze.gaze_1_x = gaze.Item2.Item1;
+            json_data.gaze.gaze_1_y = gaze.Item2.Item2;
+            json_data.gaze.gaze_1_z = gaze.Item2.Item3;
 
             json_data.au_c = face_analyser.GetCurrentAUsClass();
 
-
-
-            //var au_regs_scaled = new Dictionary<String, double>();
             Dictionary<string, double> au_regs = face_analyser.GetCurrentAUsReg();
             json_data.au_r = new Dictionary<string, double>();
             foreach (KeyValuePair<string, double> au_reg in au_regs)

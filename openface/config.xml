@@ -1,0 +1,9 @@
+<Config>
+	<!-- push or pull, push uses connect function, pull uses bind function -->
+	<Mode>push</Mode>
+    <!-- <IP>192.168.11.3</IP> -->
+    <!-- <IP>127.0.0.1</IP> -->
+	<IP>127.0.0.1</IP>
+	<Port>5570</Port>
+	<Topic>openface</Topic>
+</Config>
