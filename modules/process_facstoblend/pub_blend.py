@@ -144,20 +144,16 @@ if __name__ == '__main__':
     print("Current libzmq version is %s" % zmq.zmq_version())
     print("Current  pyzmq version is %s" % zmq.pyzmq_version())
 
-    print("Arguments given: {}".format(sys.argv))
-    print("0, 2, or 3 arguments are expected (port_facs, port_blend, (address)), e.g.: 5571 5572 127.0.0.1")
+    # command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip_pub", default=argparse.SUPPRESS,
+                        help="IP (e.g. 192.168.x.x) of where to pub to; Default 127.0.0.1 (local)")
+    parser.add_argument("--port_pub", default=argparse.SUPPRESS,
+                        help="Port of where to pub to; Default 5572")
+    parser.add_argument("--ip_sub", default=argparse.SUPPRESS,
+                        help="IP (e.g. 192.168.x.x) of where to sub to; Default 127.0.0.1 (local)")
+    parser.add_argument("--port_sub", default=argparse.SUPPRESS,
+                        help="Port of where to sub to; Default 5571")
 
-    # no arguments
-    if len(sys.argv) == 1:
-        NetworkSetup()
-
-    # local network, only port
-    elif len(sys.argv) == 2:
-        NetworkSetup(port_facs=sys.argv[1])
-
-    # full network control
-    elif len(sys.argv) == 3:
-        NetworkSetup(port_facs=sys.argv[1], port_blend=sys.argv[2], address=sys.argv[3])
-
-    else:
-        print("Received incorrect number of arguments")
+    args, leftovers = parser.parse_known_args()
+    NetworkSetup(**vars(args))

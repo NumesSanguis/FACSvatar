@@ -25,6 +25,7 @@ TODO: register somewhere for a bus overview"""
 
 
 import sys
+import argparse
 import zmq
 # from zmq import Context
 import traceback
@@ -40,13 +41,14 @@ else:
 
 
 class ProxyPub:
-    def __init__(self, address='127.0.0.1', port_pubs='5570', port_subs='5571',  # '127.0.0.1'
+    def __init__(self, ip_pub='127.0.0.1', port_pub='5570', ip_sub='127.0.0.1', port_sub='5571',  # '127.0.0.1'
                  data_func='trailing_moving_average'):  # 'trailing_moving_average'
         # self.context = Context.instance()
         # 2 sockets, because we can only bind once to a socket (as opposed to connect)
-        #self.url1 = "tcp://{}:{}".format(address, port_pubs)
-        self.url1 = "tcp://{}:{}".format('192.168.11.3', port_pubs)
-        self.url2 = "tcp://{}:{}".format(address, port_subs)
+        self.url1 = "tcp://{}:{}".format(ip_pub, port_pub)
+        self.url2 = "tcp://{}:{}".format(ip_sub, port_sub)
+        print("Publishers should pub to: {}".format(self.url1))
+        print("Subscribers should sub to: {}".format(self.url2))
 
         # don't duplicate the message, just pass through
         if not data_func:
@@ -155,20 +157,16 @@ if __name__ == '__main__':
     print("Current libzmq version is %s" % zmq.zmq_version())
     print("Current  pyzmq version is %s" % zmq.pyzmq_version())
 
-    print("Arguments given: {}".format(sys.argv))
-    print("0, 2, or 3 extra arguments are expected (port_pubs, port_subs, (address)), e.g.: 5570 5571 127.0.0.1")
+    # command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip_pub", default=argparse.SUPPRESS,
+                        help="This PC's IP (e.g. 192.168.x.x) pubslishers pub to; Default 127.0.0.1 (local)")
+    parser.add_argument("--port_pub", default=argparse.SUPPRESS,
+                        help="Port publishers pub to; Default 5570")
+    parser.add_argument("--ip_sub", default=argparse.SUPPRESS,
+                        help="This PC's IP (e.g. 192.168.x.x) subscribers sub to; Default 127.0.0.1 (local)")
+    parser.add_argument("--port_sub", default=argparse.SUPPRESS,
+                        help="Port subscribers sub to; Default 5571")
 
-    # no arguments
-    if len(sys.argv) == 1:
-        ProxyPub()
-
-    # local network, only ports
-    elif len(sys.argv) == 3:
-        ProxyPub(port_pubs=sys.argv[1], port_subs=sys.argv[2])
-
-    # full network control
-    elif len(sys.argv) == 4:
-        ProxyPub(port_pubs=sys.argv[1], port_subs=sys.argv[2], address=sys.argv[3])
-
-    else:
-        print("Received incorrect number of arguments")
+    args, leftovers = parser.parse_known_args()
+    ProxyPub(**vars(args))

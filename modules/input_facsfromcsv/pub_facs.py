@@ -4,6 +4,7 @@
 
 import os
 import sys
+import argparse
 import time
 import glob
 import json
@@ -160,8 +161,8 @@ class NetworkSetup:
     4: head_pose
     """
 
-    def __init__(self, address='127.0.0.1', port='5570'):
-        self.url = "tcp://{}:{}".format(address, port)
+    def __init__(self, ip_pub='127.0.0.1', port_pub='5570'):
+        self.url = "tcp://{}:{}".format(ip_pub, port_pub)
         self.ctx = Context.instance()
 
         # file = CrawlerCSV().search()
@@ -177,7 +178,7 @@ class NetworkSetup:
     async def facs_pub(self, sub_key='openface_offline'):
         pub = self.ctx.socket(zmq.PUB)
         pub.connect(self.url)
-        print("FACS pub initialized")
+        print("FACS pub connected with: {}".format(self.url))
 
         # get FACS message
         async for msg in self.openface_msg.msg_gen():
@@ -210,20 +211,12 @@ if __name__ == '__main__':
     print("Current libzmq version is %s" % zmq.zmq_version())
     print("Current  pyzmq version is %s" % zmq.pyzmq_version())
 
-    print("Arguments given: {}".format(sys.argv))
-    print("0, 1, or 2 arguments are expected (port, (address)), e.g.: 5570 127.0.0.1")
+    # command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip_pub", default=argparse.SUPPRESS,
+                        help="IP (e.g. 192.168.x.x) of where to pub to; Default 127.0.0.1 (local)")
+    parser.add_argument("--port_pub", default=argparse.SUPPRESS,
+                        help="Port of where to pub to; Default 5570")
 
-    # no arguments
-    if len(sys.argv) == 1:
-        NetworkSetup()
-
-    # local network, only port
-    elif len(sys.argv) == 2:
-        NetworkSetup(port=sys.argv[1])
-
-    # full network control
-    elif len(sys.argv) == 3:
-        NetworkSetup(port=sys.argv[1], address=sys.argv[2])
-
-    else:
-        print("Received incorrect number of arguments")
+    args, leftovers = parser.parse_known_args()
+    NetworkSetup(**vars(args))
