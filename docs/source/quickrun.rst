@@ -21,8 +21,12 @@ Prerequisite
 ^^^^^^^
 Both
 ^^^^^^^
+1. Get the code of this project through 1 of these method:
 
-1. Follow Python env setup here: :doc:`modules/env-setup`
+   - Terminal: :code:`git clone https://github.com/NumesSanguis/FACSvatar.git`
+   - GitHub Desktop: `https://desktop.github.com/ <https://desktop.github.com/>`_
+
+#. Follow Python env setup here: :doc:`modules/env-setup`
 #. Install Unity 3D (Personal, tested with 2017.3)
 
    - `Windows <https://store.unity.com/download?ref=personal>`_
@@ -40,6 +44,8 @@ Online
 
 1. Download modified OpenFace (more info coming)
 
+   - All copyright of OpenFace belongs to Carnegie Mellon University. By using that software, you agree to their licensing terms found here: `https://github.com/TadasBaltrusaitis/OpenFace/ <https://github.com/TadasBaltrusaitis/OpenFace/>`_
+
 
 -----------------
 Running FACSvatar
@@ -56,5 +62,6 @@ For across computer data transport, give address arguments to the functions (mor
 
    - Offline, Terminal: :code:`python pub_facs.py` (/modules/input_facsfromcsv/)
    - Online (On Windows): run :code:`OpenFaceOffline.exe` --> File --> Open Webcam
+   - All copyright of OpenFace belongs to Carnegie Mellon University. By using that software, you agree to their licensing terms found here: `https://github.com/TadasBaltrusaitis/OpenFace/ <https://github.com/TadasBaltrusaitis/OpenFace/>`_
 
 #. See an avatar move its head and make facial expressions!

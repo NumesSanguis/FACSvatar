@@ -1,0 +1,5 @@
+`MainWindow.xaml.cs` is a modification of the original file of OpenFace to provide ZeroMQ integration.
+The original file can be found here: https://github.com/TadasBaltrusaitis/OpenFace/tree/master/gui/OpenFaceOffline
+
+All copyright belongs to Carnegie Mellon University as can be found either in `OpenFace-license.txt` and `Copyright.txt` files in this folder.
+These 2 files are only as reference. The autorithive version is found on their project page: https://github.com/TadasBaltrusaitis/OpenFace/
