@@ -14,7 +14,7 @@ Welcome to FACSvatar's documentation!
    :caption: Contents:
 
    quickrun
-   modules/env-setup
+   fullsetup
 
 Indices and tables
 ==================
