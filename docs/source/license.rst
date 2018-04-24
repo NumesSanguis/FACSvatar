@@ -1,3 +1,7 @@
+============
+License info
+============
+
 FACSvatar integrates many projects, which can contain different licenses.
 Everything in this repro that has been created by the project owner(s) of FACSvatar are under the GNU LGPLv3 where not conflicting with other licenses.
 Depending on which modules/parts you use/modify of this framework, different licening conditions may apply.

@@ -6,7 +6,8 @@ to our `facsvatar` anaconda environment.
 
 Currently tested with Ubuntu 16.04 (not yet on Windows, but instructions provided)
 
-If you didn't setup your Python environment yet, look here: :doc:`modules/env-setup`
+If you didn't setup your Python environment yet, look here: :doc:`env-setup`
+
 Make sure your terminal has `facsvatar active`:
 
 .. code-block:: bash
@@ -55,8 +56,8 @@ GPU
 """""""""""""""""
 CUDA Toolkit v9.0
 """""""""""""""""
-Official instructions (Ubuntu): `<https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#axzz4VZnqTJ2A>`_
-Official instructions (Windows): `<https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/>`_
+- Official instructions (Ubuntu): `<https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#axzz4VZnqTJ2A>`_
+- Official instructions (Windows): `<https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/>`_
 
 Short instructions:
 
@@ -101,15 +102,14 @@ NVIDIA CUDA Profile Tools Interface (Ubuntu only) - untested
 
 1. Locate cuda-command-line-tools: `sudo apt-cache search cuda-command-line-tools-9-0`
 #. Install: `sudo apt install cuda-command-line-tools-9-0`
-#. Path to environment variable:
-`echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/cuda/extras/CUPTI/lib64' >> ~/.bashrc`
-
+#. Path to environment variable: `echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/cuda/extras/CUPTI/lib64' >> ~/.bashrc`
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Install TensorFlow with Anaconda (GPU/CPU)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If you didn't setup your Python environment yet, look here: :doc:`modules/env-setup`
+If you didn't setup your Python environment yet, look here: :doc:`env-setup`
+
 Make sure your terminal has `facsvatar active`:
 
 .. code-block:: bash

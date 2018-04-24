@@ -1,3 +1,7 @@
+=============
+Blender setup
+=============
+
 I hope everything down here can be turned into a Blender addon someday :)
 
 -----

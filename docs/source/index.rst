@@ -15,6 +15,7 @@ Welcome to FACSvatar's documentation!
 
    quickrun
    fullsetup
+   license
 
 Indices and tables
 ==================
