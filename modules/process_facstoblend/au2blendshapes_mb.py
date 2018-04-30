@@ -94,22 +94,27 @@ class AUtoBlendShapes:
         for au, au_v in facs_dict.items():
             # only loop over AU values
             if au.startswith('AU'):
-                # don't waste computing power when nothing changes
-                # TODO make if statement about difference previous AU
-                if au_v > 0.001:
-                    # remove '_r'
-                    #au = au[:-2]
-                    #print(au, au_v)
+                # check if we have AU convert file
+                if au in self.au_dict:
+                    # don't waste computing power when nothing changes
+                    # TODO make if statement about difference previous AU
+                    if au_v > 0.001:
+                        # remove '_r'
+                        #au = au[:-2]
+                        #print(au, au_v)
 
-                    # loop over all blendshapes related to that AU
-                    #print(self.au_dict[au])
-                    # TODO error: KeyError: 'AU'
-                    for exp, exp_v in self.au_dict[au].items():
-                        #print(exp, exp_v)
-                        # multiply AU value with au_dict to get blendshape values and
-                        # add blendshape values to total blendshape_dict
-                        self.blendshape_dict[exp] += round(exp_v * au_v, 5)
-                        #print(self.blendshape_dict[exp])
+                        # loop over all blendshapes related to that AU
+                        #print(self.au_dict[au])
+                        # TODO error: KeyError: 'AU'
+                        for exp, exp_v in self.au_dict[au].items():
+                            #print(exp, exp_v)
+                            # multiply AU value with au_dict to get blendshape values and
+                            # add blendshape values to total blendshape_dict
+                            self.blendshape_dict[exp] += round(exp_v * au_v, 5)
+                            #print(self.blendshape_dict[exp])
+
+                else:
+                    print("No json file found for {}".format(au))
 
         # TODO resolve _min _max (only 1 can have value, so subtract from each other)
 
