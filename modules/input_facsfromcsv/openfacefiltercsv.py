@@ -4,13 +4,16 @@ import pandas as pd
 
 # clean csv output of OpenFace, remove irrelevant columns
 class FilterCSV:
-    def __init__(self, csv_file):  # , dir_processed, col_keep, dir_timestamp
+    def __init__(self, csv_file, col_keep=None):  # , dir_processed, col_keep, dir_timestamp
         # dir_processed: where to find .csv files
-        # col_keep: columns to keep in .csv file [AU*_r, pose, gaze
+        # col_keep: columns to keep in .csv file [AU*_r, pose, gaze]
+
+        if col_keep is None:
+            col_keep = ['AU.*_r', 'pose_R.*', 'gaze_angle*']
 
         self.df_csv = None
         # Action Units and head rotation
-        self.col_keep = ['AU.*_r', 'pose_R.*', 'gaze_angle*']  # , 'gaze_angle*'
+        self.col_keep = col_keep  # , 'gaze_angle*'
 
         # skip cleaning and load clean as dataframe
         if Path(csv_file[:-4] + "_clean.csv").exists():
@@ -35,7 +38,7 @@ class FilterCSV:
     def clean_columns(self):
         if len(self.col_keep) >= 1:
             # doesn't include AU28_c (lip suck), which has no AU28_r
-            reg = "(frame)|(timestamp)|(confidence)|{}" \
+            reg = "(frame)|(timestamp)|(confidence)|(success)|{}" \
                 .format("|".join("({})".format(c) for c in self.col_keep))
         else:
             reg = "(frame)|(timestamp)|(confidence)"
@@ -43,7 +46,7 @@ class FilterCSV:
         self.df_csv = self.df_csv.filter(regex=reg)
 
     def match_index_frame(self):
-        self.df_csv['frame'] -= 1
+        self.df_csv['frame'] = self.df_csv.index
 
     # get AU values and set interval from 0-5 to 0-1
     def reset_au_interval(self):
