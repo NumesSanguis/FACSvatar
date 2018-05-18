@@ -29,6 +29,9 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         print("Current libzmq version is %s" % zmq.zmq_version())
         print("Current  pyzmq version is %s" % zmq.pyzmq_version())
 
+        self.pub_socket = None
+        self.sub_socket = None
+
         # set-up publish socket only if a port is given
         if pub_port:
             print("Publisher port is specified")
@@ -64,8 +67,11 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         socket = ctx.socket(socket_type)
         if bind:
             socket.bind(url)
+            print("Bind to {} successful".format(url))
         else:
             socket.connect(url)
+            print("Connect to {} successful".format(url))
+
         return socket
 
     def start(self, async_func_list=None):
@@ -75,7 +81,9 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         if async_func_list:
             # capture ZeroMQ errors; ZeroMQ using asyncio doesn't print out errors
             try:
-                asyncio.get_event_loop().run_until_complete(asyncio.wait(async_func_list))
+                asyncio.get_event_loop().run_until_complete(asyncio.wait(
+                    [func() for func in async_func_list]
+                ))
             except Exception as e:
                 print("Error with async function")
                 # print(e)
