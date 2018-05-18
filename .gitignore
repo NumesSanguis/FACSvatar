@@ -142,7 +142,7 @@ sysinfo.txt
 *.unitypackage
 
 # OpenFace webcam videos
-modules/01_csv-facs/openface
+modules/input_facsfromcsv/openface
 
 # json files
 modules/output_facstojson/facsjson/
