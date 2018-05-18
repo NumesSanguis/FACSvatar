@@ -3991,7 +3991,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec98db2bfd206014aa81790061a50bfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sub_to_ip: 192.168.11.13
+  sub_to_ip: 127.0.0.1
   sub_to_port: 5572
   FACSModel: {fileID: 344416815}
   RiggedModel: {fileID: 24351330}
