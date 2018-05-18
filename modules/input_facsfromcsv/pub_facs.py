@@ -13,10 +13,14 @@ import asyncio
 import zmq.asyncio
 from zmq.asyncio import Context
 
-# own imports; if statement for documentation
+# FACSvatar imports; if statement for documentation
 if __name__ == '__main__':
+    sys.path.append("..")
+    from facsvatarzeromq import FACSvatarZeroMQ
     from openfacefiltercsv import FilterCSV
 else:
+
+    from modules.facsvatarzeromq import FACSvatarZeroMQ
     from .openfacefiltercsv import FilterCSV
 
 
@@ -206,17 +210,52 @@ class NetworkSetup:
                 await pub.send_multipart([sub_key.encode('ascii'), b'', b''])
 
 
-if __name__ == '__main__':
-    # get ZeroMQ version
-    print("Current libzmq version is %s" % zmq.zmq_version())
-    print("Current  pyzmq version is %s" % zmq.pyzmq_version())
+class FACSvatarMessages(FACSvatarZeroMQ):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.openface_msg = OpenFaceMsgFromCSV()
 
+    # publishes facs values per frame to subscription key 'facs'
+    async def facs_pub(self, sub_key='openface_offline'):
+
+        # get FACS message
+        async for msg in self.openface_msg.msg_gen():
+            print(msg)
+            # send message if we have data
+            if msg:
+                # seperate data from meta-data in different envelops
+                # await pub.send_multipart([sub_key.encode('ascii'),
+                #                           msg[0],  # frame
+                #                           msg[1],  # timestamp
+                #                           msg[2].to_json().encode('utf-8'),  # FACS data; pandas data frame
+                #                           # TODO separate msg
+                #                           msg[3].to_json().encode('utf-8')  # head pose data; pandas data frame
+                #                           ])
+                await self.pub_socket.send_multipart([self.pub_key.encode('ascii'),  # topic
+                                          msg[0],  # timestamp
+                                          msg[1].encode('utf-8')  # data in JSON format or empty byte
+                                          ])
+
+            # done
+            else:
+                print("No more messages to publish; FACS done")
+
+                # tell network messages finished (timestamp == data == None)
+                await self.pub_socket.send_multipart([sub_key.encode('ascii'), b'', b''])
+
+
+if __name__ == '__main__':
     # command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip_pub", default=argparse.SUPPRESS,
+    parser.add_argument("--pub_ip", default=argparse.SUPPRESS,
                         help="IP (e.g. 192.168.x.x) of where to pub to; Default 127.0.0.1 (local)")
-    parser.add_argument("--port_pub", default=argparse.SUPPRESS,
+    parser.add_argument("--pub_port", default="5570",
                         help="Port of where to pub to; Default 5570")
 
     args, leftovers = parser.parse_known_args()
-    NetworkSetup(**vars(args))
+    print("The following arguments are used: {}".format(args))
+    print("The following arguments are ignored: {}\n".format(leftovers))
+
+    # init FACSvatar message class
+    facsvatar_messages = FACSvatarMessages(**vars(args))
+    facsvatar_messages.start([facsvatar_messages.facs_pub()])

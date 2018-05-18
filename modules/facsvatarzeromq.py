@@ -15,8 +15,8 @@ from zmq.asyncio import Context
 class FACSvatarZeroMQ(abstractmethod(ABC)):
     """Base class for initializing FACSvatar ZeroMQ sockets"""
 
-    def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key=b'', pub_bind=True,
-                 sub_ip='127.0.0.1', sub_port=None, sub_key=b'', sub_bind=False):
+    def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
+                 sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False):
         """Sets-up a socket bound/connected to an url
 
         xxx_ip: ip of publisher/subscriber
@@ -25,24 +25,41 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         xxx_bind: True for bind (only 1 socket can bind to 1 address) or false for connect (many can connect)
         """
 
+        # get ZeroMQ version
+        print("Current libzmq version is %s" % zmq.zmq_version())
+        print("Current  pyzmq version is %s" % zmq.pyzmq_version())
+
+        # set-up publish socket only if a port is given
         if pub_port:
+            print("Publisher port is specified")
             self.pub_socket = self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind)
             # add variable with key
-            self.pub_socket.pub_key = pub_key
+            self.pub_key = pub_key
+            print("Publisher socket set-up complete")
         else:
             print("port_pub not specified, not setting-up publisher")
 
+        # set-up subscriber socket only if a port is given
         if sub_port:
+            print("Subscriber port is specified")
             self.sub_socket = self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind)
-            self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key)
+            self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
+            print("Subscriber socket set-up complete")
         else:
             print("port_sub not specified, not setting-up subscriber")
 
+        print("ZeroMQ sockets successfully set-up\n")
+
     def zeromq_context(self, ip, port, socket_type, bind):
-        """Returns an bound / connected ZeroMQ socket through tcp with given ip and port"""
+        """Returns a bound / connected ZeroMQ socket through tcp with given ip and port
+
+        ip+port: tcp://{ip}:{port}
+        socket_type: ZeroMQ socket type; e.g. zmq.PUB / zmq.SUB
+        bind: True for bind (only 1 socket can bind to 1 address) or false for connect (many can connect)
+        """
 
         url = "tcp://{}:{}".format(ip, port)
-        print("Creating ZeroMQ context with tcp on: {}".format(url))
+        print("Creating ZeroMQ context on: {}".format(url))
         ctx = Context.instance()
         socket = ctx.socket(socket_type)
         if bind:
@@ -52,7 +69,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         return socket
 
     def start(self, async_func_list=None):
-        """Starts asynchronously any given function"""
+        """Starts asynchronously any given async function"""
 
         # activate publishers / subscribers
         if async_func_list:
@@ -60,7 +77,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             try:
                 asyncio.get_event_loop().run_until_complete(asyncio.wait(async_func_list))
             except Exception as e:
-                print("Error with blendshape")
+                print("Error with async function")
                 # print(e)
                 logging.error(traceback.format_exc())
                 print()
