@@ -9,10 +9,8 @@ import argparse
 import time
 import glob
 import json
-
 import asyncio
-import zmq.asyncio
-from zmq.asyncio import Context
+
 
 # FACSvatar imports; if statement for documentation
 if __name__ == '__main__':
@@ -20,7 +18,6 @@ if __name__ == '__main__':
     from facsvatarzeromq import FACSvatarZeroMQ
     from openfacefiltercsv import FilterCSV
 else:
-
     from modules.facsvatarzeromq import FACSvatarZeroMQ
     from .openfacefiltercsv import FilterCSV
 
@@ -191,7 +188,7 @@ if __name__ == '__main__':
     parser.add_argument("--pub_key", default="openface.offline",
                         help="Key for filtering message; Default: openface.offline")
     parser.add_argument("--pub_bind", default=False,
-                        help="True: socket.bind() / False: socket.connect()")
+                        help="True: socket.bind() / False: socket.connect(); Default: False")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))

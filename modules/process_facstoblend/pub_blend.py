@@ -1,20 +1,21 @@
+# Copyright (c) Stef van der Struijk
+# License: GNU Lesser General Public License
+
+
 import os
 import sys
 import argparse
-import six
 import json
-from copy import deepcopy
-import asyncio
-import zmq.asyncio
-from zmq.asyncio import Context
-import traceback
-import logging
+
 
 # own imports; if statement for documentation
 if __name__ == '__main__':
+    sys.path.append("..")
+    from facsvatarzeromq import FACSvatarZeroMQ
     from au2blendshapes_mb import AUtoBlendShapes  # when using Manuel Bastioni models
     #from au2blendshapes_mh import AUtoBlendShapes  # when using FACSHuman models
 else:
+    from modules.facsvatarzeromq import FACSvatarZeroMQ
     from .au2blendshapes_mb import AUtoBlendShapes  # when using Manuel Bastioni models
     # from .au2blendshapes_mh import AUtoBlendShapes  # when using FACSHuman models
 
@@ -63,97 +64,72 @@ class BlendShapeMsg:
 
 
 # client to message broker server
-class NetworkSetup:
-    """
-    ZeroMQ network setup
-    """
-    def __init__(self, address='127.0.0.1', port_facs='5571', port_blend='5572'):
-        self.url = "tcp://{}:{}".format(address, port_facs)
-        self.ctx = Context.instance()
+class FACSvatarMessages(FACSvatarZeroMQ):
+    """Receives FACS and Head movement data; FACS --> Blend Shapes; Publish new data"""
 
-        self.url2 = "tcp://{}:{}".format(address, port_blend)
-        self.ctx2 = Context.instance()
-
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.blendshape = BlendShapeMsg()
 
-        # activate publishers / subscribers
-        asyncio.get_event_loop().run_until_complete(asyncio.wait([
-            self.blenshape_sub_pub(),
-        ]))
-
     async def blenshape_sub_pub(self):
-        # setup subscriber
-        sub = self.ctx.socket(zmq.SUB)
-        sub.connect(self.url)
-        sub.setsockopt(zmq.SUBSCRIBE, b'')
-        print("BlendShape sub initialized")
+        # keep listening to all published message on topic 'facs'
+        while True:
+            msg = await self.sub_socket.recv_multipart()
+            print("message: {}".format(msg))
 
-        pub = self.ctx2.socket(zmq.PUB)
-        pub.bind(self.url2)
-        print("BlendShape pub initialized")
+            # check not finished; timestamp is empty (b'')
+            if msg[1]:
+                # process message
+                msg[2] = json.loads(msg[2].decode('utf-8'))
+                # transform Action Units to Blend Shapes
+                msg[2]['blendshapes'] = await self.blendshape.facs_to_blendshape(msg[2]['au_r'])
+                # remove au_r from dict
+                msg[2].pop('au_r')
 
-        # without try statement, no error output
-        try:
-            # keep listening to all published message on topic 'facs'
-            while True:
-                msg = await sub.recv_multipart()
-                print("message: {}".format(msg))
+                # async always needs `send_multipart()`
+                print(msg)
 
-                # check not finished; timestamp is empty (b'')
-                if msg[1]:
-                    # process message
-                    msg[2] = json.loads(msg[2].decode('utf-8'))
-                    # transform Action Units to Blend Shapes
-                    msg[2]['blendshapes'] = await self.blendshape.facs_to_blendshape(msg[2]['au_r'])
-                    # remove au_r from dict
-                    msg[2].pop('au_r')
+                await self.pub_socket.send_multipart([msg[0],  # topic
+                                          msg[1],  # timestamp
+                                          # data in JSON format or empty byte
+                                          json.dumps(msg[2]).encode('utf-8')
+                                          ])
 
-                    # async always needs `send_multipart()`
-                    print(msg)
-
-                    await pub.send_multipart([msg[0],  # topic
-                                              msg[1],  # timestamp
-                                              # data in JSON format or empty byte
-                                              json.dumps(msg[2]).encode('utf-8')
-                                              ])
-
-                # send message we're done
-                else:
-                    print("No more messages to publish; Blend Shapes done")
-                    await pub.send_multipart([msg[0], b'', b''])
-
-        except Exception as e:
-            print("Error with blendshape")
-            # print(e)
-            logging.error(traceback.format_exc())
-            print()
-
-        finally:
-            # TODO disconnect pub/sub
-            pass
-
-        # # get FACS message
-        # async for msg in self.blendshape.blendshape_msg_gen():
-        #     print(msg)
-        #     # publish blendshape
-        #     await pub.send_multipart([b'blendshapes', msg.encode('utf-8')])
+            # send message we're done
+            else:
+                print("No more messages to publish; Blend Shapes done")
+                await self.pub_socket.send_multipart([msg[0], b'', b''])
 
 
 if __name__ == '__main__':
-    # get ZeroMQ version
-    print("Current libzmq version is %s" % zmq.zmq_version())
-    print("Current  pyzmq version is %s" % zmq.pyzmq_version())
-
     # command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip_pub", default=argparse.SUPPRESS,
-                        help="IP (e.g. 192.168.x.x) of where to pub to; Default 127.0.0.1 (local)")
-    parser.add_argument("--port_pub", default=argparse.SUPPRESS,
-                        help="Port of where to pub to; Default 5572")
-    parser.add_argument("--ip_sub", default=argparse.SUPPRESS,
-                        help="IP (e.g. 192.168.x.x) of where to sub to; Default 127.0.0.1 (local)")
-    parser.add_argument("--port_sub", default=argparse.SUPPRESS,
-                        help="Port of where to sub to; Default 5571")
+
+    # subscriber to FACS / head movement data
+    parser.add_argument("--sub_ip", default=argparse.SUPPRESS,
+                        help="IP (e.g. 192.168.x.x) of where to pub to; Default: 127.0.0.1 (local)")
+    parser.add_argument("--sub_port", default="5571",
+                        help="Port of where to pub to; Default: 5571")
+    parser.add_argument("--sub_key", default=argparse.SUPPRESS,
+                        help="Key for filtering message; Default: '' (all keys)")
+    parser.add_argument("--sub_bind", default=False,
+                        help="True: socket.bind() / False: socket.connect(); Default: False")
+
+    # publisher of Blend Shape / head movement data
+    parser.add_argument("--pub_ip", default=argparse.SUPPRESS,
+                        help="IP (e.g. 192.168.x.x) of where to pub to; Default: 127.0.0.1 (local)")
+    parser.add_argument("--pub_port", default="5572",
+                        help="Port of where to pub to; Default: 5572")
+    parser.add_argument("--pub_key", default="blendshapes.human",
+                        help="Key for filtering message; Default: blendshapes.human")
+    parser.add_argument("--pub_bind", default=True,
+                        help="True: socket.bind() / False: socket.connect(); Default: True")
 
     args, leftovers = parser.parse_known_args()
-    NetworkSetup(**vars(args))
+    print("The following arguments are used: {}".format(args))
+    print("The following arguments are ignored: {}\n".format(leftovers))
+
+    # init FACSvatar message class
+    facsvatar_messages = FACSvatarMessages(**vars(args))
+    # start processing messages; give list of functions to call async
+    facsvatar_messages.start([facsvatar_messages.blenshape_sub_pub])
