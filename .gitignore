@@ -134,6 +134,9 @@ ExportedObj/
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
 
+# PyCharm
+.idea
+
 # Builds
 *.apk
 *.unitypackage
@@ -141,5 +144,5 @@ sysinfo.txt
 # OpenFace webcam videos
 modules/01_csv-facs/openface
 
-# PyCharm
-.idea
+# json files
+modules/output_facstojson/facsjson/
