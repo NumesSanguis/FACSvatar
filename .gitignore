@@ -146,3 +146,6 @@ modules/input_facsfromcsv/openface
 
 # json files
 modules/output_facstojson/facsjson/
+
+# deep neural network models
+modules/process_facsdnnfacs/models/
