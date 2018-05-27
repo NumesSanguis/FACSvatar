@@ -30,7 +30,8 @@ from functools import partial
 import zmq.asyncio
 import traceback
 import logging
-import asyncio
+import numpy as np
+# import asyncio
 
 # own import; if statement for documentation
 if __name__ == '__main__':
@@ -102,41 +103,59 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             # keep listening to all published message on topic 'facs'
             while True:
                 msg = await self.sub_socket.recv_multipart()
+                print()
                 print(msg)
 
-                # check not finished; timestamp is empty (b'')
-                if msg[1]:
-                    msg[2] = json.loads(msg[2].decode('utf-8'))
+                # change multiplier value; TODO seperate from subscriber
+                if msg[0].decode('utf-8').startswith("command"):
+                    # JSON to list
+                    au_multiplier_list = json.loads(msg[2].decode('utf-8'))
 
-                    # only pass on messages with enough tracking confidence; always send when no confidence param
-                    if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
-                        # don't smooth output of DNN
-                        if msg[0].decode('utf-8').startswith('facsvatar'):
-                            # smooth facial expressions; window_size: number of past data points; steep: weight newer data
-                            msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=3, steep=.45)
-                            # smooth head position
-                            msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=3, steep=.2)
-                        else:
-                            print("Data from DNN, forwarding unchanged")
+                    # list to numpy array
+                    au_multiplier_np = np.array(au_multiplier_list)
+                    print("New multiplier: {}".format(au_multiplier_np))
 
-                        # send modified message
-                        print(msg)
-                        await self.pub_socket.send_multipart([msg[0],  # topic
-                                                           msg[1],  # timestamp
-                                                           # data in JSON format or empty byte
-                                                           json.dumps(msg[2]).encode('utf-8')
-                                                           ])
+                    # set new multiplier
+                    smooth_data.multiplier = au_multiplier_np
 
-                # send message we're done
                 else:
-                    print("No more messages to pass; finished")
-                    await self.pub_socket.send_multipart([msg[0], b'', b''])
+                    # check not finished; timestamp is empty (b'')
+                    if msg[1]:
+                        msg[2] = json.loads(msg[2].decode('utf-8'))
+
+                        # only pass on messages with enough tracking confidence; always send when no confidence param
+                        if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
+                            # don't smooth output of DNN
+                            if not msg[0].decode('utf-8').startswith('facsvatar'):
+                                # smooth facial expressions; window_size: number of past data points; steep: weight newer data
+                                msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=3, steep=.45)
+                                # smooth head position
+                                msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=3, steep=.2)
+                            else:
+                                print("Data from DNN, forwarding unchanged")
+
+                            # send modified message
+                            print(msg)
+                            await self.pub_socket.send_multipart([msg[0],  # topic
+                                                               msg[1],  # timestamp
+                                                               # data in JSON format or empty byte
+                                                               json.dumps(msg[2]).encode('utf-8')
+                                                               ])
+
+                    # send message we're done
+                    else:
+                        print("No more messages to pass; finished")
+                        await self.pub_socket.send_multipart([msg[0], b'', b''])
 
         except:
             print("Error with sub")
             # print(e)
             logging.error(traceback.format_exc())
             print()
+
+    # async def set_multiplier(self):
+    #     while True:
+    #         msg = await
 
 
 if __name__ == '__main__':
@@ -165,5 +184,5 @@ if __name__ == '__main__':
 
     # init FACSvatar message class
     facsvatar_messages = FACSvatarMessages(**vars(args))
-    # start processing messages
-    facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function)])  # , "trailing_moving_average"
+    # start processing messages; get reference to function without executing
+    facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function, "trailing_moving_average")])  # , "trailing_moving_average"

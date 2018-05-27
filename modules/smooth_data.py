@@ -1,10 +1,11 @@
 import math
-import asyncio
+# import asyncio
 import pandas as pd
 import sys
-import copy
-import json
-from collections import defaultdict
+# import copy
+# import json
+# from collections import defaultdict
+import numpy as np
 
 
 class SmoothData:
@@ -16,6 +17,12 @@ class SmoothData:
     def __init__(self):
         # store dicts from previous time steps; e.g. [0] = facs, [1] = head_pose
         self.dataframe_list = []
+        # set multiplier vector per AU
+        self.multiplier = np.ones(17)
+        # set default blinking (AU45) multiplier
+        self.multiplier[16] = 1.5
+        print(self.multiplier)
+
 
     # smoothing function similar to softmax
     def softmax_smooth(self, series, steep=1):
@@ -99,6 +106,16 @@ class SmoothData:
 
                 # use softmax-like function to smooth
                 smooth_data = d_frame.apply(self.softmax_smooth, args=(steep,))  # axis=1,
+
+                # apply AU multiplier
+                if queue_no == 0:
+                    print("\n\n")
+                    print(type(smooth_data))
+                    print(smooth_data)
+                    smooth_data = smooth_data * self.multiplier
+                    print()
+                    print(smooth_data)
+                    # sys.exit()
 
                 return smooth_data.to_dict()
 

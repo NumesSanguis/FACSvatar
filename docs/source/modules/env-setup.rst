@@ -26,8 +26,9 @@ Anaconda setup
    conda install pandas  # library for dataframes; used for .csv reading and JSON-to-Dataframe
 
    # maybe test new env first with instructions below
-   conda install ipykernel  # allows the use of env kernels
-   python -m ipykernel install --user --display-name "py3 facsvatar"  # enable our env as kernel
+   conda install ipykernel  # allows the use of env kernels in jupyter notebook
+   conda install ipywidgets  # GUI elements in jupyter notebook
+   python -m ipykernel install --user --display-name "py3 facsvatar"  # enable our env as kernel in jupyter notebook
 
 --------------------
 Test new environment
