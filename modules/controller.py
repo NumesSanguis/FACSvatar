@@ -52,6 +52,7 @@ class Controller(FACSvatarZeroMQ):
         au_list = list(dict_au.values())
         # list to JSON
         au_json = json.dumps(au_list)
+        # print(au_json)
 
         # publish new multiplier
         # print(self.pub_key)

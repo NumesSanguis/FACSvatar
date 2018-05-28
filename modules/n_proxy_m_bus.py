@@ -129,12 +129,16 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             if not msg[0].decode('utf-8').startswith('facsvatar'):
                                 # check au dict in data
                                 if "au_r" in msg[2]:
+                                    # sort dict; dicts keep insert order Python 3.6+
+                                    au_r_dict = msg[2]['au_r']
+                                    au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
+                                
                                     # smooth facial expressions; window_size: number of past data points; steep: weight newer data
-                                    msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=3, steep=.45)
+                                    msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
                                 # check head rotation dict in data
                                 if "pose" in msg[2]:
                                     # smooth head position
-                                    msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=3, steep=.2)
+                                    msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
                             else:
                                 print("Data from DNN, forwarding unchanged")
 
