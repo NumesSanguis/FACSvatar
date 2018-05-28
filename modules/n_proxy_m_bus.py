@@ -127,10 +127,14 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
                             # don't smooth output of DNN
                             if not msg[0].decode('utf-8').startswith('facsvatar'):
-                                # smooth facial expressions; window_size: number of past data points; steep: weight newer data
-                                msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=3, steep=.45)
-                                # smooth head position
-                                msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=3, steep=.2)
+                                # check au dict in data
+                                if "au_r" in msg[2]:
+                                    # smooth facial expressions; window_size: number of past data points; steep: weight newer data
+                                    msg[2]['au_r'] = smooth_func(msg[2]['au_r'], queue_no=0, window_size=3, steep=.45)
+                                # check head rotation dict in data
+                                if "pose" in msg[2]:
+                                    # smooth head position
+                                    msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=3, steep=.2)
                             else:
                                 print("Data from DNN, forwarding unchanged")
 
