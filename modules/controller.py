@@ -10,6 +10,7 @@ import time
 sys.path.append(".")
 from facsvatarzeromq import FACSvatarZeroMQ
 
+
 class Controller(FACSvatarZeroMQ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
