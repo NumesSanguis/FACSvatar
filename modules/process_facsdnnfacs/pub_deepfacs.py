@@ -24,7 +24,7 @@ else:
 class DeepFACSMsg:
     def __init__(self):
         # load Keras model
-        self.facs_model = keras.models.load_model(join("models", "example_model.h5"))
+        self.facs_model = keras.models.load_model(join("models", "mimicry_trained.h5"))
 
     async def facs_deep_facs(self, au_dict):  # , id_cb, type_cb
         """Receives a dict of AUs, returns a dict of deep generated AUs"""
@@ -87,7 +87,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         super().__init__(**kwargs)
         self.deepfacs = DeepFACSMsg()
 
-    async def blenshape_sub_pub(self):
+    async def deep_sub_pub(self):
         # keep listening to all published message on topic 'facs'
         while True:
             msg = await self.sub_socket.recv_multipart()
@@ -150,4 +150,4 @@ if __name__ == '__main__':
     # init FACSvatar message class
     facsvatar_messages = FACSvatarMessages(**vars(args))
     # start processing messages; give list of functions to call async
-    facsvatar_messages.start([facsvatar_messages.blenshape_sub_pub])
+    facsvatar_messages.start([facsvatar_messages.deep_sub_pub])
