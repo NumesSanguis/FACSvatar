@@ -57,15 +57,18 @@ class DeepFACSMsg:
         # au_array_val_t = au_array_val[np.newaxis]
         # print(au_array_val_t)
         # print(au_array_val_t.shape)
-        deep_au_array_val = self.facs_model.predict(au_array_val[np.newaxis])
+
+        au_array_val = au_array_val.reshape(1, 1, 17)
+        deep_au_array_val = self.facs_model.predict(au_array_val)  # [np.newaxis]
         # print()
-        # print(deep_au_array_val)
+        print(deep_au_array_val)
         # print(np.asarray(deep_au_array_val))
 
         # cast into dict format
         # print()
+        print(np.squeeze(deep_au_array_val))
         deep_au_dict = dict(zip(au_array_key, np.squeeze(deep_au_array_val).tolist()))
-        # print(deep_au_dict)
+        print(deep_au_dict)
         # change key type from byte to string
         deep_au_dict = {k.decode("utf-8"): v for k, v in deep_au_dict.items()}
         # print(deep_au_dict)

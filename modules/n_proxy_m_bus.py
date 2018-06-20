@@ -106,7 +106,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 print()
                 print(msg)
 
-                # change multiplier value; TODO seperate from subscriber
+                # change multiplier value; TODO separate from subscriber
                 if msg[0].decode('utf-8').startswith("command"):
                     # JSON to list
                     au_multiplier_list = json.loads(msg[2].decode('utf-8'))
@@ -125,22 +125,23 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                         # only pass on messages with enough tracking confidence; always send when no confidence param
                         if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
-                            # don't smooth output of DNN
-                            if not msg[0].decode('utf-8').startswith('facsvatar'):
+                            # # don't smooth output of DNN
+                            if not msg[0].decode('utf-8').startswith('facsvatar'):  # not
+
                                 # check au dict in data
                                 if "au_r" in msg[2]:
                                     # sort dict; dicts keep insert order Python 3.6+
                                     au_r_dict = msg[2]['au_r']
                                     au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
-                                
+
                                     # smooth facial expressions; window_size: number of past data points; steep: weight newer data
                                     msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
                                 # check head rotation dict in data
                                 if "pose" in msg[2]:
                                     # smooth head position
                                     msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
-                            else:
-                                print("Data from DNN, forwarding unchanged")
+                                # else:
+                                #     print("Data from DNN, forwarding unchanged")
 
                             # send modified message
                             print(msg)
