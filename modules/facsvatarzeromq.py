@@ -16,7 +16,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
     """Base class for initializing FACSvatar ZeroMQ sockets"""
 
     def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
-                 sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False):
+                 sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False, **misc):
         """Sets-up a socket bound/connected to an url
 
         xxx_ip: ip of publisher/subscriber
@@ -52,6 +52,9 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             print("port_sub not specified, not setting-up subscriber")
 
         print("ZeroMQ sockets successfully set-up\n")
+
+        # extra keyworded arguments
+        self.misc = misc
 
     def zeromq_context(self, ip, port, socket_type, bind):
         """Returns a bound / connected ZeroMQ socket through tcp with given ip and port

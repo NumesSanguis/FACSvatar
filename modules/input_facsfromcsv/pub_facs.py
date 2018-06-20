@@ -3,6 +3,7 @@
 
 
 import os
+from os.path import join, isfile
 import sys
 from functools import partial
 import argparse
@@ -39,11 +40,54 @@ class OpenFaceMsgFromCSV:
 
     """
 
-    def __init__(self,):  # client
+    def __init__(self, csv_arg, csv_folder='openface'):  # client
         self.filter_csv = FilterCSV
+        self.csv_list = self.crawl_through_csv(csv_arg, csv_folder)
+        print(f"using csv files: {self.csv_list}")
+        sys.exit("\ncsv test completed")
+
+    def crawl_through_csv(self, csv_arg, csv_folder):
+        print(f"Argument given for csv search: {csv_arg}")
+        csv_list = []
+
+        # find specific file if not a number given as argument
+        if not csv_arg.isdigit():
+            # check file exist
+            csv_path = join(csv_folder, csv_arg + ".csv")
+            # file exist in 'openface' folder
+            if isfile(csv_path):
+                csv_list.append([csv_path])
+
+            # TODO if filename contains _P1_ search for P2, P3, P4 etc
+            # csv_list[-1].append()
+
+            # file does not exist
+            else:
+                print(f"File '{csv_arg}' not found in current folder or 'openface'.")
+
+        # if no file selected, get all files
+        if not csv_list:
+            print(f"Getting list of all csv files in folder '{csv_folder}'...")
+
+            csv_list_all = sorted(glob.glob(join(csv_folder, '*.csv')))
+            print(csv_list_all)
+
+            for csv in csv_list_all:
+                print(csv)
+
+            # TODO return selection if number argument is given
+
+            # TODO ask which file to run if no number is specified
+
+        return csv_list
+
+    async def msg_gen(self):
+        for csv in self.csv_list:
+            async for msg in self.msg_from_csv(csv):
+                yield msg
 
     # generator for FACS and head pose messages
-    async def msg_gen(self, file='jt.csv'):
+    async def msg_from_csv(self, file):
         """
         Generates messages from a csv file
 
@@ -125,7 +169,8 @@ class OpenFaceMsgFromCSV:
 # goes through 'openface' folder to find latest .csv
 class CrawlerCSV:
     """
-Future = asyncio.futures.Future
+    Future = asyncio.futures.Future
+
     Crawls through a directory to look for .csv generate by OpenFace
     """
 
@@ -136,10 +181,10 @@ Future = asyncio.futures.Future
         # # get latest .csv
         # 2nd or higher runmsg_dict
         if csv_list[-1][-10:-4] == "_clean":
-            # remove _clean and .csv
+            # string remove _clean and .csv
             latest_csv = csv_list[-1][:-10]
         else:
-            # remove .csv
+            # string remove .csv
             latest_csv = csv_list[-1][:-4]
 
         print("Reading data from: {}".format(latest_csv))
@@ -154,7 +199,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # init class to process .csv files
-        self.openface_msg = OpenFaceMsgFromCSV()
+        self.openface_msg = OpenFaceMsgFromCSV(self.misc['csv_arg'], self.misc['csv_folder'])
 
     # publishes facs values per frame to subscription key 'facs'
     async def facs_pub(self):
@@ -189,6 +234,12 @@ if __name__ == '__main__':
                         help="Key for filtering message; Default: openface.offline")
     parser.add_argument("--pub_bind", default=False,
                         help="True: socket.bind() / False: socket.connect(); Default: False")
+    parser.add_argument("--csv_arg", default="demo",
+                        help="specific csv, -1: show csv list from specified folder, "
+                             "0: all csv in specified folder, "
+                             ">=1 specific csv file from list")
+    parser.add_argument("--csv_folder", default="openface",
+                        help="Name of folder with csv files")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))
@@ -196,5 +247,6 @@ if __name__ == '__main__':
 
     # init FACSvatar message class
     facsvatar_messages = FACSvatarMessages(**vars(args))
+
     # start processing messages; give list of functions to call async
     facsvatar_messages.start([facsvatar_messages.facs_pub])

@@ -127,6 +127,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
                             # # don't smooth output of DNN
                             if not msg[0].decode('utf-8').startswith('facsvatar'):  # not
+                                # TODO different history per user (init class more than once?)
 
                                 # check au dict in data
                                 if "au_r" in msg[2]:
