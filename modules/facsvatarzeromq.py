@@ -16,12 +16,15 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
     """Base class for initializing FACSvatar ZeroMQ sockets"""
 
     def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
-                 sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False, **misc):
+                 sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False,
+                 deal_ip='127.0.0.1', deal_port=None, deal_bind=False,
+                 rout_ip='127.0.0.1', rout_port=None, rout_bind=True,
+                 **misc):
         """Sets-up a socket bound/connected to an url
 
-        xxx_ip: ip of publisher/subscriber
-        xxx_port: port of publisher/subscriber
-        xxx_key: key for filtering out messages (leave empty to receive all)
+        xxx_ip: ip of publisher/subscriber/dealer/router
+        xxx_port: port of publisher/subscriber/dealer/router
+        xxx_key: key for filtering out messages (leave empty to receive all) (pub/sub only)
         xxx_bind: True for bind (only 1 socket can bind to 1 address) or false for connect (many can connect)
         """
 
@@ -40,7 +43,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             self.pub_key = pub_key
             print("Publisher socket set-up complete")
         else:
-            print("port_pub not specified, not setting-up publisher")
+            print("pub_port not specified, not setting-up publisher")
 
         # set-up subscriber socket only if a port is given
         if sub_port:
@@ -49,11 +52,29 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
             print("Subscriber socket set-up complete")
         else:
-            print("port_sub not specified, not setting-up subscriber")
+            print("sub_port not specified, not setting-up subscriber")
+
+        # set-up dealer socket only if a port is given
+        if deal_port:
+            print("Dealer port is specified")
+            self.deal_socket = self.zeromq_context(deal_ip, deal_port, zmq.DEALER, deal_bind)
+            self.deal_socket.setsockopt(zmq.DEALER)
+            print("Dealer socket set-up complete")
+        else:
+            print("deal_port not specified, not setting-up dealer")
+
+        # set-up router socket only if a port is given
+        if rout_port:
+            print("Router port is specified")
+            self.rout_socket = self.zeromq_context(rout_ip, rout_port, zmq.DEALER, rout_bind)
+            self.rout_socket.setsockopt(zmq.ROUTER)
+            print("Router socket set-up complete")
+        else:
+            print("rout_port not specified, not setting-up router")
 
         print("ZeroMQ sockets successfully set-up\n")
 
-        # extra keyworded arguments
+        # extra named arguments
         self.misc = misc
 
     def zeromq_context(self, ip, port, socket_type, bind):
