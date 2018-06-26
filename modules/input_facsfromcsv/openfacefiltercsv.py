@@ -18,7 +18,7 @@ import pandas as pd
 
 # clean csv output of OpenFace, remove irrelevant columns
 class FilterCSV:
-    def __init__(self, csv_file, col_keep=None):  # , dir_processed, col_keep, dir_timestamp
+    def __init__(self, col_keep=None):  # , dir_processed, col_keep, dir_timestamp
         """Transform csv to Panda dataframe which can be accessed by other functions
 
         :param csv_file: Path object to csv file
@@ -38,19 +38,25 @@ class FilterCSV:
 
         #   skip cleaning and load clean as dataframe
         # change string to path object
-        csv_file = Path(csv_file)
-        csv_clean = csv_file
-        # add _clean to parent directory
-        csv_clean.parents[0] = csv_clean.parents[0] + "_clean"
-        if csv_clean.exists():  # Path(csv_file[:-4] + "_clean.csv")
-            print("OpenFace .csv already cleaned")
-            #self.df_csv = pd.read_csv(csv_file[:-4] + "_clean.csv")
-            self.df_csv = pd.read_csv(csv_clean)
+        # csv_file = Path(csv_file)
 
-        # load csv as dataframe and clean
-        else:
-            print("Cleaning OpenFace .csv")
-            self.clean_controller(csv_file)
+        # csv_clean = csv_file
+        # # add _clean to parent directory
+        # print(csv_clean.parts[-2])
+        # # csv_clean.parts[-2] = Path(str(csv_clean.parts[-2]) + "_clean")
+        # csv_clean.parts[-2] = csv_clean.parts[-2] + "_clean"
+
+        # csv_clean = Path(str(csv_file.parents[0]) + '_clean/' + csv_file.parts[-1])
+
+        # if csv_clean.exists():  # Path(csv_file[:-4] + "_clean.csv")
+        #     print("OpenFace .csv already cleaned")
+        #     #self.df_csv = pd.read_csv(csv_file[:-4] + "_clean.csv")
+        #     self.df_csv = pd.read_csv(csv_clean)
+        #
+        # # load csv as dataframe and clean
+        # else:
+        #     print("Cleaning OpenFace .csv")
+        #     self.clean_controller(csv_file, csv_clean)
 
     # removes space in header, e.g. ' confidence' --> 'confidence'
     def clean_header_space(self):
@@ -81,26 +87,40 @@ class FilterCSV:
         self.df_csv.loc[:, c] /= 5
 
     # save cleaned dataframe as csv
-    def csv_save(self, csv_file):
+    def csv_save(self, csv_clean):
+        """
+
+        :param csv_clean: Path object for saving cleaned csv
+        """
+
         #   get dir without file name
         # windows
-        if os.name == 'nt':
-            path_list = csv_file.split('\\')
-        # other OS
-        else:
-            path_list = csv_file.split('/')
-
-        dir_output = join(path_list)
+        # if os.name == 'nt':
+        #     path_list = csv_file.split('\\')
+        # # other OS
+        # else:
+        #     path_list = csv_file.split('/')
+        #
+        # dir_output = join(path_list)
 
         # create dir preprocessed if not existing, Python 3.2+
-        #os.makedirs(dir_output, exist_ok=True)
+        os.makedirs(csv_clean.parents[0], exist_ok=True)
 
         # df.loc[:, df.columns.str.contains('a')]
-        self.df_csv.to_csv(csv_file[:-4] + "_clean.csv", index=False)  # , columns=[]
+        # self.df_csv.to_csv(csv_file[:-4] + "_clean.csv", index=False)  # , columns=[]
+        self.df_csv.to_csv(csv_clean, index=False)
 
-    # calls all cleaning + save functions
-    def clean_controller(self, csv_file):
-        self.df_csv = pd.read_csv(csv_file)
+        # calls all cleaning + save functions
+    def clean_controller(self, csv_raw, csv_folder_clean):
+        """ Manages cleaning of raw openface csv file
+
+        :param csv_raw: path to raw file
+        :param csv_folder_clean: path to folder with cleaned files
+        :return:
+        """
+
+        print("Cleaning: {} and save to {}".format(csv_raw, csv_folder_clean))
+        self.df_csv = pd.read_csv(csv_raw)
 
         # removes space in header, e.g. ' confidence' --> 'confidence'
         self.clean_header_space()
@@ -120,5 +140,5 @@ class FilterCSV:
         # divide AU*_r by 5 (range from 0-1 instead of 0-5)
         self.reset_au_interval()
 
-        # save cleaned dataframe
-        self.csv_save(csv_file)
+        # save cleaned dataframe; add csv file name to clean path
+        self.csv_save(csv_folder_clean / csv_raw.name)
