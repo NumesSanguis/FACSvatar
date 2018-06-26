@@ -344,7 +344,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             # send message if we have data
             if msg:
                 await self.pub_socket.send_multipart([(self.pub_key + "." + msg[0]).encode('ascii'),  # topic
-                                                      int(msg[1]*1000).to_bytes(4, byteorder='big'),  # timestamp
+                                                      str(int(time.time() * 1000)).encode('ascii'),  # timestamp
+                                                      #int(msg[1]*1000).to_bytes(4, byteorder='big'),  # timestamp
                                                       msg[2].encode('utf-8')  # data in JSON format or empty byte
                                                       ])
 

@@ -17,7 +17,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
 
     def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
                  sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False,
-                 deal_ip='127.0.0.1', deal_port=None, deal_id='', deal_bind=False,
+                 deal_ip='127.0.0.1', deal_port=None, deal_key='', deal_topic='', deal_bind=False,
                  rout_ip='127.0.0.1', rout_port=None, rout_bind=True,
                  **misc):
         """Sets-up a socket bound/connected to an url
@@ -58,7 +58,9 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         if deal_port:
             print("Dealer port is specified")
             self.deal_socket = self.zeromq_context(deal_ip, deal_port, zmq.DEALER, deal_bind)
-            self.deal_socket.setsockopt(zmq.IDENTITY, deal_id.encode('ascii'))
+            self.deal_socket.setsockopt(zmq.IDENTITY, deal_key.encode('ascii'))
+            # add variable with key f
+            self.deal_topic = deal_topic
             print("Dealer socket set-up complete")
         else:
             print("deal_port not specified, not setting-up dealer")
@@ -103,6 +105,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         # activate publishers / subscribers
         if async_func_list:
             # capture ZeroMQ errors; ZeroMQ using asyncio doesn't print out errors
+            # TODO working properly?
             try:
                 asyncio.get_event_loop().run_until_complete(asyncio.wait(
                     [func() for func in async_func_list]

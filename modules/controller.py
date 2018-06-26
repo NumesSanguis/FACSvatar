@@ -1,3 +1,5 @@
+"""Sends messages to n_proxy_n module; Is linked to GUI in Jupyter Notebook"""
+
 # Copyright (c) Stef van der Struijk
 # License: GNU Lesser General Public License
 
@@ -54,11 +56,11 @@ class Controller(FACSvatarZeroMQ):
         au_json = json.dumps(au_list)
         # print(au_json)
 
-        # publish new multiplier
-        # print(self.pub_key)
+        # set new multiplier
+        # print(self.deal_topic)
         # print(time.time())
         # print(au_json)
-        self.pub_socket.send_multipart([self.pub_key.encode('ascii'),  # topic
-                                        str(int(time.time()*1000)).encode('ascii'),  # timestamp
-                                        au_json.encode('utf-8')  # data in JSON format or empty byte
-                                        ])
+        self.deal_socket.send_multipart([self.deal_topic.encode('ascii'),  # topic
+                                         # str(int(time.time()*1000)).encode('ascii'),  # timestamp
+                                         au_json.encode('utf-8')  # data in JSON format or empty byte
+                                         ])

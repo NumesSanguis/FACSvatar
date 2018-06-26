@@ -99,85 +99,100 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         # await messages
         print("Awaiting FACS data...")
         # # without try statement, no error output
-        # try:
-        # keep listening to all published message on topic 'facs'
-        while True:
-            msg = await self.sub_socket.recv_multipart()
+        try:
+            # keep listening to all published message on topic 'facs'
+            while True:
+                msg = await self.sub_socket.recv_multipart()
+                print()
+                print(msg)
+
+                # # change multiplier value; TODO separate from subscriber
+                # if msg[0].decode('utf-8').startswith("command"):
+                #     # JSON to list
+                #     au_multiplier_list = json.loads(msg[2].decode('utf-8'))
+                #
+                #     # list to numpy array
+                #     au_multiplier_np = np.array(au_multiplier_list)
+                #     print("New multiplier: {}".format(au_multiplier_np))
+                #
+                #     # set new multiplier
+                #     self.smooth_data.multiplier = au_multiplier_np
+
+                # else:
+                # check not finished; timestamp is empty (b'')
+                if msg[1]:
+                    msg[2] = json.loads(msg[2].decode('utf-8'))
+
+                    # only pass on messages with enough tracking confidence; always send when no confidence param
+                    if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
+                        # # don't smooth output of DNN
+                        if not msg[0].decode('utf-8').startswith('facsvatar'):  # not
+                            # TODO different history per user (init class more than once?)
+
+                            # check au dict in data
+                            if "au_r" in msg[2]:
+                                # sort dict; dicts keep insert order Python 3.6+
+                                au_r_dict = msg[2]['au_r']
+                                au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
+
+                                # smooth facial expressions; window_size: number of past data points; steep: weight newer data
+                                msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
+                            # check head rotation dict in data
+                            if "pose" in msg[2]:
+                                # smooth head position
+                                msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
+                            # else:
+                            #     print("Data from DNN, forwarding unchanged")
+
+                        # send modified message
+                        print(msg)
+                        await self.pub_socket.send_multipart([msg[0],  # topic
+                                                              msg[1],  # timestamp
+                                                              # data in JSON format or empty byte
+                                                              json.dumps(msg[2]).encode('utf-8')
+                                                              ])
+
+                # send message we're done
+                else:
+                    print("No more messages to pass; finished")
+                    await self.pub_socket.send_multipart([msg[0], b'', b''])
+
+        except:
+            print("Error with sub")
+            # print(e)
+            logging.error(traceback.format_exc())
             print()
-            print(msg)
 
-            # # change multiplier value; TODO separate from subscriber
-            # if msg[0].decode('utf-8').startswith("command"):
-            #     # JSON to list
-            #     au_multiplier_list = json.loads(msg[2].decode('utf-8'))
-            #
-            #     # list to numpy array
-            #     au_multiplier_np = np.array(au_multiplier_list)
-            #     print("New multiplier: {}".format(au_multiplier_np))
-            #
-            #     # set new multiplier
-            #     self.smooth_data.multiplier = au_multiplier_np
+    # receive commands
+    async def set_parameters(self):
+        print("Router awaiting commands")
 
-            # else:
-            # check not finished; timestamp is empty (b'')
-            if msg[1]:
-                msg[2] = json.loads(msg[2].decode('utf-8'))
-
-                # only pass on messages with enough tracking confidence; always send when no confidence param
-                if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.8:
-                    # # don't smooth output of DNN
-                    if not msg[0].decode('utf-8').startswith('facsvatar'):  # not
-                        # TODO different history per user (init class more than once?)
-
-                        # check au dict in data
-                        if "au_r" in msg[2]:
-                            # sort dict; dicts keep insert order Python 3.6+
-                            au_r_dict = msg[2]['au_r']
-                            au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
-
-                            # smooth facial expressions; window_size: number of past data points; steep: weight newer data
-                            msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
-                        # check head rotation dict in data
-                        if "pose" in msg[2]:
-                            # smooth head position
-                            msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
-                        # else:
-                        #     print("Data from DNN, forwarding unchanged")
-
-                    # send modified message
-                    print(msg)
-                    await self.pub_socket.send_multipart([msg[0],  # topic
-                                                       msg[1],  # timestamp
-                                                       # data in JSON format or empty byte
-                                                       json.dumps(msg[2]).encode('utf-8')
-                                                       ])
-
-            # send message we're done
-            else:
-                print("No more messages to pass; finished")
-                await self.pub_socket.send_multipart([msg[0], b'', b''])
-
-        # except:
-        #     print("Error with sub")
-        #     # print(e)
-        #     logging.error(traceback.format_exc())
-        #     print()
-
-    # receive new multiplier values and set it
-    async def set_multiplier(self):
         while True:
-            [id_dealer, topic, msg] = await self.rout_socket.recv_multipart()
+            try:
+                [id_dealer, topic, data] = await self.rout_socket.recv_multipart()
+                print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
 
-            if topic.decode('utf-8').startswith("multiplier"):
-                # JSON to list
-                au_multiplier_list = json.loads(msg[2].decode('utf-8'))
+                # set multiplier parameters
+                if topic.decode('utf-8').startswith("multiplier"):
+                    await self.set_multiplier(data)
 
-                # list to numpy array
-                au_multiplier_np = np.array(au_multiplier_list)
-                print("New multiplier: {}".format(au_multiplier_np))
+            except Exception as e:
+                print("Error with router function")
+                # print(e)
+                logging.error(traceback.format_exc())
+                print()
 
-                # set new multiplier
-                self.smooth_data.multiplier = au_multiplier_np
+    # set new multiplier values
+    async def set_multiplier(self, data):
+        # JSON to list
+        au_multiplier_list = json.loads(data.decode('utf-8'))
+
+        # list to numpy array
+        au_multiplier_np = np.array(au_multiplier_list)
+        print("New multiplier: {}".format(au_multiplier_np))
+
+        # set new multiplier
+        self.smooth_data.multiplier = au_multiplier_np
 
 
 if __name__ == '__main__':
@@ -216,4 +231,4 @@ if __name__ == '__main__':
     facsvatar_messages = FACSvatarMessages(**vars(args))
     # start processing messages; get reference to function without executing
     facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function, "trailing_moving_average"),
-                              facsvatar_messages.set_multiplier])
+                              facsvatar_messages.set_parameters])
