@@ -17,7 +17,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
 
     def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
                  sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False,
-                 deal_ip='127.0.0.1', deal_port=None, deal_bind=False,
+                 deal_ip='127.0.0.1', deal_port=None, deal_id='', deal_bind=False,
                  rout_ip='127.0.0.1', rout_port=None, rout_bind=True,
                  **misc):
         """Sets-up a socket bound/connected to an url
@@ -58,7 +58,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         if deal_port:
             print("Dealer port is specified")
             self.deal_socket = self.zeromq_context(deal_ip, deal_port, zmq.DEALER, deal_bind)
-            self.deal_socket.setsockopt(zmq.DEALER)
+            self.deal_socket.setsockopt(zmq.IDENTITY, deal_id.encode('ascii'))
             print("Dealer socket set-up complete")
         else:
             print("deal_port not specified, not setting-up dealer")
@@ -66,8 +66,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         # set-up router socket only if a port is given
         if rout_port:
             print("Router port is specified")
-            self.rout_socket = self.zeromq_context(rout_ip, rout_port, zmq.DEALER, rout_bind)
-            self.rout_socket.setsockopt(zmq.ROUTER)
+            self.rout_socket = self.zeromq_context(rout_ip, rout_port, zmq.ROUTER, rout_bind)
             print("Router socket set-up complete")
         else:
             print("rout_port not specified, not setting-up router")

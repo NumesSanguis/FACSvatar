@@ -200,7 +200,7 @@ if __name__ == '__main__':
     parser.add_argument("--pub_bind", default=True,
                         help="True: socket.bind() / False: socket.connect(); Default: True")
 
-    # Router
+    # router
     parser.add_argument("--rout_ip", default=argparse.SUPPRESS,
                         help="This PC's IP (e.g. 192.168.x.x) router listens to; Default: 127.0.0.1 (local)")
     parser.add_argument("--rout_port", default="5580",
@@ -215,5 +215,5 @@ if __name__ == '__main__':
     # init FACSvatar message class
     facsvatar_messages = FACSvatarMessages(**vars(args))
     # start processing messages; get reference to function without executing
-    facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function, "trailing_moving_average"),  # , "trailing_moving_average"
-                              ])
+    facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function, "trailing_moving_average"),
+                              facsvatar_messages.set_multiplier])
