@@ -223,12 +223,21 @@ class OpenFaceMsgFromCSV:
 
     """
 
-    def __init__(self, csv_arg, csv_folder='openface'):  # client
+    def __init__(self, csv_arg, csv_folder='openface', every_x_frames=1):  # client
+        """
+        generates messages from OpenFace .csv files
+
+        :param csv_arg: csv_file_name, -2, -1, >=0
+        :param csv_folder: where to look for csv files
+        :param every_x_frames: send message when frame % every_x_frames == 0
+        """
+
         self.crawler = CrawlerCSV()
         self.csv_list = self.crawler.gather_csv_list(csv_folder, csv_arg)
         print(f"using csv files: {self.csv_list}")
         self.reset_msg = OpenFaceMessage()
         self.reset_msg.set_reset_msg()
+        self.every_x_frames = every_x_frames
 
     # loop over all csv groups ([1 csv file] if single person, P1, P2, etc [multi csv files]
     async def msg_gen(self):
@@ -317,13 +326,15 @@ class OpenFaceMsgFromCSV:
                 # currently can send about 3000 fps
                 await asyncio.sleep(time_sleep)  # time_sleep (~0.031)
 
-            for i, ofmsg in enumerate(ofmsg_list):
-                # return msg dict
-                if 'au_r' in ofmsg.msg:
-                    yield i, ofmsg.msg
-                # not enough confidence; return empty msg
-                else:
-                    yield i, b''
+            # reduce frame rate
+            if frame_tracker % self.every_x_frames == 0:
+                for i, ofmsg in enumerate(ofmsg_list):
+                    # return msg dict
+                    if 'au_r' in ofmsg.msg:
+                        yield i, ofmsg.msg
+                    # not enough confidence; return empty msg
+                    else:
+                        yield i, b''
 
 
 class FACSvatarMessages(FACSvatarZeroMQ):
@@ -332,22 +343,31 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # init class to process .csv files
-        self.openface_msg = OpenFaceMsgFromCSV(self.misc['csv_arg'], self.misc['csv_folder'])
+        self.openface_msg = OpenFaceMsgFromCSV(self.misc['csv_arg'], self.misc['csv_folder'],
+                                               int(self.misc['every_x_frames']))
 
     # publishes facs values per frame to subscription key 'facs'
     async def facs_pub(self):
         """Calls openface_msg.msg_gen() and publishes returned data"""
+
+        msg_count = 0
 
         # get FACS message
         async for msg in self.openface_msg.msg_gen():
             print(msg)
             # send message if we have data
             if msg:
+                # reduce number of messages
+                # if msg_count % 3 == 0:
                 await self.pub_socket.send_multipart([(self.pub_key + "." + msg[0]).encode('ascii'),  # topic
                                                       str(int(time.time() * 1000)).encode('ascii'),  # timestamp
                                                       #int(msg[1]*1000).to_bytes(4, byteorder='big'),  # timestamp
                                                       msg[2].encode('utf-8')  # data in JSON format or empty byte
                                                       ])
+                # else:
+                #     print("Skipping message")
+
+                msg_count += 1
 
             # done
             else:
@@ -374,7 +394,9 @@ if __name__ == '__main__':
                              "-1: show csv list from specified folder, "
                              ">=0 choose specific csv file from list")
     parser.add_argument("--csv_folder", default="openface",
-                        help="Name of folder with csv files")
+                        help="Name of folder with csv files; Default: openface")
+    parser.add_argument("--every_x_frames", default="1",
+                        help="Send every x frames a msg; Default 1 (all)")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))

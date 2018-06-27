@@ -10,6 +10,8 @@ from os.path import join
 import numpy as np
 import pandas as pd
 import keras
+import traceback
+import logging
 
 
 # own imports; if statement for documentation
@@ -84,12 +86,13 @@ class DeepFACSMsg:
 
 # client to message broker server
 class FACSvatarMessages(FACSvatarZeroMQ):
-    """Receives FACS and Head movement data; FACS --> Blend Shapes; Publish new data"""
+    """Receives FACS and Head movement data; FACS --> DNN --> FACS; Publish new data"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.deepfacs = DeepFACSMsg()
 
+    # receiving data
     async def deep_sub_pub(self):
         # keep listening to all published message on topic 'facs'
         while True:
@@ -110,7 +113,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 # async always needs `send_multipart()`
                 # print(msg)
 
-                await self.pub_socket.send_multipart([msg[0],  # topic
+                await self.pub_socket.send_multipart([(msg[0].decode('utf-8') + ".dnn").encode('utf-8'),  # topic / key
                                           msg[1],  # timestamp
                                           # data in JSON format or empty byte
                                           json.dumps(msg[2]).encode('utf-8')
@@ -120,6 +123,29 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             else:
                 print("No more messages to publish; Deep FACS done")
                 await self.pub_socket.send_multipart([msg[0], b'', b''])
+
+    # receiving commands
+    async def set_parameters(self):
+        while True:
+            try:
+                [id_dealer, topic, data] = await self.rout_socket.recv_multipart()
+                print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
+
+                # set multiplier parameters
+                if topic.decode('utf-8').startswith("multiplier"):
+                    await self.set_subscriber(data)
+
+            except Exception as e:
+                print("Error with router function")
+                # print(e)
+                logging.error(traceback.format_exc())
+                print()
+
+    # change what FACS data is received
+    async def set_subscriber(self, sub_key):
+        pass
+        # self.sub_socket.setsockopt.remove
+        # self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
 
 
 if __name__ == '__main__':
@@ -136,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument("--sub_bind", default=False,
                         help="True: socket.bind() / False: socket.connect(); Default: False")
 
-    # publisher of Blend Shape / head movement data
+    # publisher of DNN generated FACS data
     parser.add_argument("--pub_ip", default=argparse.SUPPRESS,
                         help="IP (e.g. 192.168.x.x) of where to pub to; Default: 127.0.0.1 (local)")
     parser.add_argument("--pub_port", default="5570",

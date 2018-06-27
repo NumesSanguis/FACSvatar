@@ -6,6 +6,7 @@ using NetMQ;
 using UnityEngine;
 using NetMQ.Sockets;
 using Newtonsoft.Json.Linq;
+using System;
 
 // connect with ZeroMQ
 public class NetMqListener
@@ -62,14 +63,13 @@ public class NetMqListener
                 //Debug.Log("Received messages:");
                 //Debug.Log(frame);
                 //Debug.Log(timestamp);
-                //Debug.Log(blend_shapes);
-                //Debug.Log(head_pose);
+				//Debug.Log(facsvatar_json);
 
                 // check if we're not done; timestamp is empty
                 if (timestamp != "")
-                {
-                    //msg_list.Add(blend_shapes);
-                    //msg_list.Add(head_pose);
+                {               
+					msg_list.Add(topic);
+					msg_list.Add(timestamp);
                     msg_list.Add(facsvatar_json);
                     _messageQueue.Enqueue(msg_list);
                 }
@@ -128,25 +128,44 @@ public class ZeroMQFACSvatar : MonoBehaviour
     public string sub_to_ip = "127.0.0.1";
     public string sub_to_port = "5572";
 
-    // Facial expressions: Assign by dragging the GameObject with FACSnimator into the inspector before running the game.
-    public FACSnimator FACSModel;
-    // Head rotations: Assign by dragging the GameObject with HeadAnimator into the inspector before running the game.
-    public HeadRotatorBone RiggedModel;
+	// Facial expressions: Assign by dragging the GameObject with FACSnimator into the inspector before running the game.
+	// Head rotations: Assign by dragging the GameObject with HeadAnimator into the inspector before running the game.
+	public FACSnimator FACSModel0;
+	public HeadRotatorBone RiggedModel0;
+	public FACSnimator FACSModel1;
+	public HeadRotatorBone RiggedModel1;
+    public FACSnimator FACSModelDnn;
+	public HeadRotatorBone RiggedModelDnn;
 
     // receive data in JSON format
     private void HandleMessage(List<string> msg_list)
     {
-        //JObject blend_shapes = JObject.Parse(msg_list[0]);
-        //JObject head_pose = JObject.Parse(msg_list[1]);
-        JObject facsvatar = JObject.Parse(msg_list[0]);
-
+        JObject facsvatar = JObject.Parse(msg_list[2]);
         // get Blend Shape dict
         JObject blend_shapes = facsvatar["blendshapes"].ToObject<JObject>();
-        UnityMainThreadDispatcher.Instance().Enqueue(FACSModel.RequestBlendshapes(blend_shapes));
-
-        // get head pose data and send to main tread
-        JObject head_pose = facsvatar["pose"].ToObject<JObject>();
-        UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel.RequestHeadRotation(head_pose));
+		// get head pose data
+		JObject head_pose = facsvatar["pose"].ToObject<JObject>();
+        
+		// split topic to determine target human model
+		string[] topic_info = msg_list[0].Split('.'); // "facsvatar.S01_P1.p0.dnn" ["facsvatar", "S01_P1", "p0", "dnn"]
+        
+		// send to main tread
+		// TODO should be possible without code duplication
+	    if (Array.IndexOf(topic_info, "dnn") != -1)
+		{
+			UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+		}
+		else if (Array.IndexOf(topic_info, "p0") != -1)
+		{
+			UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+		}
+		else if (Array.IndexOf(topic_info, "p1") != -1)
+		{
+			UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+		}
     }
 
     private void Start()
