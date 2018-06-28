@@ -143,7 +143,6 @@ sysinfo.txt
 
 # OpenFace csv files
 modules/input_facsfromcsv/openface
-modules/input_facsfromcsv/openface_clean/
 
 # json files
 modules/output_facstojson/facsjson/

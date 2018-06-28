@@ -47,13 +47,17 @@ class CrawlerCSV:
         csv_raw = self.search_csv(csv_folder_raw)
         print(csv_raw)
         # folder not found, return empty list
-        if not csv_raw:
-            return []
+        # if not csv_raw:
+        #     return []
 
         # rename folder to folder_clean
         csv_folder_clean = csv_folder_raw.parent / (csv_folder_raw.parts[-1] + '_clean')
         # get all csv files in folder clean
         csv_clean = self.search_csv(csv_folder_clean)
+
+        # clean folder not found, return empty list
+        if not csv_clean:
+            return []
 
         # perform cleaning on files in raw that have not been cleaned yet
         for raw in csv_raw:
@@ -68,7 +72,7 @@ class CrawlerCSV:
         # find specific file if file name and not a number is given as argument
         if not csv_arg.isdigit() and (csv_arg != '-1') and (csv_arg != '-2'):
             print(f"\nFile is given as argument: {csv_arg}")
-            csv_message_list = sorted(self.search_csv(csv_folder_clean, csv_arg, True))
+            csv_message_list = [sorted(self.search_csv(csv_folder_clean, csv_arg, True))]
 
         # number is given as argument
         else:
@@ -86,10 +90,16 @@ class CrawlerCSV:
 
                 # return all files
                 if csv_arg == -2:
-                    csv_message_list = csv_all_clean
+                    # every csv in separate list to create csv groups existing out of 1 csv file
+                    print("\nre-listing")
+                    print(csv_all_clean)
+                    csv_message_list = [[x] for x in csv_all_clean]
+                    print()
+                    print(csv_message_list)
+                    print("\n")
 
                 # return specific file
-                if csv_arg >= -1:
+                elif csv_arg >= -1:
                     user_input = None
 
                     if csv_arg >= 0:
@@ -108,14 +118,15 @@ class CrawlerCSV:
                         except ValueError:
                             print("Given input is not a number")
 
-                    csv_message_list = [csv_all_clean[user_input]]
+                    # single csv file in csv group
+                    csv_message_list = [[csv_all_clean[user_input]]]
 
             else:
                 print(f"No csv files found in folder {csv_folder_clean}")
 
         # return final list of csv files
         print(f"List of csv files for messaging: {csv_message_list}")
-        return [csv_message_list]
+        return csv_message_list
 
     # return latest .csv
     def search_csv(self, csv_path, csv_arg="*", full_path=False):
@@ -178,12 +189,12 @@ class OpenFaceMessage:
         else:
             self.msg['confidence'] = 1.0
 
+        # metadata in message
+        self.msg['frame'] = int(row['frame'])
+        self.msg['timestamp'] = row['timestamp']
+
         # check confidence high enough, else return None as data
         if self.msg['confidence'] >= .7:
-            # metadata in message
-            self.msg['frame'] = int(row['frame'])
-            self.msg['timestamp'] = row['timestamp']
-
             # au_regression in message
             self.msg['au_r'] = self.df_au.loc[frame_tracker].to_dict()
             # print(msg['au_r'])
@@ -242,9 +253,13 @@ class OpenFaceMsgFromCSV:
     # loop over all csv groups ([1 csv file] if single person, P1, P2, etc [multi csv files]
     async def msg_gen(self):
         for csv_group in self.csv_list:
+            print("\n\n")
             time_start = time.time()
             print(csv_group)
+            # sys.exit("\nCSV crawler check finished")
+
             async for i, msg in self.msg_from_csv(csv_group):
+                print(msg)
                 timestamp = time.time()
 
                 # return filename, timestamp and msg as JSON string
@@ -253,7 +268,7 @@ class OpenFaceMsgFromCSV:
             # send few empty messages when csv group is done
             await asyncio.sleep(1)
             for i in range(5):
-                await asyncio.sleep(.01)
+                await asyncio.sleep(.05)
                 yield "reset", timestamp - time_start, json.dumps(self.reset_msg.msg)
             await asyncio.sleep(.2)
 
@@ -334,7 +349,7 @@ class OpenFaceMsgFromCSV:
                         yield i, ofmsg.msg
                     # not enough confidence; return empty msg
                     else:
-                        yield i, b''
+                        yield i, ''
 
 
 class FACSvatarMessages(FACSvatarZeroMQ):
@@ -393,7 +408,7 @@ if __name__ == '__main__':
                              "-2: message all csv in specified folder, "
                              "-1: show csv list from specified folder, "
                              ">=0 choose specific csv file from list")
-    parser.add_argument("--csv_folder", default="openface",
+    parser.add_argument("--csv_folder", default="openface/default",
                         help="Name of folder with csv files; Default: openface")
     parser.add_argument("--every_x_frames", default="1",
                         help="Send every x frames a msg; Default 1 (all)")
