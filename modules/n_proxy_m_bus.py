@@ -124,29 +124,31 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         if topic not in self.smooth_obj_dict:
                             self.smooth_obj_dict[topic] = SmoothData()
 
-                        # check au dict in data
-                        if "au_r" in msg[2]:
-                            # sort dict; dicts keep insert order Python 3.6+
-                            au_r_dict = msg[2]['au_r']
-                            au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
+                        # don't smooth reset data; TODO change to check if msg[2]['smooth'] != False
+                        if msg[2]['frame'] != -1:
+                            # check au dict in data
+                            if "au_r" in msg[2]:
+                                # sort dict; dicts keep insert order Python 3.6+
+                                au_r_dict = msg[2]['au_r']
+                                au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
 
-                            # smooth facial expressions; window_size: number of past data points;
-                            # steep: weight newer data
-                            # msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
-                            msg[2]['au_r'] = getattr(self.smooth_obj_dict[topic], apply_function)(au_r_sorted,
-                                                                                                  queue_no=0,
-                                                                                                  window_size=4,
-                                                                                                  steep=.35)
+                                # smooth facial expressions; window_size: number of past data points;
+                                # steep: weight newer data
+                                # msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
+                                msg[2]['au_r'] = getattr(self.smooth_obj_dict[topic], apply_function)(au_r_sorted,
+                                                                                                      queue_no=0,
+                                                                                                      window_size=4,
+                                                                                                      steep=.35)
 
-                        # check head rotation dict in data
-                        if "pose" in msg[2]:
-                            # smooth head position
-                            # msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
-                            getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
-                                                                                 window_size=4,
-                                                                                 steep=.2)
-                        # else:
-                        #     print("Data from DNN, forwarding unchanged")
+                            # check head rotation dict in data
+                            if "pose" in msg[2]:
+                                # smooth head position
+                                # msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
+                                getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
+                                                                                     window_size=4,
+                                                                                     steep=.2)
+                        else:
+                            print("No smoothing applied, forwarding unchanged")
 
                         # send modified message
                         print(msg)

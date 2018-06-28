@@ -207,9 +207,9 @@ class OpenFaceMessage:
         # init a message dict
         self.msg = dict()
 
-        self.msg['confidence'] = -1.0
         # metadata in message
         self.msg['frame'] = -1
+        # self.msg['confidence'] = 2.0
 
         # au_regression in message
         au_r = {}
@@ -265,9 +265,14 @@ class OpenFaceMsgFromCSV:
                 # return filename, timestamp and msg as JSON string
                 yield f"p{i}." + csv_group[i].stem, timestamp - time_start, json.dumps(msg)
 
+            # continue frame count
+            # frame = msg['frame']
+            # self.reset_msg.msg['frame'] = frame
+
             # send few empty messages when csv group is done
             await asyncio.sleep(1)
             for i in range(5):
+                # self.reset_msg.msg['frame'] += i
                 await asyncio.sleep(.05)
                 yield "reset", timestamp - time_start, json.dumps(self.reset_msg.msg)
             await asyncio.sleep(.2)
