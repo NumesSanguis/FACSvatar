@@ -12,6 +12,7 @@ import pandas as pd
 import keras
 import traceback
 import logging
+import zmq.asyncio
 
 
 # own imports; if statement for documentation
@@ -132,8 +133,10 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
 
                 # set multiplier parameters
-                if topic.decode('utf-8').startswith("multiplier"):
-                    await self.set_subscriber(data)
+                # if topic.decode('utf-8').startswith("multiplier"):
+
+                # change subscription key
+                await self.set_subscriber(data)
 
             except Exception as e:
                 print("Error with router function")
@@ -141,11 +144,12 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 logging.error(traceback.format_exc())
                 print()
 
-    # change what FACS data is received
+    # change to what FACS data to subscribe
     async def set_subscriber(self, sub_key):
-        pass
-        # self.sub_socket.setsockopt.remove
-        # self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
+        # unsubscribe all keys
+        self.sub_socket.setsockopt(zmq.UNSUBSCRIBE, '')
+        # subscribe to new key
+        self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
 
 
 if __name__ == '__main__':
