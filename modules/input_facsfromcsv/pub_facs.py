@@ -209,6 +209,7 @@ class OpenFaceMessage:
 
         # metadata in message
         self.msg['frame'] = -1
+        self.msg['smooth'] = False  # don't smooth these data
         # self.msg['confidence'] = 2.0
 
         # au_regression in message

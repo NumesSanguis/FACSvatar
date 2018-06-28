@@ -124,8 +124,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         if topic not in self.smooth_obj_dict:
                             self.smooth_obj_dict[topic] = SmoothData()
 
-                        # don't smooth reset data; TODO change to check if msg[2]['smooth'] != False
-                        if msg[2]['frame'] != -1:
+                        # don't smooth certain data;
+                        if 'smooth' not in msg[2] or msg[2]['smooth']:
                             # check au dict in data
                             if "au_r" in msg[2]:
                                 # sort dict; dicts keep insert order Python 3.6+
