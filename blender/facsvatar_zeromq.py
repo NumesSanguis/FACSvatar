@@ -95,37 +95,47 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
                 print(dir(self.mb_obj))
 
-                # set head rotation
-                if len(self.head_bones) == 2:
-                    bpy.context.scene.objects.active = self.mb_obj
-                    bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
+                # set pose only if pose data is available
+                if 'pose' in msg[2]:
+                    # set head rotation
+                    if len(self.head_bones) == 2:
+                        bpy.context.scene.objects.active = self.mb_obj
+                        bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
 
-                    # for pose_name in enumerate(msg_json['data']['head_pose']):
-                    pose_head = msg[2]['pose']
-                    self.rotate_head_bones(0, pose_head['pose_Rx'])  # pitch
-                    self.rotate_head_bones(1, pose_head['pose_Ry'], -1)  # jaw
-                    self.rotate_head_bones(2, pose_head['pose_Rz'], -1)  # roll
+                        # for pose_name in enumerate(msg_json['data']['head_pose']):
+                        pose_head = msg[2]['pose']
+                        self.rotate_head_bones(0, pose_head['pose_Rx'])  # pitch
+                        self.rotate_head_bones(1, pose_head['pose_Ry'], -1)  # jaw
+                        self.rotate_head_bones(2, pose_head['pose_Rz'], -1)  # roll
 
-                    # set key frames
-                    bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
-                    self.head_bones[0].keyframe_insert(data_path="rotation_euler", frame=self.frame)
-                    self.head_bones[1].keyframe_insert(data_path="rotation_euler", frame=self.frame)
+                        # set key frames
+                        bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
+                        self.head_bones[0].keyframe_insert(data_path="rotation_euler", frame=self.frame)
+                        self.head_bones[1].keyframe_insert(data_path="rotation_euler", frame=self.frame)
+
+                    else:
+                        print("Head bone and neck bone not found")
 
                 else:
-                    print("Head bone and neck bone not found")
+                    print("No pose data found")
 
-                # set all shape keys values
-                bpy.context.scene.objects.active = self.mb_body
-                for bs in msg[2]['blendshapes']:
-                    # skip setting shape keys for breathing from data
-                    if not bs.startswith("Expressions_chestExpansion"):
-                        # print(bs)
-                        # MB fix Caucasian female
-                        # if not bs == "Expressions_eyeClosedR_max":
-                        val = msg[2]['blendshapes'][bs]
-                        self.mb_body.data.shape_keys.key_blocks[bs].value = val
-                        self.mb_body.data.shape_keys.key_blocks[bs] \
-                            .keyframe_insert(data_path="value", frame=self.frame)
+                # set pose only if pose data is available
+                if 'blendshapes' in msg[2]:
+                    # set all shape keys values
+                    bpy.context.scene.objects.active = self.mb_body
+                    for bs in msg[2]['blendshapes']:
+                        # skip setting shape keys for breathing from data
+                        if not bs.startswith("Expressions_chestExpansion"):
+                            # print(bs)
+                            # MB fix Caucasian female
+                            # if not bs == "Expressions_eyeClosedR_max":
+                            val = msg[2]['blendshapes'][bs]
+                            self.mb_body.data.shape_keys.key_blocks[bs].value = val
+                            self.mb_body.data.shape_keys.key_blocks[bs] \
+                                .keyframe_insert(data_path="value", frame=self.frame)
+
+                else:
+                    print("No blendshapes data found")
 
                 # breathing (cycles of 3 sec)
                 if self.frame == 0:

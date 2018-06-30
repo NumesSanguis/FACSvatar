@@ -81,14 +81,15 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             if msg[1]:
                 # process message
                 msg[2] = json.loads(msg[2].decode('utf-8'))
-                # transform Action Units to Blend Shapes
-                msg[2]['blendshapes'] = await self.blendshape.facs_to_blendshape(msg[2]['au_r'])
-                # remove au_r from dict
-                msg[2].pop('au_r')
+                # check not empty
+                if msg[2]:
+                    # transform Action Units to Blend Shapes
+                    msg[2]['blendshapes'] = await self.blendshape.facs_to_blendshape(msg[2]['au_r'])
+                    # remove au_r from dict
+                    msg[2].pop('au_r')
 
-                # async always needs `send_multipart()`
                 print(msg)
-
+                # async always needs `send_multipart()`
                 await self.pub_socket.send_multipart([msg[0],  # topic
                                           msg[1],  # timestamp
                                           # data in JSON format or empty byte

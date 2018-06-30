@@ -119,12 +119,10 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         # if not msg[0].decode('utf-8').startswith('facsvatar'):  # not
 
                         topic = msg[0].decode('utf-8')
-                        # TODO remove topic from dict when msgs finish
-                        # TODO different history per user (init class more than once?)
                         if topic not in self.smooth_obj_dict:
                             self.smooth_obj_dict[topic] = SmoothData()
 
-                        # don't smooth certain data;
+                        # don't smooth data with 'smooth' == False;
                         if 'smooth' not in msg[2] or msg[2]['smooth']:
                             # check au dict in data
                             if "au_r" in msg[2]:
@@ -137,18 +135,21 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 # msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
                                 msg[2]['au_r'] = getattr(self.smooth_obj_dict[topic], apply_function)(au_r_sorted,
                                                                                                       queue_no=0,
-                                                                                                      window_size=4,
-                                                                                                      steep=.35)
+                                                                                                      window_size=3,
+                                                                                                      steep=.25)
 
                             # check head rotation dict in data
                             if "pose" in msg[2]:
                                 # smooth head position
                                 # msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
-                                getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
+                                msg[2]['pose'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
                                                                                      window_size=4,
-                                                                                     steep=.2)
+                                                                                     steep=.3)
                         else:
                             print("No smoothing applied, forwarding unchanged")
+                            print("Removing topic from smooth_obj_dict")
+                            # TODO remove topic from dict when msgs finish
+                            print(self.smooth_obj_dict.pop(topic))
 
                         # send modified message
                         print(msg)
