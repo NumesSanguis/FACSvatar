@@ -64,3 +64,10 @@ class Controller(FACSvatarZeroMQ):
                                          # str(int(time.time()*1000)).encode('ascii'),  # timestamp
                                          au_json.encode('utf-8')  # data in JSON format or empty byte
                                          ])
+
+    def dnn_sub_key_change(self):
+        print("Changing sub key of DNN")
+        self.deal2_socket.send_multipart([self.deal2_topic.encode('ascii'),  # topic
+                                          # str(int(time.time()*1000)).encode('ascii'),  # timestamp
+                                          "change".encode('utf-8')  # data in JSON format or empty byte
+                                          ])

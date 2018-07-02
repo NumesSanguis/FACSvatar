@@ -101,8 +101,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             print("message: {}".format(msg))
 
             # if pub key is specified
-            if self.pub_key:
-                msg[0] = self.pub_key.encode('utf-8')
+            # if self.pub_key:
+            #     msg[0] = self.pub_key.encode('utf-8')
 
             # check not finished; timestamp is empty (b'')
             if msg[1]:
@@ -114,7 +114,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 # async always needs `send_multipart()`
                 # print(msg)
 
-                await self.pub_socket.send_multipart([(msg[0].decode('utf-8') + ".dnn").encode('utf-8'),  # topic / key
+                await self.pub_socket.send_multipart([("dnn." + msg[0].decode('utf-8')).encode('utf-8'),  # topic / key
                                           msg[1],  # timestamp
                                           # data in JSON format or empty byte
                                           json.dumps(msg[2]).encode('utf-8')
@@ -132,11 +132,14 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 [id_dealer, topic, data] = await self.rout_socket.recv_multipart()
                 print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
 
-                # set multiplier parameters
-                # if topic.decode('utf-8').startswith("multiplier"):
+                # set subscriber key
+                if topic.decode('utf-8').startswith("dnn"):
+                    await self.change_user()
+                else:
+                    print("Command ignored")
 
                 # change subscription key
-                await self.set_subscriber(data)
+                # await self.set_subscriber(data)
 
             except Exception as e:
                 print("Error with router function")
@@ -144,12 +147,26 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 logging.error(traceback.format_exc())
                 print()
 
+    # change user for what FACS data to subscribe (p0 or p1); 2 speakers only for now
+    async def change_user(self):
+        print("Changing subscription key from: {}".format(self.sub_key))
+        # unsubscribe all keys
+        self.sub_socket.setsockopt(zmq.UNSUBSCRIBE, self.sub_key.encode('ascii'))
+        # subscribe to new key
+        if "p0" in self.sub_key.split("."):
+            self.sub_key = self.sub_key.replace(".p0", ".p1")
+        elif "p1" in self.sub_key.split("."):
+            self.sub_key = self.sub_key.replace(".p1", ".p0")
+        self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
+        print("Changed subscription key to: {}".format(self.sub_key))
+
     # change to what FACS data to subscribe
     async def set_subscriber(self, sub_key):
         # unsubscribe all keys
-        self.sub_socket.setsockopt(zmq.UNSUBSCRIBE, '')
+        self.sub_socket.setsockopt(zmq.UNSUBSCRIBE, self.sub_key.encode('ascii'))
         # subscribe to new key
-        self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
+        self.sub_key = sub_key
+        self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
 
 
 if __name__ == '__main__':
@@ -161,7 +178,7 @@ if __name__ == '__main__':
                         help="IP (e.g. 192.168.x.x) of where to sub to; Default: 127.0.0.1 (local)")
     parser.add_argument("--sub_port", default="5571",
                         help="Port of where to sub to; Default: 5571")
-    parser.add_argument("--sub_key", default="openface",
+    parser.add_argument("--sub_key", default="openface.p0",
                         help="Key for filtering message; Default: '' (all keys)")
     parser.add_argument("--sub_bind", default=False,
                         help="True: socket.bind() / False: socket.connect(); Default: False")
@@ -176,6 +193,14 @@ if __name__ == '__main__':
     parser.add_argument("--pub_bind", default=False,
                         help="True: socket.bind() / False: socket.connect(); Default: True")
 
+    # router
+    parser.add_argument("--rout_ip", default=argparse.SUPPRESS,
+                        help="This PC's IP (e.g. 192.168.x.x) router listens to; Default: 127.0.0.1 (local)")
+    parser.add_argument("--rout_port", default="5581",
+                        help="Port dealers message to; Default: 5581")
+    parser.add_argument("--rout_bind", default=True,
+                        help="True: socket.bind() / False: socket.connect(); Default: True")
+
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))
     print("The following arguments are ignored: {}\n".format(leftovers))
@@ -183,4 +208,4 @@ if __name__ == '__main__':
     # init FACSvatar message class
     facsvatar_messages = FACSvatarMessages(**vars(args))
     # start processing messages; give list of functions to call async
-    facsvatar_messages.start([facsvatar_messages.deep_sub_pub])
+    facsvatar_messages.start([facsvatar_messages.deep_sub_pub, facsvatar_messages.set_parameters])

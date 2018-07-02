@@ -153,8 +153,8 @@ public class ZeroMQFACSvatar : MonoBehaviour
 		// TODO should be possible without code duplication
 	    if (Array.IndexOf(topic_info, "dnn") != -1)
 		{
-			UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
-			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+			UnityMainThreadDispatcher.Instance().Enqueue(FACSModelDnn.RequestBlendshapes(blend_shapes));
+			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModelDnn.RequestHeadRotation(head_pose));
 		}
 		else if (Array.IndexOf(topic_info, "p0") != -1)
 		{

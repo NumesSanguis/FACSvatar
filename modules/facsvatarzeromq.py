@@ -18,6 +18,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
     def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
                  sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False,
                  deal_ip='127.0.0.1', deal_port=None, deal_key='', deal_topic='', deal_bind=False,
+                 deal2_ip='127.0.0.1', deal2_port=None, deal2_key='', deal2_topic='', deal2_bind=False,
                  rout_ip='127.0.0.1', rout_port=None, rout_bind=True,
                  **misc):
         """Sets-up a socket bound/connected to an url
@@ -49,7 +50,8 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         if sub_port:
             print("Subscriber port is specified")
             self.sub_socket = self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind)
-            self.sub_socket.setsockopt(zmq.SUBSCRIBE, sub_key.encode('ascii'))
+            self.sub_key = sub_key
+            self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
             print("Subscriber socket set-up complete")
         else:
             print("sub_port not specified, not setting-up subscriber")
@@ -64,6 +66,17 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             print("Dealer socket set-up complete")
         else:
             print("deal_port not specified, not setting-up dealer")
+
+        # set-up dealer socket only if a port is given; TODO better solution for multiple same sockets
+        if deal2_port:
+            print("Dealer port 2 is specified")
+            self.deal2_socket = self.zeromq_context(deal2_ip, deal2_port, zmq.DEALER, deal2_bind)
+            self.deal2_socket.setsockopt(zmq.IDENTITY, deal2_key.encode('ascii'))
+            # add variable with key f
+            self.deal2_topic = deal2_topic
+            print("Dealer 2 socket set-up complete")
+        else:
+            print("deal2_port not specified, not setting-up dealer")
 
         # set-up router socket only if a port is given
         if rout_port:

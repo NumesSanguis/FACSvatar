@@ -405,8 +405,8 @@ if __name__ == '__main__':
                         help="IP (e.g. 192.168.x.x) of where to pub to; Default: 127.0.0.1 (local)")
     parser.add_argument("--pub_port", default="5570",
                         help="Port of where to pub to; Default: 5570")
-    parser.add_argument("--pub_key", default="openface.offline",
-                        help="Key for filtering message; Default: openface.offline")
+    parser.add_argument("--pub_key", default="openface",
+                        help="Key for filtering message; Default: openface")
     parser.add_argument("--pub_bind", default=False,
                         help="True: socket.bind() / False: socket.connect(); Default: False")
     parser.add_argument("--csv_arg", default="demo",

@@ -189,6 +189,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 # set multiplier parameters
                 if topic.decode('utf-8').startswith("multiplier"):
                     await self.set_multiplier(data)
+                else:
+                    print("Command ignored")
 
             except Exception as e:
                 print("Error with router function")
