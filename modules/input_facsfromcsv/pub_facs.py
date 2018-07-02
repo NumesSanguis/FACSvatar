@@ -55,8 +55,8 @@ class CrawlerCSV:
         # get all csv files in folder clean
         csv_clean = self.search_csv(csv_folder_clean)
 
-        # clean folder not found, return empty list
-        if not csv_clean:
+        # raw and clean folder not found, return empty list
+        if not csv_raw and not csv_clean:
             return []
 
         # perform cleaning on files in raw that have not been cleaned yet

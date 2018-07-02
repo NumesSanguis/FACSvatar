@@ -95,8 +95,8 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
                 print(dir(self.mb_obj))
 
-                # set pose only if pose data is available
-                if 'pose' in msg[2]:
+                # set pose only if pose data is available and not empty
+                if 'pose' in msg[2] and msg[2]['pose']:
                     # set head rotation
                     if len(self.head_bones) == 2:
                         bpy.context.scene.objects.active = self.mb_obj
@@ -119,8 +119,8 @@ class FACSvatarZeroMQ(bpy.types.Operator):
                 else:
                     print("No pose data found")
 
-                # set pose only if pose data is available
-                if 'blendshapes' in msg[2]:
+                # set blendshapes only if blendshape data is available and not empty
+                if 'blendshapes' in msg[2] and msg[2]['blendshapes']:
                     # set all shape keys values
                     bpy.context.scene.objects.active = self.mb_body
                     for bs in msg[2]['blendshapes']:

@@ -99,6 +99,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         # # get the function we need to pass data to
         # smooth_func = getattr(self.smooth_data, apply_function)
 
+        new_smooth_object = False
+
         # await messages
         print("Awaiting FACS data...")
         # without try statement, no error output
@@ -115,20 +117,25 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                     # only pass on messages with enough tracking confidence; always send when no confidence param
                     if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.7:
-                        # don't smooth output of DNN
-                        # if not msg[0].decode('utf-8').startswith('facsvatar'):  # not
-
                         topic = msg[0].decode('utf-8')
-                        if topic not in self.smooth_obj_dict:
-                            self.smooth_obj_dict[topic] = SmoothData()
 
                         # don't smooth data with 'smooth' == False;
                         if 'smooth' not in msg[2] or msg[2]['smooth']:
-                            # check au dict in data
-                            if "au_r" in msg[2]:
+                            # if topic changed, instantiate a new SmoothData object
+                            if topic not in self.smooth_obj_dict:
+                                self.smooth_obj_dict[topic] = SmoothData()
+                                new_smooth_object = True
+
+                            # check au dict in data and not empty
+                            if "au_r" in msg[2] and msg[2]['au_r']:
                                 # sort dict; dicts keep insert order Python 3.6+
                                 au_r_dict = msg[2]['au_r']
                                 au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
+
+                                # match number of multiplier columns:
+                                if new_smooth_object:
+                                    self.smooth_obj_dict[topic].set_new_multiplier(len(au_r_dict))
+                                    new_smooth_object = False
 
                                 # smooth facial expressions; window_size: number of past data points;
                                 # steep: weight newer data
@@ -138,8 +145,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                                                                       window_size=3,
                                                                                                       steep=.25)
 
-                            # check head rotation dict in data
-                            if "pose" in msg[2]:
+                            # check head rotation dict in data and not empty
+                            if "pose" in msg[2] and msg[2]['pose']:
                                 # smooth head position
                                 # msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
                                 msg[2]['pose'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
@@ -148,8 +155,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         else:
                             print("No smoothing applied, forwarding unchanged")
                             print("Removing topic from smooth_obj_dict")
-                            # TODO remove topic from dict when msgs finish
-                            print(self.smooth_obj_dict.pop(topic))
+                            # remove topic from dict when msgs finish
+                            print(self.smooth_obj_dict.pop(topic, None))
 
                         # send modified message
                         print(msg)

@@ -17,12 +17,15 @@ class SmoothData:
     def __init__(self):
         # store dicts from previous time steps; e.g. [0] = facs, [1] = head_pose
         self.dataframe_list = []
-        # set multiplier vector per AU
-        self.multiplier = np.ones(17)
-        # set default blinking (AU45) multiplier
-        self.multiplier[16] = 1.5
-        print(self.multiplier)
+        self.set_new_multiplier()
 
+    def set_new_multiplier(self, no_of_columns=17):
+        # set multiplier vector per AU
+        self.multiplier = np.ones(no_of_columns)
+        if no_of_columns == 17:
+            # set default blinking (AU45) multiplier
+            self.multiplier[16] = 1.5
+        print(self.multiplier)
 
     # smoothing function similar to softmax
     def softmax_smooth(self, series, steep=1):
