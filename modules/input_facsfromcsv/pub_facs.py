@@ -10,10 +10,10 @@ import os
 # from os.path import join, isfile
 from pathlib import Path
 import sys
-from functools import partial
+# from functools import partial
 import argparse
 import time
-import glob
+# import glob
 import json
 import asyncio
 import pandas as pd
@@ -21,6 +21,8 @@ import pandas as pd
 
 # FACSvatar imports; if statement for documentation
 if __name__ == '__main__':
+    # TODO work irrespectively of folder
+    # sys.path.append(".")
     sys.path.append("..")
     from facsvatarzeromq import FACSvatarZeroMQ
     from openfacefiltercsv import FilterCSV

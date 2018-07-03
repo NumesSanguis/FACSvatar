@@ -130,16 +130,14 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         while True:
             try:
                 [id_dealer, topic, data] = await self.rout_socket.recv_multipart()
-                print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
+                print("\nCommand received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
 
                 # set subscriber key
-                if topic.decode('utf-8').startswith("dnn"):
-                    await self.change_user()
+                if topic.decode('ascii').startswith("dnn"):
+                    # await self.change_user()
+                    await self.set_subscriber(data.decode('utf-8'))
                 else:
                     print("Command ignored")
-
-                # change subscription key
-                # await self.set_subscriber(data)
 
             except Exception as e:
                 print("Error with router function")
@@ -161,12 +159,35 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         print("Changed subscription key to: {}".format(self.sub_key))
 
     # change to what FACS data to subscribe
-    async def set_subscriber(self, sub_key):
-        # unsubscribe all keys
-        self.sub_socket.setsockopt(zmq.UNSUBSCRIBE, self.sub_key.encode('ascii'))
-        # subscribe to new key
-        self.sub_key = sub_key
-        self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
+    async def set_subscriber(self, user_key):
+        print("Current subscription key: {}".format(self.sub_key))
+
+        # get individual topics
+        split_key = self.sub_key.split(".")
+
+        # if not in current subscription, change subscription
+        if user_key not in split_key:
+            # TODO not 2 participants
+            if user_key == "p0":
+                user_key_old = "p1"
+            elif user_key == "p1":
+                user_key_old = "p0"
+            else:
+                print("user_key is not p0 or p1")
+
+            # unsubscribe all keys
+            self.sub_socket.setsockopt(zmq.UNSUBSCRIBE, self.sub_key.encode('ascii'))
+
+            # change p0 to p1 or reversed
+            split_key[split_key.index(user_key_old)] = user_key
+
+            # set new subscription key
+            self.sub_key = ".".join(split_key)
+            self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
+            print("Changed subscription key to: {}".format(self.sub_key))
+
+        else:
+            print("Already subscribed to user: {}".format(user_key))
 
 
 if __name__ == '__main__':

@@ -32,6 +32,7 @@ import traceback
 import logging
 import numpy as np
 import json
+import queue
 # import asyncio
 
 # own import; if statement for documentation
@@ -53,43 +54,43 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         # keep dict of smooth object per topic
         self.smooth_obj_dict = {}
 
-    # overwrite existing start function
-    def start(self, async_func_list=None):
-        """No functions given --> data pass through only; else apply function on data before forwarding
-
-        N publishers to 1 sub; proxy 1 sub to 1 pub; publish to M subscribers
-        """
-
-        # make sure pub / sub is initialised
-        if not self.pub_socket or not self.sub_socket:
-            print("Both pub and sub needs to be initiliased and set to bind")
-            print("Pub: {}".format(self.pub_socket))
-            print("Sub: {}".format(self.sub_socket))
-            sys.exit()
-
-        # apply function to data to passing through data
-        if async_func_list:
-            import asyncio
-            # capture ZeroMQ errors; ZeroMQ using asyncio doesn't print out errors
-            try:
-                asyncio.get_event_loop().run_until_complete(asyncio.wait(
-                    [func() for func in async_func_list]
-                ))
-            except Exception as e:
-                print("Error with async function")
-                # print(e)
-                logging.error(traceback.format_exc())
-                print()
-
-            finally:
-                # TODO disconnect pub/sub
-                pass
-
-        # don't duplicate the message, just pass through
-        else:
-            print("Try: Proxy... CONNECT!")
-            zmq.proxy(self.pub_socket, self.sub_socket)
-            print("CONNECT successful!")
+    # # overwrite existing start function
+    # def start(self, async_func_list=None):
+    #     """No functions given --> data pass through only; else apply function on data before forwarding
+    #
+    #     N publishers to 1 sub; proxy 1 sub to 1 pub; publish to M subscribers
+    #     """
+    #
+    #     # make sure pub / sub is initialised
+    #     if not self.pub_socket or not self.sub_socket:
+    #         print("Both pub and sub needs to be initiliased and set to bind")
+    #         print("Pub: {}".format(self.pub_socket))
+    #         print("Sub: {}".format(self.sub_socket))
+    #         sys.exit()
+    #
+    #     # apply function to data to passing through data
+    #     if async_func_list:
+    #         import asyncio
+    #         # capture ZeroMQ errors; ZeroMQ using asyncio doesn't print out errors
+    #         try:
+    #             asyncio.get_event_loop().run_until_complete(asyncio.wait(
+    #                 [func() for func in async_func_list]
+    #             ))
+    #         except Exception as e:
+    #             print("Error with async function")
+    #             # print(e)
+    #             logging.error(traceback.format_exc())
+    #             print()
+    #
+    #         finally:
+    #             # TODO disconnect pub/sub
+    #             pass
+    #
+    #     # don't duplicate the message, just pass through
+    #     else:
+    #         print("Try: Proxy... CONNECT!")
+    #         zmq.proxy(self.pub_socket, self.sub_socket)
+    #         print("CONNECT successful!")
 
     async def pub_sub_function(self, apply_function):  # async
         """Subscribes to FACS data, smooths, publishes it"""
@@ -117,7 +118,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                     # only pass on messages with enough tracking confidence; always send when no confidence param
                     if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.7:
-                        topic = msg[0].decode('utf-8')
+                        # subscription key / topic
+                        topic = msg[0].decode('ascii')
 
                         # don't smooth data with 'smooth' == False;
                         if 'smooth' not in msg[2] or msg[2]['smooth']:
@@ -129,18 +131,18 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             # check au dict in data and not empty
                             if "au_r" in msg[2] and msg[2]['au_r']:
                                 # sort dict; dicts keep insert order Python 3.6+
-                                au_r_dict = msg[2]['au_r']
-                                au_r_sorted = dict(sorted(au_r_dict.items(), key=lambda k: k[0]))
+                                # au_r_dict = msg[2]['au_r']
+                                msg[2]['au_r'] = dict(sorted(msg[2]['au_r'].items(), key=lambda k: k[0]))
 
                                 # match number of multiplier columns:
                                 if new_smooth_object:
-                                    self.smooth_obj_dict[topic].set_new_multiplier(len(au_r_dict))
+                                    self.smooth_obj_dict[topic].set_new_multiplier(len(msg[2]['au_r']))
                                     new_smooth_object = False
 
                                 # smooth facial expressions; window_size: number of past data points;
                                 # steep: weight newer data
                                 # msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
-                                msg[2]['au_r'] = getattr(self.smooth_obj_dict[topic], apply_function)(au_r_sorted,
+                                msg[2]['au_r'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['au_r'],
                                                                                                       queue_no=0,
                                                                                                       window_size=3,
                                                                                                       steep=.25)
@@ -154,9 +156,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                                                      steep=.3)
                         else:
                             print("No smoothing applied, forwarding unchanged")
-                            print("Removing topic from smooth_obj_dict")
                             # remove topic from dict when msgs finish
-                            print(self.smooth_obj_dict.pop(topic, None))
+                            print("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(topic, None)))
 
                         # send modified message
                         print(msg)
@@ -186,9 +187,12 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 [id_dealer, topic, data] = await self.rout_socket.recv_multipart()
                 print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
 
+                tp = topic.decode('ascii')
                 # set multiplier parameters
-                if topic.decode('utf-8').startswith("multiplier"):
-                    await self.set_multiplier(data)
+                if tp.startswith("multiplier"):
+                    await self.set_multiplier(data.decode('utf-8'))
+                # elif tp.startswith("dnn"):
+                #     await self.set_dnn_user(data.decode('utf-8'))
                 else:
                     print("Command ignored")
 
@@ -201,7 +205,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     # set new multiplier values
     async def set_multiplier(self, data):
         # JSON to list
-        au_multiplier_list = json.loads(data.decode('utf-8'))
+        au_multiplier_list = json.loads(data)
 
         # list to numpy array
         au_multiplier_np = np.array(au_multiplier_list)
