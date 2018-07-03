@@ -154,6 +154,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 msg[2]['pose'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
                                                                                      window_size=4,
                                                                                      steep=.3)
+
+                                # TODO add eye direction AU data
+
                         else:
                             print("No smoothing applied, forwarding unchanged")
                             # remove topic from dict when msgs finish

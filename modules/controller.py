@@ -68,10 +68,12 @@ class Controller(FACSvatarZeroMQ):
     def dnn_sub_key_change(self, user):
         print("Changing sub key of DNN to user: {}".format(user))
         # pub_deepfacs.py
-        self.deal2_socket.send_multipart([self.deal2_topic.encode('ascii'),  # topic
-                                          user.encode('utf-8')  # data in JSON format or empty byte
-                                          ])
+        if self.deal2_socket:
+            self.deal2_socket.send_multipart([self.deal2_topic.encode('ascii'),  # topic
+                                              user.encode('utf-8')  # data in JSON format or empty byte
+                                              ])
         # n_proxy_m_bus.py
-        self.deal3_socket.send_multipart([self.deal3_topic.encode('ascii'),  # topic
-                                          user.encode('utf-8')  # data in JSON format or empty byte
-                                          ])
+        if self.deal3_socket:
+            self.deal3_socket.send_multipart([self.deal3_topic.encode('ascii'),  # topic
+                                              user.encode('utf-8')  # data in JSON format or empty byte
+                                              ])

@@ -1,4 +1,18 @@
-# FACSvatar v0.2.7-Alpha
+# FACSvatar v0.3.0-Alpha
+
+## New
+
+* eye movement based on eye gaze data
+* multi-user data support
+* switch targeted user of AU data for DNN (through GUI)
+* mix participant AU / head pose data with DNN generated
+* Unity3D scene in cafe
+* multi-user animation in Unity3D
+* scan folder and select (all) files with 1 command
+
+TODO put video here
+
+## Description
 
 Affective computing and avatar animation both share that a person's facial expression contains useful information. Up until now, these fields use different processes to obtain and use these data. FACSvatar combines both purposes in a single framework. Empower your Embodied Conversational Agents (ECAs)!
 

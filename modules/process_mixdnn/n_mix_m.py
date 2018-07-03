@@ -92,7 +92,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                     # store data from eye blink AUs
                                     # user_data_au.put({k: v for k, v in au_r_sorted.items() if k in
                                     #                  ['AU45']})
-                                    au_data = {k: msg[2]['au_r'][k] for k in ('AU45',)}
+                                    # au_data = {k: msg[2]['au_r'][k] for k in ('AU45',)}
+                                    au_data = {k: msg[2]['au_r'][k] for k in ('AU45', 'AU62', 'AU63', 'AU64')
+                                               if k in msg[2]['au_r']}
                                     print(au_data)
                                     user_data_au.put(au_data)
                                     print("\n\n")
@@ -120,6 +122,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 msg[2]['pose'] = {**msg[2]['pose'], **user_data_pose.get()}
                                 print(msg[2]['pose'])
                                 print()
+
+                        # add target user to display data
+                        msg[2]['target'] = self.dnn_user_store
 
                         # send modified message
                         print(msg)
@@ -163,6 +168,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 print()
 
     async def set_dnn_user(self, user_key):
+        print("Was storing data for: {}".format(self.dnn_user_store))
+
         # store data of not DNNed user
         if user_key == "p0":
             user_store = "p1"
@@ -173,6 +180,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             user_store = self.dnn_user_store
             print("user_key is not p0 or p1")
 
+        print("Now storing data for: {}".format(self.dnn_user_store))
         self.dnn_user_store = user_store
 
 

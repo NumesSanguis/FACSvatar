@@ -32,6 +32,15 @@ class DeepFACSMsg:
     async def facs_deep_facs(self, au_dict):  # , id_cb, type_cb
         """Receives a dict of AUs, returns a dict of deep generated AUs"""
 
+        # TODO invert process by only keeping trained AU
+        # temporary remove eye gaze AU data
+        au_gaze = ('AU61', 'AU62', 'AU63', 'AU64')
+        au_gaze_dict = {k: au_dict.pop(k) for k in au_gaze if k in au_dict}
+
+        # for au in :
+        #     if au in au_dict:
+        #         au_gaze
+
         # print()
         # print(au_dict)
         # print(type(au_dict))
@@ -80,9 +89,8 @@ class DeepFACSMsg:
         print(au_dict)
         print(deep_au_dict)
 
-        # sys.exit()
-        # return
-        return deep_au_dict
+        # add gaze AUs back into dict and return
+        return {**deep_au_dict, **au_gaze_dict}
 
 
 # client to message broker server

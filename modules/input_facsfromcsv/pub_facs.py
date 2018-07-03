@@ -177,6 +177,10 @@ class OpenFaceMessage:
         # df_au_regression.rename({'pose_Rx': 'pitch', 'pose_Ry': 'roll', 'pose_Rz': 'yaw'},
         #                         axis='columns', inplace=True)
 
+        # eye gaze data frame
+        eye_gaze_col = self.df_csv.columns.str.contains("gaze_angle_*")
+        self.df_eye_gaze = self.df_csv.loc[:, eye_gaze_col]
+
     def set_msg(self, frame_tracker):
         # get single frame
         row = self.df_csv.loc[frame_tracker]
@@ -200,6 +204,31 @@ class OpenFaceMessage:
             # au_regression in message
             self.msg['au_r'] = self.df_au.loc[frame_tracker].to_dict()
             # print(msg['au_r'])
+
+            # eye gaze in message as AU
+            eye_angle = self.df_eye_gaze.loc[frame_tracker].get(["gaze_angle_x", "gaze_angle_y"]).values  # radians
+            print(eye_angle)
+            # eyes go about 60 degree, which is 1.0472 rad, so no conversion needed?
+
+            # set all to 0 (otherwise smoothing problems)
+            self.msg['au_r']['AU61'] = 0
+            self.msg['au_r']['AU62'] = 0
+            self.msg['au_r']['AU63'] = 0
+            self.msg['au_r']['AU64'] = 0
+
+            # eye_angle_x left
+            if eye_angle[0] < 0:
+                self.msg['au_r']['AU61'] = min(eye_angle[0]*-1, 1.0)
+            # eye_angle_x right
+            else:
+                self.msg['au_r']['AU62'] = min(eye_angle[0], 1.0)
+
+            # eye_angle_y up
+            if eye_angle[1] >= 0:
+                self.msg['au_r']['AU63'] = min(eye_angle[1], 1.0)
+            # eye_angle_y down
+            else:
+                self.msg['au_r']['AU64'] = min(eye_angle[1] * -1, 1.0)
 
             # head pose in message
             self.msg['pose'] = self.df_head_pose.loc[frame_tracker].to_dict()
