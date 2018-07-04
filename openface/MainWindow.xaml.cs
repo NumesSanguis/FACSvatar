@@ -9,29 +9,28 @@
 //
 // License can be found in OpenFace-license.txt
 
-//     * Any publications arising rdm the use of this software, including but
+//     * Any publications arising from the use of this software, including but
 //       not limited to academic journal and conference publications, technical
 //       reports and manuals, must cite at least one of the following works:
 //
-//       OpenFace: an open source facial behavior analysis toolkit
-//       Tadas Baltrušaitis, Peter Robinson, and Louis-Philippe Morency
-//       in IEEE Winter Conference on Applications of Computer Vision, 2016  
+//       OpenFace 2.0: Facial Behavior Analysis Toolkit
+//       Tadas Baltrušaitis, Amir Zadeh, Yao Chong Lim, and Louis-Philippe Morency
+//       in IEEE International Conference on Automatic Face and Gesture Recognition, 2018  
+//
+//       Convolutional experts constrained local model for facial landmark detection.
+//       A. Zadeh, T. Baltrušaitis, and Louis-Philippe Morency,
+//       in Computer Vision and Pattern Recognition Workshops, 2017.    
 //
 //       Rendering of Eyes for Eye-Shape Registration and Gaze Estimation
 //       Erroll Wood, Tadas Baltrušaitis, Xucong Zhang, Yusuke Sugano, Peter Robinson, and Andreas Bulling 
 //       in IEEE International. Conference on Computer Vision (ICCV),  2015 
 //
-//       Cross-dataset learning and person-speci?c normalisation for automatic Action Unit detection
+//       Cross-dataset learning and person-specific normalisation for automatic Action Unit detection
 //       Tadas Baltrušaitis, Marwa Mahmoud, and Peter Robinson 
 //       in Facial Expression Recognition and Analysis Challenge, 
 //       IEEE International Conference on Automatic Face and Gesture Recognition, 2015 
 //
-//       Constrained Local Neural Fields for robust facial landmark detection in the wild.
-//       Tadas Baltrušaitis, Peter Robinson, and Louis-Philippe Morency. 
-//       in IEEE Int. Conference on Computer Vision Workshops, 300 Faces in-the-Wild Challenge, 2013.    
-//
 ///////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // This file is modified by Hung-Hsuan Huang for ZeroMQ integration.
@@ -42,7 +41,6 @@
 // They can be download from the nuget portal site
 ///////////////////////////////////////////////////////////////////////////////
 
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -50,6 +48,8 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Media.Imaging;
+using System.Windows.Controls;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 // Internal libraries
 using OpenCVWrappers;
@@ -58,9 +58,6 @@ using FaceAnalyser_Interop;
 using GazeAnalyser_Interop;
 using FaceDetectorInterop;
 using UtilitiesOF;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using System.Windows.Forms;
-
 
 // By Huang
 using NetMQ;
@@ -186,6 +183,16 @@ namespace OpenFaceOffline
         // Where the recording is done (by default in a record directory, from where the application executed)
         String record_root = "./processed";
 
+        // Selecting which face detector will be used
+        public bool DetectorHaar { get; set; } = false;
+        public bool DetectorHOG { get; set; } = false;
+        public bool DetectorCNN { get; set; } = true;
+
+        // Selecting which landmark detector will be used
+        public bool LandmarkDetectorCLM { get; set; } = false;
+        public bool LandmarkDetectorCLNF { get; set; } = false;
+        public bool LandmarkDetectorCECLM { get; set; } = true;
+
         // For AU prediction, if videos are long dynamic models should be used
         public bool DynamicAUModels { get; set; } = true;
 
@@ -194,6 +201,7 @@ namespace OpenFaceOffline
 
         public MainWindow()
         {
+            // added by Huang
             bool bPush = false;
 
             string configfile_name = "config.xml";
@@ -210,17 +218,17 @@ namespace OpenFaceOffline
             if (list.Count > 0 && ((XmlElement)list[0]).InnerText.ToLower().Equals("push"))
                 bPush = true;
             list = document.GetElementsByTagName("IP");
-            if(list.Count > 0)
+            if (list.Count > 0)
             {
                 serveraddress = ((XmlElement)list[0]).InnerText;
             }
             list = document.GetElementsByTagName("Port");
-            if(list.Count > 0)
+            if (list.Count > 0)
             {
                 port = Int32.Parse(((XmlElement)list[0]).InnerText);
             }
             list = document.GetElementsByTagName("Topic");
-            if(list.Count > 0)
+            if (list.Count > 0)
             {
                 topic = ((XmlElement)list[0]).InnerText;
             }
@@ -240,30 +248,43 @@ namespace OpenFaceOffline
                 }
             }
 
+            // End of Huang's code
+
             InitializeComponent();
             this.DataContext = this; // For WPF data binding
 
             // Set the icon
             Uri iconUri = new Uri("logo1.ico", UriKind.RelativeOrAbsolute);
             this.Icon = BitmapFrame.Create(iconUri);
-            
-            String root = AppDomain.CurrentDomain.BaseDirectory;
 
-            face_model_params = new FaceModelParameters(root, false);
+            String root = AppDomain.CurrentDomain.BaseDirectory;
+                        
+            face_model_params = new FaceModelParameters(root, LandmarkDetectorCECLM, LandmarkDetectorCLNF, LandmarkDetectorCLM);
+            // Initialize the face detector
+            face_detector = new FaceDetector(face_model_params.GetHaarLocation(), face_model_params.GetMTCNNLocation());
+
+            // If MTCNN model not available, use HOG
+            if (!face_detector.IsMTCNNLoaded())
+            {
+                FaceDetCNN.IsEnabled = false;
+                DetectorCNN = false;
+                DetectorHOG = true;
+            }
+            face_model_params.SetFaceDetector(DetectorHaar, DetectorHOG, DetectorCNN);
+
             landmark_detector = new CLNF(face_model_params);
 
             gaze_analyser = new GazeAnalyserManaged();
 
-            frame_no = 0;
-
             // Added by Huang
+            frame_no = 0;
             pubSocket = new PublisherSocket();
             pubSocket.Options.SendHighWatermark = 1000;
-            if(bPush)
+            if (bPush)
                 pubSocket.Connect("tcp://" + serveraddress + ":" + port);
             else
                 pubSocket.Bind("tcp://" + myaddress + ":" + port);
-
+            // end of Huang's code
         }
 
         // ----------------------------------------------------------
@@ -295,6 +316,19 @@ namespace OpenFaceOffline
 
             thread_running = true;
 
+            // Reload the face landmark detector if needed
+            ReloadLandmarkDetector();
+
+            if(!landmark_detector.isLoaded())
+            {
+                DetectorNotFoundWarning();
+                EndMode();
+                thread_running = false;
+                return;
+            }
+
+            // Set the face detector
+            face_model_params.SetFaceDetector(DetectorHaar, DetectorHOG, DetectorCNN);
             face_model_params.optimiseForVideo();
 
             // Setup the visualization
@@ -313,7 +347,7 @@ namespace OpenFaceOffline
             // Setup recording
             RecorderOpenFaceParameters rec_params = new RecorderOpenFaceParameters(true, reader.IsWebcam(),
                 Record2DLandmarks, Record3DLandmarks, RecordModelParameters, RecordPose, RecordAUs,
-                RecordGaze, RecordHOG, RecordTracked, RecordAligned,
+                RecordGaze, RecordHOG, RecordTracked, RecordAligned, false,
                 reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), reader.GetFPS());
 
             RecorderOpenFace recorder = new RecorderOpenFace(reader.GetName(), rec_params, record_root);
@@ -323,26 +357,38 @@ namespace OpenFaceOffline
             var lastFrameTime = CurrentTime;
 
             // Empty image would indicate that the stream is over
-            while (gray_frame.Width != 0)
+            while (!gray_frame.IsEmpty)
             {
+
                 if(!thread_running)
                 {
                     break;
                 }
 
                 double progress = reader.GetProgress();
-                bool detection_succeeding = landmark_detector.DetectLandmarksInVideo(gray_frame, face_model_params);
+                
+                bool detection_succeeding = landmark_detector.DetectLandmarksInVideo(frame, face_model_params, gray_frame);
 
                 // The face analysis step (for AUs and eye gaze)
                 face_analyser.AddNextFrame(frame, landmark_detector.CalculateAllLandmarks(), detection_succeeding, false);
+
                 gaze_analyser.AddNextFrame(landmark_detector, detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy());
 
                 // Only the final face will contain the details
-                VisualizeFeatures(frame, visualizer_of, landmark_detector.CalculateAllLandmarks(), landmark_detector.GetVisibilities(), detection_succeeding, true, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), progress);
+                VisualizeFeatures(frame, visualizer_of, landmark_detector.CalculateAllLandmarks(), landmark_detector.GetVisibilities(), detection_succeeding, true, false, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), progress);
 
                 // Record an observation
-                RecordObservation(recorder, visualizer_of.GetVisImage(), detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), reader.GetTimestamp());
+                RecordObservation(recorder, visualizer_of.GetVisImage(), 0, detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), reader.GetTimestamp(), reader.GetFrameNumber());
+
+                // this line is added by Huang
                 SendZeroMQMessage(detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), reader.GetTimestamp());
+
+
+
+                if(RecordTracked)
+                { 
+                    recorder.WriteObservationTracked();
+                }
 
                 while (thread_running & thread_paused && skip_frames == 0)
                 {
@@ -383,6 +429,17 @@ namespace OpenFaceOffline
             // Indicate we will start running the thread
             thread_running = true;
 
+            // Reload the face landmark detector if needed
+            ReloadLandmarkDetector();
+
+            if (!landmark_detector.isLoaded())
+            {
+                DetectorNotFoundWarning();
+                EndMode();
+                thread_running = false;
+                return;
+            }
+
             // Setup the parameters optimized for working on individual images rather than sequences
             face_model_params.optimiseForImages();
 
@@ -392,7 +449,7 @@ namespace OpenFaceOffline
             // Initialize the face detector if it has not been initialized yet
             if (face_detector == null)
             {
-                face_detector = new FaceDetector();
+                face_detector = new FaceDetector(face_model_params.GetHaarLocation(), face_model_params.GetMTCNNLocation());
             }
 
             // Initialize the face analyser
@@ -417,22 +474,33 @@ namespace OpenFaceOffline
                 // Setup recording
                 RecorderOpenFaceParameters rec_params = new RecorderOpenFaceParameters(false, false,
                     Record2DLandmarks, Record3DLandmarks, RecordModelParameters, RecordPose, RecordAUs,
-                    RecordGaze, RecordHOG, RecordTracked, RecordAligned,
+                    RecordGaze, RecordHOG, RecordTracked, RecordAligned, true,
                     reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);
 
                 RecorderOpenFace recorder = new RecorderOpenFace(reader.GetName(), rec_params, record_root);
 
                 // Detect faces here and return bounding boxes
                 List<Rect> face_detections = new List<Rect>();
-                List<double> confidences = new List<double>();
-                face_detector.DetectFacesHOG(face_detections, gray_frame, confidences);
+                List<float> confidences = new List<float>();
+                if(DetectorHOG)
+                {
+                    face_detector.DetectFacesHOG(face_detections, gray_frame, confidences);
+                }
+                else if(DetectorCNN)
+                { 
+                    face_detector.DetectFacesMTCNN(face_detections, frame, confidences);
+                }
+                else if(DetectorHaar)
+                {
+                    face_detector.DetectFacesHaar(face_detections, gray_frame, confidences);
+                }
 
                 // For visualization
                 double progress = reader.GetProgress();
 
                 for (int i = 0; i < face_detections.Count; ++i)
                 {
-                    bool detection_succeeding = landmark_detector.DetectFaceLandmarksInImage(gray_frame, face_detections[i], face_model_params);
+                    bool detection_succeeding = landmark_detector.DetectFaceLandmarksInImage(frame, face_detections[i], face_model_params, gray_frame);
 
                     var landmarks = landmark_detector.CalculateAllLandmarks();
                     
@@ -443,16 +511,23 @@ namespace OpenFaceOffline
                     gaze_analyser.AddNextFrame(landmark_detector, detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy());
 
                     // Only the final face will contain the details
-                    VisualizeFeatures(frame, visualizer_of, landmarks, landmark_detector.GetVisibilities(), detection_succeeding, i == 0, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), progress);
+                    VisualizeFeatures(frame, visualizer_of, landmarks, landmark_detector.GetVisibilities(), detection_succeeding, i == 0, true, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), progress);
 
                     // Record an observation
-                    RecordObservation(recorder, visualizer_of.GetVisImage(), detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);
-                    SendZeroMQMessage(detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);
+                    RecordObservation(recorder, visualizer_of.GetVisImage(), i, detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0, 0);
 
+                    // This line is added by Huang
+                    SendZeroMQMessage(detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);
                 }
 
                 frame = new RawImage(reader.GetNextImage());
                 gray_frame = new RawImage(reader.GetCurrentFrameGray());
+
+                // Write out the tracked image
+                if(RecordTracked)
+                { 
+                    recorder.WriteObservationTracked();
+                }
 
                 // Do not cary state accross images
                 landmark_detector.Reset();
@@ -468,22 +543,60 @@ namespace OpenFaceOffline
             EndMode();
 
         }
- 
-        private void RecordObservation(RecorderOpenFace recorder, RawImage vis_image, bool success, float fx, float fy, float cx, float cy, double timestamp)
+
+        // If the landmark detector model changed need to reload it
+        private void ReloadLandmarkDetector()
+        {
+            bool reload = false;
+            if (face_model_params.IsCECLM() && !LandmarkDetectorCECLM)
+            {
+                reload = true;
+            }
+            else if(face_model_params.IsCLNF() && !LandmarkDetectorCLNF)
+            {
+                reload = true;
+            }
+            else if (face_model_params.IsCLM() && !LandmarkDetectorCLM)
+            {
+                reload = true;
+            }
+
+            if(reload)
+            {
+                String root = AppDomain.CurrentDomain.BaseDirectory;
+
+                face_model_params = new FaceModelParameters(root, LandmarkDetectorCECLM, LandmarkDetectorCLNF, LandmarkDetectorCLM);
+                landmark_detector = new CLNF(face_model_params);
+            }
+        }
+
+        private void DetectorNotFoundWarning()
+        {
+            string messageBoxText = "Could not open the landmark detector model file. For instructions of how to download them, see https://github.com/TadasBaltrusaitis/OpenFace/wiki/Model-download";
+            string caption = "Model file not found or corrupt";
+            MessageBoxButton button = MessageBoxButton.OK;
+            MessageBoxImage icon = MessageBoxImage.Warning;
+
+            // Display message box
+            System.Windows.MessageBox.Show(messageBoxText, caption, button, icon);
+
+        }
+
+        private void RecordObservation(RecorderOpenFace recorder, RawImage vis_image, int face_id, bool success, float fx, float fy, float cx, float cy, double timestamp, int frame_number)
         {
 
             recorder.SetObservationTimestamp(timestamp);
 
             double confidence = landmark_detector.GetConfidence();
 
-            List<double> pose = new List<double>();
+            List<float> pose = new List<float>();
             landmark_detector.GetPose(pose, fx, fy, cx, cy);
             recorder.SetObservationPose(pose);
 
-            List<Tuple<double, double>> landmarks_2D = landmark_detector.CalculateAllLandmarks();
-            List<Tuple<double, double, double>> landmarks_3D = landmark_detector.Calculate3DLandmarks(fx, fy, cx, cy);
-            List<double> global_params = landmark_detector.GetRigidParams();
-            List<double> local_params = landmark_detector.GetNonRigidParams();
+            List<Tuple<float, float>> landmarks_2D = landmark_detector.CalculateAllLandmarks();
+            List<Tuple<float, float, float>> landmarks_3D = landmark_detector.Calculate3DLandmarks(fx, fy, cx, cy);
+            List<float> global_params = landmark_detector.GetRigidParams();
+            List<float> local_params = landmark_detector.GetNonRigidParams();
 
             recorder.SetObservationLandmarks(landmarks_2D, landmarks_3D, global_params, local_params, confidence, success);
 
@@ -497,6 +610,9 @@ namespace OpenFaceOffline
             var au_regs = face_analyser.GetCurrentAUsReg();
             var au_classes = face_analyser.GetCurrentAUsClass();
             recorder.SetObservationActionUnits(au_regs, au_classes);
+
+            recorder.SetObservationFaceID(face_id);
+            recorder.SetObservationFrameNumber(frame_number);
 
             recorder.SetObservationFaceAlign(face_analyser.GetLatestAlignedFace());
             
@@ -513,10 +629,10 @@ namespace OpenFaceOffline
         // added by Huang
         private void SendZeroMQMessage(bool success, float fx, float fy, float cx, float cy, double openface_timestamp)
         {
-            Tuple<double, double> gaze_angle = new Tuple<double, double>(0, 0);
-            List<double> pose = new List<double>();
-            List<double> non_rigid_params = landmark_detector.GetNonRigidParams();
-            
+            Tuple<float, float> gaze_angle = new Tuple<float, float>(0, 0);
+            List<float> pose = new List<float>();
+            List<float> non_rigid_params = landmark_detector.GetNonRigidParams();
+
 
 
             NetMQMessage output_message = new NetMQMessage();
@@ -539,7 +655,7 @@ namespace OpenFaceOffline
                 confidence = 1;
             json_data.confidence = confidence;
 
-            pose = new List<double>();
+            pose = new List<float>();
             landmark_detector.GetPose(pose, fx, fy, cx, cy);
 
             json_data.pose.pose_Tx = pose[0];
@@ -581,18 +697,18 @@ namespace OpenFaceOffline
 
         }
 
-        private void VisualizeFeatures(RawImage frame, Visualizer visualizer, List<Tuple<double, double>> landmarks, List<bool> visibilities, bool detection_succeeding, 
-            bool new_image, float fx, float fy, float cx, float cy, double progress)
+        private void VisualizeFeatures(RawImage frame, Visualizer visualizer, List<Tuple<float, float>> landmarks, List<bool> visibilities, bool detection_succeeding, 
+            bool new_image, bool multi_face, float fx, float fy, float cx, float cy, double progress)
         {
 
             List<Tuple<Point, Point>> lines = null;
-            List<Tuple<double, double>> eye_landmarks = null;
+            List<Tuple<float, float>> eye_landmarks = null;
             List<Tuple<Point, Point>> gaze_lines = null;
-            Tuple<double, double> gaze_angle = new Tuple<double, double>(0, 0);
+            Tuple<float, float> gaze_angle = new Tuple<float, float>(0, 0);
 
-            List<double> pose = new List<double>();
+            List<float> pose = new List<float>();
             landmark_detector.GetPose(pose, fx, fy, cx, cy);
-            List<double> non_rigid_params = landmark_detector.GetNonRigidParams();
+            List<float> non_rigid_params = landmark_detector.GetNonRigidParams();
 
             double confidence = landmark_detector.GetConfidence();
 
@@ -613,14 +729,11 @@ namespace OpenFaceOffline
             visualizer.SetObservationPose(pose, confidence);
             visualizer.SetObservationGaze(gaze_analyser.GetGazeCamera().Item1, gaze_analyser.GetGazeCamera().Item2, landmark_detector.CalculateAllEyeLandmarks(), landmark_detector.CalculateAllEyeLandmarks3D(fx, fy, cx, cy), confidence);
 
-            if (detection_succeeding)
-            {                
-                eye_landmarks = landmark_detector.CalculateVisibleEyeLandmarks();
-                lines = landmark_detector.CalculateBox(fx, fy, cx, cy);
+            eye_landmarks = landmark_detector.CalculateVisibleEyeLandmarks();
+            lines = landmark_detector.CalculateBox(fx, fy, cx, cy);
 
-                gaze_lines = gaze_analyser.CalculateGazeLines(fx, fy, cx, cy);
-                gaze_angle = gaze_analyser.GetGazeAngle();
-            }
+            gaze_lines = gaze_analyser.CalculateGazeLines(fx, fy, cx, cy);
+            gaze_angle = gaze_analyser.GetGazeAngle();
 
             // Visualisation (as a separate function)
             Dispatcher.Invoke(DispatcherPriority.Render, new TimeSpan(0, 0, 0, 0, 200), (Action)(() =>
@@ -673,25 +786,20 @@ namespace OpenFaceOffline
                     if (new_image)
                     {
                         latest_img = frame.CreateWriteableBitmap();
+                        overlay_image.Clear();
                     }
-                    
+
                     frame.UpdateWriteableBitmap(latest_img);
 
+                    // Clear results from previous image
                     overlay_image.Source = latest_img;
-                    overlay_image.Confidence = confidence;
+                    overlay_image.Confidence.Add(confidence);
                     overlay_image.FPS = processing_fps.GetFPS();
                     overlay_image.Progress = progress;
-                    overlay_image.FaceScale = scale;
+                    overlay_image.FaceScale.Add(scale);
 
-                    if (!detection_succeeding)
-                    {
-                        overlay_image.OverlayLines.Clear();
-                        overlay_image.OverlayPoints.Clear();
-                        overlay_image.OverlayPointsVisibility.Clear();
-                        overlay_image.OverlayEyePoints.Clear();
-                        overlay_image.GazeLines.Clear();
-                    }
-                    else
+                    // Update results even if it is not succeeding when in multi-face mode
+                    if(detection_succeeding || multi_face)
                     {
 
                         List<Point> landmark_points = new List<Point>();
@@ -706,24 +814,11 @@ namespace OpenFaceOffline
                             eye_landmark_points.Add(new Point(p.Item1, p.Item2));
                         }
 
-
-                        if (new_image)
-                        {
-                            overlay_image.OverlayLines = lines;
-                            overlay_image.OverlayPoints = landmark_points;
-                            overlay_image.OverlayPointsVisibility = visibilities;
-                            overlay_image.OverlayEyePoints = eye_landmark_points;
-                            overlay_image.GazeLines = gaze_lines;
-                        }
-                        else
-                        {
-                            // In case of multiple faces just add them to the existing drawing list
-                            overlay_image.OverlayLines.AddRange(lines.GetRange(0, lines.Count));
-                            overlay_image.OverlayPoints.AddRange(landmark_points.GetRange(0, landmark_points.Count));
-                            overlay_image.OverlayPointsVisibility.AddRange(visibilities.GetRange(0, visibilities.Count));
-                            overlay_image.OverlayEyePoints.AddRange(eye_landmark_points.GetRange(0, eye_landmark_points.Count));
-                            overlay_image.GazeLines.AddRange(gaze_lines.GetRange(0, gaze_lines.Count));
-                        }
+                        overlay_image.OverlayLines.Add(lines);
+                        overlay_image.OverlayPoints.Add(landmark_points);
+                        overlay_image.OverlayPointsVisibility.Add(visibilities);
+                        overlay_image.OverlayEyePoints.Add(eye_landmark_points);
+                        overlay_image.GazeLines.Add(gaze_lines);
                     }
                 }
 
@@ -773,6 +868,8 @@ namespace OpenFaceOffline
                 SettingsMenu.IsEnabled = false;
                 RecordingMenu.IsEnabled = false;
                 AUSetting.IsEnabled = false;
+                FaceDetectorMenu.IsEnabled = false;
+                LandmarkDetectorMenu.IsEnabled = false;
 
                 PauseButton.IsEnabled = true;
                 StopButton.IsEnabled = true;
@@ -802,6 +899,8 @@ namespace OpenFaceOffline
                 SettingsMenu.IsEnabled = true;
                 RecordingMenu.IsEnabled = true;
                 AUSetting.IsEnabled = true;
+                FaceDetectorMenu.IsEnabled = true;
+                LandmarkDetectorMenu.IsEnabled = true;
 
                 PauseButton.IsEnabled = false;
                 StopButton.IsEnabled = false;
@@ -821,7 +920,7 @@ namespace OpenFaceOffline
                 YPoseLabel.Content = "0 mm";
                 ZPoseLabel.Content = "0 mm";
 
-                nonRigidGraph.Update(new List<double>());
+                nonRigidGraph.Update(new List<float>());
 
                 GazeXLabel.Content = "0°";
                 GazeYLabel.Content = "0°";
@@ -850,7 +949,7 @@ namespace OpenFaceOffline
                 }
                 else
                 {
-                    d.Filter = "Video files|*.avi;*.wmv;*.mov;*.mpg;*.mpeg;*.mp4";
+                    d.Filter = "Video files|*.avi;*.webm;*.wmv;*.mov;*.mpg;*.mpeg;*.mp4";
                 }
                 if (d.ShowDialog(this) == true)
                 {
@@ -866,9 +965,9 @@ namespace OpenFaceOffline
         private string openDirectory()
         {
             string to_return = "";
-            using (var fbd = new FolderBrowserDialog())
+            using (var fbd = new System.Windows.Forms.FolderBrowserDialog())
             {
-                DialogResult result = fbd.ShowDialog();
+                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     to_return = fbd.SelectedPath;
@@ -924,11 +1023,14 @@ namespace OpenFaceOffline
             StopTracking();
 
             var image_files = openMediaDialog(true);
-            ImageReader reader = new ImageReader(image_files, fx, fy, cx, cy);
 
-            processing_thread = new Thread(() => ProcessIndividualImages(reader));
-            processing_thread.Start();
+            if(image_files.Count > 0)
+            { 
+                ImageReader reader = new ImageReader(image_files, fx, fy, cx, cy);
 
+                processing_thread = new Thread(() => ProcessIndividualImages(reader));
+                processing_thread.Start();
+            }
         }
 
         // Selecting a directory containing images
@@ -1118,6 +1220,18 @@ namespace OpenFaceOffline
             }
         }
 
+        private void ExclusiveMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Disable all other items but this one
+            MenuItem parent = (MenuItem)((MenuItem)sender).Parent;
+            foreach (var me in parent.Items)
+            {
+                ((MenuItem)me).IsChecked = false;
+            }
+            ((MenuItem)sender).IsChecked = true;
+
+        }
+
         private void setCameraParameters_Click(object sender, RoutedEventArgs e)
         {
             CameraParametersEntry camera_params_entry_window = new CameraParametersEntry(fx, fy, cx, cy);
@@ -1131,6 +1245,20 @@ namespace OpenFaceOffline
                 fy = camera_params_entry_window.Fy;
                 cx = camera_params_entry_window.Cx;
                 cy = camera_params_entry_window.Cy;
+            }
+        }
+
+        // Making sure only one radio button is selected
+        private void MenuItemWithRadioButtons_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            MenuItem mi = sender as MenuItem;
+            if (mi != null)
+            {
+                RadioButton rb = mi.Icon as RadioButton;
+                if (rb != null)
+                {
+                    rb.IsChecked = true;
+                }
             }
         }
 
@@ -1155,4 +1283,5 @@ namespace OpenFaceOffline
         }
 
     }
+
 }
