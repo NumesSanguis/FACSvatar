@@ -209,6 +209,7 @@ class OpenFaceMessage:
             eye_angle = self.df_eye_gaze.loc[frame_tracker].get(["gaze_angle_x", "gaze_angle_y"]).values  # radians
             print(eye_angle)
             # eyes go about 60 degree, which is 1.0472 rad, so no conversion needed?
+            self.msg['gaze'] = {}
             self.msg['gaze']['gaze_angle_x'] = eye_angle[0]
             self.msg['gaze']['gaze_angle_y'] = eye_angle[1]
             
