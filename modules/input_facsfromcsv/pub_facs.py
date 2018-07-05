@@ -209,26 +209,28 @@ class OpenFaceMessage:
             eye_angle = self.df_eye_gaze.loc[frame_tracker].get(["gaze_angle_x", "gaze_angle_y"]).values  # radians
             print(eye_angle)
             # eyes go about 60 degree, which is 1.0472 rad, so no conversion needed?
-
+            self.msg['gaze']['gaze_angle_x'] = eye_angle[0]
+            self.msg['gaze']['gaze_angle_y'] = eye_angle[1]
+            
             # set all to 0 (otherwise smoothing problems)
-            self.msg['au_r']['AU61'] = 0
-            self.msg['au_r']['AU62'] = 0
-            self.msg['au_r']['AU63'] = 0
-            self.msg['au_r']['AU64'] = 0
+            #self.msg['au_r']['AU61'] = 0
+            #self.msg['au_r']['AU62'] = 0
+            #self.msg['au_r']['AU63'] = 0
+            #self.msg['au_r']['AU64'] = 0
 
             # eye_angle_x left
-            if eye_angle[0] < 0:
-                self.msg['au_r']['AU61'] = min(eye_angle[0]*-1, 1.0)
+            #if eye_angle[0] < 0:
+            #    self.msg['au_r']['AU61'] = min(eye_angle[0]*-1, 1.0)
             # eye_angle_x right
-            else:
-                self.msg['au_r']['AU62'] = min(eye_angle[0], 1.0)
+            #else:
+            #    self.msg['au_r']['AU62'] = min(eye_angle[0], 1.0)
 
             # eye_angle_y up
-            if eye_angle[1] >= 0:
-                self.msg['au_r']['AU63'] = min(eye_angle[1], 1.0)
+            #if eye_angle[1] >= 0:
+            #    self.msg['au_r']['AU63'] = min(eye_angle[1], 1.0)
             # eye_angle_y down
-            else:
-                self.msg['au_r']['AU64'] = min(eye_angle[1] * -1, 1.0)
+            #else:
+            #    self.msg['au_r']['AU64'] = min(eye_angle[1] * -1, 1.0)
 
             # head pose in message
             self.msg['pose'] = self.df_head_pose.loc[frame_tracker].to_dict()

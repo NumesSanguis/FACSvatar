@@ -36,7 +36,7 @@ else:
 
 class VAD:
     def __init__(self):
-        self.vad = webrtcvad.Vad(1)
+        self.vad = webrtcvad.Vad(3)
 
         # stream info
         self.rate = 16000

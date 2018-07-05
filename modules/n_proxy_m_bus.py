@@ -91,6 +91,35 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     #         print("Try: Proxy... CONNECT!")
     #         zmq.proxy(self.pub_socket, self.sub_socket)
     #         print("CONNECT successful!")
+    
+    # transform gaze radians into eye rotation AU values
+    def gaze_to_au(self, au_dict, gaze):
+        # eye gaze in message as AU
+        eye_angle = [gaze['gaze_angle_x'], gaze['gaze_angle_y']]  # radians
+        print(eye_angle)
+        # eyes go about 60 degree, which is 1.0472 rad, so no conversion needed?
+
+        # set all to 0 (otherwise smoothing problems)
+        au_dict['AU61'] = 0
+        au_dict['AU62'] = 0
+        au_dict['AU63'] = 0
+        au_dict['AU64'] = 0
+
+        # eye_angle_x left
+        if eye_angle[0] < 0:
+            au_dict['AU61'] = min(eye_angle[0]*-1, 1.0)
+        # eye_angle_x right
+        else:
+            au_dict['AU62'] = min(eye_angle[0], 1.0)
+
+        # eye_angle_y up
+        if eye_angle[1] >= 0:
+            au_dict['AU63'] = min(eye_angle[1], 1.0)
+        # eye_angle_y down
+        else:
+            au_dict['AU64'] = min(eye_angle[1] * -1, 1.0)
+            
+        return au_dict
 
     async def pub_sub_function(self, apply_function):  # async
         """Subscribes to FACS data, smooths, publishes it"""
@@ -130,6 +159,10 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                             # check au dict in data and not empty
                             if "au_r" in msg[2] and msg[2]['au_r']:
+                                # transform gaze into AU 61, 62, 63, 64
+                                if "gaze" in msg[2]:
+                                    msg[2]['au_r'] = self.gaze_to_au(msg[2]['au_r'], msg[2]['gaze'])
+                            
                                 # sort dict; dicts keep insert order Python 3.6+
                                 # au_r_dict = msg[2]['au_r']
                                 msg[2]['au_r'] = dict(sorted(msg[2]['au_r'].items(), key=lambda k: k[0]))
