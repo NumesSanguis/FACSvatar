@@ -2,13 +2,15 @@
 
 ## New
 
-* eye movement based on eye gaze data
-* multi-user data support
-* switch targeted user of AU data for DNN (through GUI)
-* mix participant AU / head pose data with DNN generated
-* Unity3D scene in cafe
-* multi-user animation in Unity3D
-* scan folder and select (all) files with 1 command
+* OpenFace v2.0.3
+* Eye movement based on eye gaze data
+* Multi-user data support
+* Multi-user animation in Unity3D
+* Scan folder and select (all) files with 1 command
+* Switch targeted user of AU data for DNN (through GUI)
+* Voice Activity Detection (VAD) to switch DNN user
+* Mix participant AU / head pose data with DNN generated
+* Unity3D scene in cafe (soon)
 
 TODO put video here
 

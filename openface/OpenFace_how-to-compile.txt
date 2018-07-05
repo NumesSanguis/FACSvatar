@@ -1,0 +1,13 @@
+- Download Source code OpenFace 2.0.3 from https://github.com/TadasBaltrusaitis/OpenFace/releases
+- Install Visial Studio 2015
+- Run download_models.ps1 / .sh
+or copy cen_patches_x.xx_of.dat to OpenFace\lib\local\LandmarkDetector\model\patch_experts
+
+0. Overwrite `MainWindow.xaml.cs` in `OpenFace\gui\OpenFaceOffline` with openface/MainWindow.xaml.cs from FACSvatar GitHub
+1. Open `OpenFace/OpenFace.sln` with Visual Studio 2015
+2. Right click --> `Manage NuGet Packages...`
+3. Browse and search for `netmq`; install NetMQ by NetMQ with version v4.0.0.1 (AsyncIO.0.1.26)
+4. Don't update AsyncIO to a newer version (v0.1.40)
+5. Search for `json`; Install Newtonsoft.Json by James Newton-King v11.0.2
+6. Select OpenFaceOffline --> Release, x64, OpenFaceOffline --> Build --> (Re)build OpenFaceOffline
+7. Copy `config.xml` from FACSvatar GitHub
