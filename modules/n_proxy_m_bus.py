@@ -92,7 +92,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     #         zmq.proxy(self.pub_socket, self.sub_socket)
     #         print("CONNECT successful!")
     
-    # transform gaze radians into eye rotation AU values
+    # converts gaze radians into eye rotation AU values
     def gaze_to_au(self, au_dict, gaze):
         # eye gaze in message as AU
         eye_angle = [gaze['gaze_angle_x'], gaze['gaze_angle_y']]  # radians
@@ -159,9 +159,11 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                             # check au dict in data and not empty
                             if "au_r" in msg[2] and msg[2]['au_r']:
-                                # transform gaze into AU 61, 62, 63, 64
+                                # convert gaze into AU 61, 62, 63, 64
                                 if "gaze" in msg[2]:
                                     msg[2]['au_r'] = self.gaze_to_au(msg[2]['au_r'], msg[2]['gaze'])
+                                    # remove from message after AU convert
+                                    msg[2].pop('gaze')
                             
                                 # sort dict; dicts keep insert order Python 3.6+
                                 # au_r_dict = msg[2]['au_r']
