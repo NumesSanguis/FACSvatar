@@ -123,8 +123,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 print(msg[2]['pose'])
                                 print()
 
-                        # add target user to display data
-                        msg[2]['target'] = self.dnn_user_store
+                        # add target user to display data (and not display original data)
+                        msg[2]['user_ignore'] = self.dnn_user_store
 
                         # send modified message
                         print(msg)
