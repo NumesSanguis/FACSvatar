@@ -1,1 +1,2 @@
 unity*/ filter=lfs diff=lfs merge=lfs -text
+modules/process_facsdnnfacs/models/mimicry_trained.h5 filter=lfs diff=lfs merge=lfs -text
