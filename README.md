@@ -1,4 +1,4 @@
-# FACSvatar v0.3.0-Alpha
+# FACSvatar v0.3.1-Alpha
 
 ## New
 
@@ -6,11 +6,11 @@
 * Eye movement based on eye gaze data
 * Multi-user data support
 * Multi-user animation in Unity3D
+* Unity3D (2018.1.7f1) scene in cafe
 * Scan folder and select (all) files with 1 command
 * Switch targeted user of AU data for DNN (through GUI)
 * Voice Activity Detection (VAD) to switch DNN user
 * Mix participant AU / head pose data with DNN generated
-* Unity3D scene in cafe (soon)
 
 TODO put video here
 
