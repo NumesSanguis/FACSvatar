@@ -25,7 +25,7 @@ else:
 
 
 # process everything that is received
-class DeepFACSMsg:dd ignored file
+class DeepFACSMsg:
     def __init__(self):
         # load Keras model
         self.facs_model = keras.models.load_model(join("models", "mimicry_trained.h5"))
