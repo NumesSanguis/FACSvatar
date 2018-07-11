@@ -17,6 +17,8 @@ public class HeadRotatorBone : MonoBehaviour {
     //Transform head;
     public Transform jointObj_head;
     public Transform jointObj_neck;
+    public float headRotCorrection;
+    public float neckRotCorrection;
 
     // Muscle name and index lookup (See in Debug Log)
     //    void LookUpMuscleIndex() {
@@ -142,7 +144,7 @@ public class HeadRotatorBone : MonoBehaviour {
 
 
 		// Bone rotation attempt
-		Debug.Log ("" + head_pose["pose_Rx"].ToObject<float>() + ", " + head_pose["pose_Ry"].ToObject<float>() + ", " + head_pose["pose_Rz"].ToObject<float>());
+		//Debug.Log ("" + head_pose["pose_Rx"].ToObject<float>() + ", " + head_pose["pose_Ry"].ToObject<float>() + ", " + head_pose["pose_Rz"].ToObject<float>());
         //Quaternion rotation = Quaternion.Euler(new Vector3(head_pose["pose_Rx"].ToObject<float>(), head_pose["pose_Ry"].ToObject<float>(), head_pose["pose_Rz"].ToObject<float>()));
         //Debug.Log ("" + rotation[0] + ", " + rotation[1] + ", " + rotation[2] + ", " + rotation[3]);
         //head.Rotate (rotation);
@@ -157,15 +159,17 @@ public class HeadRotatorBone : MonoBehaviour {
         //        jointObj = 
         //        Debug.Log(jointObj);
         // New attempt bone rotation
-        float multiplier_head = 0.75f;
-        float multiplier_neck = 0.25f;
+        float multiplier_head = 0.65f;
+        float multiplier_neck = 0.35f;
         Vector3 rot= new Vector3(head_pose["pose_Rx"].ToObject<float>() * Mathf.Rad2Deg, head_pose["pose_Ry"].ToObject<float>() * Mathf.Rad2Deg, head_pose["pose_Rz"].ToObject<float>() * Mathf.Rad2Deg);
         //Vector3 rot = new Vector3(head_pose["pose_Rx"].ToObject<float>() * Mathf.Rad2Deg, 0, 0);
         //jointObj_head.localRotation = Quaternion.Euler(rot * multiplier_head);
         //jointObj_neck.localRotation = Quaternion.Euler(rot * multiplier_neck);
 
-        jointObj_head.localRotation = Quaternion.Euler((rot * multiplier_head) + new Vector3(-23.86f, 0, 0));
-        jointObj_neck.localRotation = Quaternion.Euler((rot * multiplier_neck) + new Vector3(+32.928f, 0, 0));
+        // -23.86f
+        jointObj_head.localRotation = Quaternion.Euler((rot * multiplier_head) + new Vector3(headRotCorrection, 0, 0));
+        // +32.928f
+        jointObj_neck.localRotation = Quaternion.Euler((rot * multiplier_neck) + new Vector3(neckRotCorrection, 0, 0));
 
         //jointObj.localEulerAngles = rot;
         //localRotation

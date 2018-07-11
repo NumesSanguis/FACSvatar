@@ -8,6 +8,12 @@ using NetMQ.Sockets;
 using Newtonsoft.Json.Linq;
 using System;
 
+public enum Participants
+{
+    users_1_models_1, users_1_models_2, users_1_models_2_dnn,
+    users_2_models_2, users_2_models_2_dnn, users_2_models_3_dnn
+}
+
 // connect with ZeroMQ
 public class NetMqListener
 {
@@ -128,14 +134,19 @@ public class ZeroMQFACSvatar : MonoBehaviour
     public string sub_to_ip = "127.0.0.1";
     public string sub_to_port = "5572";
 
-	// Facial expressions: Assign by dragging the GameObject with FACSnimator into the inspector before running the game.
-	// Head rotations: Assign by dragging the GameObject with HeadAnimator into the inspector before running the game.
-	public FACSnimator FACSModel0;
+    public Participants participants;
+
+    // Facial expressions: Assign by dragging the GameObject with FACSnimator into the inspector before running the game.
+    // Head rotations: Assign by dragging the GameObject with HeadAnimator into the inspector before running the game.
+    public FACSnimator FACSModel0;
 	public HeadRotatorBone RiggedModel0;
 	public FACSnimator FACSModel1;
 	public HeadRotatorBone RiggedModel1;
     public FACSnimator FACSModelDnn;
 	public HeadRotatorBone RiggedModelDnn;
+
+    // 2 users 2 models dnn case ignore data from replaced participant
+    private string userIgnoreString = "p1";
 
     // receive data in JSON format
     private void HandleMessage(List<string> msg_list)
@@ -148,24 +159,118 @@ public class ZeroMQFACSvatar : MonoBehaviour
         
 		// split topic to determine target human model
 		string[] topic_info = msg_list[0].Split('.'); // "facsvatar.S01_P1.p0.dnn" ["facsvatar", "S01_P1", "p0", "dnn"]
-        
-		// send to main tread
-		// TODO should be possible without code duplication
-	    if (Array.IndexOf(topic_info, "dnn") != -1)
-		{
-			UnityMainThreadDispatcher.Instance().Enqueue(FACSModelDnn.RequestBlendshapes(blend_shapes));
-			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModelDnn.RequestHeadRotation(head_pose));
-		}
-		else if (Array.IndexOf(topic_info, "p0") != -1)
-		{
-			UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
-			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
-		}
-		else if (Array.IndexOf(topic_info, "p1") != -1)
-		{
-			UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
-			UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
-		}
+
+        // send to main tread
+        // 1 person
+        //Debug.Log(participants);
+        //Debug.Log(participants.GetType());
+
+        // ignore dnn data
+        if (participants == Participants.users_1_models_1 & Array.IndexOf(topic_info, "dnn") == -1)
+        {
+            UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+            UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+        }
+
+        // ignore dnn data
+        else if (participants == Participants.users_1_models_2 & Array.IndexOf(topic_info, "dnn") == -1)
+        {
+            UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+            UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+            UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+            UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+        }
+
+        else if (participants == Participants.users_1_models_2_dnn)
+        {
+            if (Array.IndexOf(topic_info, "dnn") != -1)
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModelDnn.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModelDnn.RequestHeadRotation(head_pose));
+            }
+            else
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+            }
+        }
+
+        // ignore dnn data
+        else if (participants == Participants.users_2_models_2 & Array.IndexOf(topic_info, "dnn") == -1)
+        {
+            if (Array.IndexOf(topic_info, "p0") != -1)
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+            }
+            else if (Array.IndexOf(topic_info, "p1") != -1)
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+            }
+        }
+
+        else if (participants == Participants.users_2_models_2_dnn)
+        {
+            // only use AU data from DNN, not head movement
+
+            if (Array.IndexOf(topic_info, "dnn") != -1)
+            {
+                userIgnoreString = facsvatar["user_ignore"].ToString();
+
+                //if (Array.IndexOf(topic_info, "p0") != -1)
+                if (userIgnoreString == "p0")
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+                    //UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+                }
+                //else if (Array.IndexOf(topic_info, "p1") != -1)
+                else if (userIgnoreString == "p1")
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+                    //UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+                }
+            }
+
+            else if (Array.IndexOf(topic_info, "p0") != -1)
+            {
+                // only use AU data when not provided by DNN
+                if (userIgnoreString != "p0")
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+                }
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+            }
+
+            else if (Array.IndexOf(topic_info, "p1") != -1)
+            {
+                // only use AU data when not provided by DNN
+                if (userIgnoreString != "p1")
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+                }
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+            }
+        }
+
+        else if (participants == Participants.users_2_models_3_dnn)
+        {
+            if (Array.IndexOf(topic_info, "dnn") != -1)
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModelDnn.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModelDnn.RequestHeadRotation(head_pose));
+            }
+            else if (Array.IndexOf(topic_info, "p0") != -1)
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModel0.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel0.RequestHeadRotation(head_pose));
+            }
+            else if (Array.IndexOf(topic_info, "p1") != -1)
+            {
+                UnityMainThreadDispatcher.Instance().Enqueue(FACSModel1.RequestBlendshapes(blend_shapes));
+                UnityMainThreadDispatcher.Instance().Enqueue(RiggedModel1.RequestHeadRotation(head_pose));
+            }
+        }
     }
 
     private void Start()
