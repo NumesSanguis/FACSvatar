@@ -22,8 +22,8 @@ class SmoothData:
     def set_new_multiplier(self, no_of_columns=17):
         # set multiplier vector per AU
         self.multiplier = np.ones(no_of_columns)
-        if no_of_columns == 17:
-            # set default blinking (AU45) multiplier
+        if no_of_columns >= 17:  # 17
+            # set default blinking (AU45) multiplier; Make sure 16 is AU45
             self.multiplier[16] = 1.5
         print(self.multiplier)
 

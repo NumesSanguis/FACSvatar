@@ -9,6 +9,7 @@ import json
 from os.path import join
 import numpy as np
 import pandas as pd
+#import tensorflow as tf
 import keras
 import traceback
 import logging
@@ -24,7 +25,7 @@ else:
 
 
 # process everything that is received
-class DeepFACSMsg:
+class DeepFACSMsg:dd ignored file
     def __init__(self):
         # load Keras model
         self.facs_model = keras.models.load_model(join("models", "mimicry_trained.h5"))
@@ -71,8 +72,9 @@ class DeepFACSMsg:
         # print(au_array_val_t.shape)
 
         au_array_val = au_array_val.reshape(1, 1, 17)
+        #with tf.device('/gpu:0'):
         deep_au_array_val = self.facs_model.predict(au_array_val)  # [np.newaxis]
-        # print()
+        # print()dd ignored file
         print(deep_au_array_val)
         # print(np.asarray(deep_au_array_val))
 
@@ -86,11 +88,11 @@ class DeepFACSMsg:
         # print(deep_au_dict)
 
         print("\n")
-        print(au_dict)
+        #print(au_dict)
         print(deep_au_dict)
 
         # add gaze AUs back into dict and return
-        return {**deep_au_dict, **au_gaze_dict}
+        return deep_au_dict  # {**deep_au_dict, **au_gaze_dict}
 
 
 # client to message broker server
@@ -111,6 +113,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             # if pub key is specified
             # if self.pub_key:
             #     msg[0] = self.pub_key.encode('utf-8')
+            
+            msg[0] = ("dnn." + msg[0].decode('ascii')).encode('ascii')
 
             # check not finished; timestamp is empty (b'')
             if msg[1]:
@@ -122,7 +126,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 # async always needs `send_multipart()`
                 # print(msg)
 
-                await self.pub_socket.send_multipart([("dnn." + msg[0].decode('utf-8')).encode('utf-8'),  # topic / key
+                await self.pub_socket.send_multipart([msg[0],  # topic / key
                                           msg[1],  # timestamp
                                           # data in JSON format or empty byte
                                           json.dumps(msg[2]).encode('utf-8')

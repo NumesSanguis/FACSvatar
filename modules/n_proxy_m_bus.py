@@ -187,8 +187,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 # smooth head position
                                 # msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
                                 msg[2]['pose'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
-                                                                                     window_size=4,
-                                                                                     steep=.3)
+                                                                                     window_size=6,
+                                                                                     steep=.15)
 
                                 # TODO add eye direction AU data
 

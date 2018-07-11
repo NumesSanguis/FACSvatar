@@ -93,7 +93,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                     # user_data_au.put({k: v for k, v in au_r_sorted.items() if k in
                                     #                  ['AU45']})
                                     # au_data = {k: msg[2]['au_r'][k] for k in ('AU45',)}
-                                    au_data = {k: msg[2]['au_r'][k] for k in ('AU45', 'AU62', 'AU63', 'AU64')
+                                    au_data = {k: msg[2]['au_r'][k] for k in ('AU45', 'AU61', 'AU62', 'AU63', 'AU64')
                                                if k in msg[2]['au_r']}
                                     print(au_data)
                                     user_data_au.put(au_data)
@@ -102,7 +102,15 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             # use stored data for eye blink TODO and eye gaze
                             else:
                                 print("DNN uses stored data")
-                                msg[2]['au_r'] = {**msg[2]['au_r'], **user_data_au.get()}
+                                # try to override AU data
+                                # msg[2]['au_r'] = {**msg[2]['au_r'], **stored_au}
+                                try:
+                                # stored_au = await user_data_au.get()
+                                    msg[2]['au_r'] = {**msg[2]['au_r'], **user_data_au.get_nowait()}
+                                except queue.Empty as e:
+                                    print("Queue empty")
+                                    print(e)
+                                    
                                 print(msg[2]['au_r'])
                                 print()
 
@@ -119,7 +127,12 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             # use stored data for head pose
                             else:
                                 print("DNN uses stored data")
-                                msg[2]['pose'] = {**msg[2]['pose'], **user_data_pose.get()}
+                                try:
+                                    msg[2]['pose'] = {**msg[2]['pose'], **user_data_pose.get_nowait()}
+                                except queue.Empty as e:
+                                    print("Queue empty")
+                                    print(e)
+                                    
                                 print(msg[2]['pose'])
                                 print()
 
@@ -133,6 +146,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                               # data in JSON format or empty byte
                                                               json.dumps(msg[2]).encode('utf-8')
                                                               ])
+                                                              
+                    else:
+                        print("Not enough tracking confidence to forward message")
 
                 # send message we're done
                 else:
