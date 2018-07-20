@@ -414,11 +414,13 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             if msg:
                 # reduce number of messages
                 # if msg_count % 3 == 0:
-                await self.pub_socket.send_multipart([(self.pub_key + "." + msg[0]).encode('ascii'),  # topic
-                                                      str(int(time.time() * 1000)).encode('ascii'),  # timestamp
-                                                      #int(msg[1]*1000).to_bytes(4, byteorder='big'),  # timestamp
-                                                      msg[2].encode('utf-8')  # data in JSON format or empty byte
-                                                      ])
+                # await self.pub_socket.send_multipart([(self.pub_key + "." + msg[0]).encode('ascii'),  # topic
+                #                                       str(int(time.time() * 1000)).encode('ascii'),  # timestamp
+                #                                       #int(msg[1]*1000).to_bytes(4, byteorder='big'),  # timestamp
+                #                                       msg[2].encode('utf-8')  # data in JSON format or empty byte
+                #                                       ])
+                await self.pub_socket.pub(msg[2])
+
                 # else:
                 #     print("Skipping message")
 
@@ -429,7 +431,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 print("No more messages to publish; FACS done")
 
                 # tell network messages finished (timestamp == data == None)
-                await self.pub_socket.send_multipart([self.pub_key.encode('ascii'), b'', b''])
+                # await self.pub_socket.send_multipart([self.pub_key.encode('ascii'), b'', b''])
+                await self.pub_socket.pub(b'')
 
 
 if __name__ == '__main__':

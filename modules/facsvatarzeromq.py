@@ -9,6 +9,8 @@ from abc import ABC, abstractmethod
 import asyncio
 import zmq.asyncio
 from zmq.asyncio import Context
+import time
+import json
 
 
 # setup ZeroMQ publisher / subscriber
@@ -40,9 +42,11 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         # set-up publish socket only if a port is given
         if pub_port:
             print("Publisher port is specified")
-            self.pub_socket = self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind)
+            #self.pub_socket = self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind)
             # add variable with key
-            self.pub_key = pub_key
+            #self.pub_key = pub_key
+
+            self.pub_socket = FACSvatarSocket(self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind), pub_key)
             print("Publisher socket set-up complete")
         else:
             print("pub_port not specified, not setting-up publisher")
@@ -50,9 +54,12 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         # set-up subscriber socket only if a port is given
         if sub_port:
             print("Subscriber port is specified")
-            self.sub_socket = self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind)
-            self.sub_key = sub_key
-            self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
+            # self.sub_socket = self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind)
+            self.sub_key = sub_key  # TODO use sub_topic() instead
+            # self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
+
+            self.sub_socket = FACSvatarSocket(self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind), sub_key)
+            self.sub_socket.sub_topic()
             print("Subscriber socket set-up complete")
         else:
             print("sub_port not specified, not setting-up subscriber")
@@ -148,6 +155,86 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         else:
             print("No functions given, nothing to start")
 
-    # @abstractmethod
-    # async def pub(self):
-    #     pass
+
+# TODO check bytes or string
+class FACSvatarSocket:
+    """Simplify sending messages according to FACSvatar format
+
+    Automatically attempts to encode / decode, and data from/to JSON if not done so yet
+    `key` should be string or already encoded as 'ascii'
+    `data` should be a dict, JSON formatted string or already encoded as 'utf8'
+    Access ZeroMQ socket functionality through `FACSvatarSocket.socket.xxx` (e.g. `.setsockopt()`
+    """
+
+    def __init__(self, socket, key=''):
+        self.socket = socket
+        self.key = key.encode('ascii')
+
+    async def pub(self, data, key=None):
+        """ Publish data async
+
+        :param data: dict, JSON formatted string or bytes encoded as 'utf-8'
+        :param key: string or bytes encoded as 'ascii'; send specified key instead of default
+        :return:
+        """
+        if not key:
+            key = self.key
+        else:
+            # check if not yet encoded
+            if not isinstance(key, bytes):
+                key = key.encode('ascii')
+
+        # if data not yet bytes
+        if not isinstance(data, bytes):
+            # if data != JSON:
+            if not isinstance(data, str):
+                # change to json string
+                data = json.dumps(data)
+
+            # change from string to bytes
+            data = data.encode('utf-8')
+
+        # TODO Python 3.7 time nanoseconds
+        timestamp = str(int(time.time() * 1000)).encode('ascii')  # time.time()
+        print("Time publishing: {}".format(timestamp))
+
+        # print(f"Key type: {type(key)}\nTimestamp type: {type(timestamp)}\nData type: {type(data)}")
+        await self.socket.send_multipart([key, timestamp, data])
+
+    async def sub(self, raw=False):
+        """ Wait for subscribed data async
+
+        :param raw: if False, decode (and json.loads()) key, timestamp and data; if True, return as-is (bytes)
+        :return: key, timestamp, data
+        """
+        key, timestamp, data = await self.socket.recv_multipart()
+        timestamp_decoded = timestamp.decode('ascii')
+        print("Time data published: {}\nTime subscribed data received: {}"
+              .format(timestamp_decoded, int(time.time() * 1000)))
+
+        # byte data
+        if raw:
+            return key, timestamp, data
+        # decode data
+        else:
+            return key.decode('ascii'), \
+                   timestamp_decoded, \
+                   json.loads(data.decode('utf-8'))
+
+    # TODO key should be list
+    def sub_topic(self, key=None, unsub_all=False):
+        """ Subscribe to a (new) key
+
+        :param key: set new self.key and subscribe; if None, only subscribe to self.key
+        :param unsub_all: if True, unsubscribe all keys
+        """
+        # TODO multiple sub keys
+        if unsub_all:
+            self.socket.setsockopt(zmq.UNSUBSCRIBE, self.key)
+
+        if isinstance(key, str):
+            self.key = key.encode('ascii')
+        elif isinstance(key, bytes):
+            self.key = key
+
+        self.socket.setsockopt(zmq.SUBSCRIBE, self.key)

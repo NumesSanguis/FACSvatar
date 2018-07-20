@@ -1,6 +1,13 @@
-# FACSvatar v0.3.1-Alpha
+# FACSvatar v0.3.2-Alpha
 
-## New
+# Roadmap
+
+## New v0.3.2
+* Timestamp of message receive and send per module (`if Python >= 3.7: time.time_ns(), else time.time()`)
+* Simplified sending receiving messages (`facsvatarzeromq.py` now takes care of encoding / decoding and adding timestamps)
+* Consistency fix: ROUTER / DEALER sockets use JSON formatted data
+
+## New v0.3.1
 
 * OpenFace v2.0.3
 * Eye movement based on eye gaze data
@@ -12,14 +19,37 @@
 * Voice Activity Detection (VAD) to switch DNN user
 * Mix participant AU / head pose data with DNN generated
 
-TODO put video here
+---
 
-## Description
+
+## TODO v0.4.0-beta
+
+* Documentation
+* Python modules:
+    * Standardization pass over all modules / code clean-up
+    * DOC string per class and function
+    * Logger instead of print() statements
+    * File structure for proper import of modules / pip?
+    * Use config file (in addition to command line arguments) + config filepath argument
+* Easy run: Docker container per module + Docker Compose
+* Demo video
+* Extra: Test FACSvatar on Android with Unity3D
+
+## TODO vx.x.x
+
+* Module management (Between modules: hearthbeat, controller, synchronized start, etc)
+* Blender add-on (after Blender 2.8 release)
+    * New FACS face-rig when MBLAB characters facial expression system has been updated
+    * Facial rig for easy modification (animation purposes)
+* Unreal Engine support
+
+
+# Description
 
 Affective computing and avatar animation both share that a person's facial expression contains useful information. Up until now, these fields use different processes to obtain and use these data. FACSvatar combines both purposes in a single framework. Empower your Embodied Conversational Agents (ECAs)!
 
 * **Affective computing**: Facial expressions can not only be analyzed, but also be used to generate animation, purely on data.
-* **Animators**: Capture facial expressions with just a camera and use it to animate any compatible avatar.
+* **Animators**: Capture facial expressions with a standard webcam and use it to animate any compatible avatar.
 
 This interoperability is possible, because FACSvatar uses the [Facial Action Coding System (FACS)](https://en.wikipedia.org/wiki/Facial_Action_Coding_System "https://en.wikipedia.org/wiki/Facial_Action_Coding_System") by Paul Ekman as an intermediate data representation. FACS describes facial expressions in terms of muscle groups, called Action Units (AUs). By giving these AUs a value between 0-1, we can describe the contractions / relaxation of facial muscles.
 
