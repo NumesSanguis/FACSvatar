@@ -149,3 +149,6 @@ modules/output_facstojson/facsjson/
 
 # deep neural network models
 modules/process_facsdnnfacs/models/
+
+# debug data
+timestamps_*.csv

@@ -137,56 +137,57 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         try:
             # keep listening to all published message on topic 'facs'
             while True:
-                msg = await self.sub_socket.recv_multipart()
+                # msg = await self.sub_socket.recv_multipart()
+                key, timestamp, data = await self.sub_socket.sub()
                 print()
-                print(msg)
+                print("Received message: {}".format([key, timestamp, data]))
 
                 # check not finished; timestamp is empty (b'')
-                if msg[1]:
-                    msg[2] = json.loads(msg[2].decode('utf-8'))
+                if timestamp:
+                    # msg[2] = json.loads(msg[2].decode('utf-8'))
 
                     # only pass on messages with enough tracking confidence; always send when no confidence param
-                    if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.7:
+                    if 'confidence' not in data or data['confidence'] >= 0.7:
                         # subscription key / topic
-                        topic = msg[0].decode('ascii')
+                        # topic = key  # .decode('ascii')
 
                         # don't smooth data with 'smooth' == False;
-                        if 'smooth' not in msg[2] or msg[2]['smooth']:
+                        if 'smooth' not in data or data['smooth']:
                             # if topic changed, instantiate a new SmoothData object
-                            if topic not in self.smooth_obj_dict:
-                                self.smooth_obj_dict[topic] = SmoothData()
+                            if key not in self.smooth_obj_dict:
+                                self.smooth_obj_dict[key] = SmoothData()
                                 new_smooth_object = True
 
                             # check au dict in data and not empty
-                            if "au_r" in msg[2] and msg[2]['au_r']:
+                            if "au_r" in data and data['au_r']:
                                 # convert gaze into AU 61, 62, 63, 64
-                                if "gaze" in msg[2]:
-                                    msg[2]['au_r'] = self.gaze_to_au(msg[2]['au_r'], msg[2]['gaze'])
+                                if "gaze" in data:
+                                    data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
                                     # remove from message after AU convert
-                                    msg[2].pop('gaze')
+                                    data.pop('gaze')
                             
                                 # sort dict; dicts keep insert order Python 3.6+
-                                # au_r_dict = msg[2]['au_r']
-                                msg[2]['au_r'] = dict(sorted(msg[2]['au_r'].items(), key=lambda k: k[0]))
+                                # au_r_dict = data['au_r']
+                                data['au_r'] = dict(sorted(data['au_r'].items(), key=lambda k: k[0]))
 
                                 # match number of multiplier columns:
                                 if new_smooth_object:
-                                    self.smooth_obj_dict[topic].set_new_multiplier(len(msg[2]['au_r']))
+                                    self.smooth_obj_dict[key].set_new_multiplier(len(data['au_r']))
                                     new_smooth_object = False
 
                                 # smooth facial expressions; window_size: number of past data points;
                                 # steep: weight newer data
-                                # msg[2]['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
-                                msg[2]['au_r'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['au_r'],
+                                # data['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
+                                data['au_r'] = getattr(self.smooth_obj_dict[key], apply_function)(data['au_r'],
                                                                                                       queue_no=0,
                                                                                                       window_size=3,
                                                                                                       steep=.25)
 
                             # check head rotation dict in data and not empty
-                            if "pose" in msg[2] and msg[2]['pose']:
+                            if "pose" in data and data['pose']:
                                 # smooth head position
-                                # msg[2]['pose'] = smooth_func(msg[2]['pose'], queue_no=1, window_size=4, steep=.2)
-                                msg[2]['pose'] = getattr(self.smooth_obj_dict[topic], apply_function)(msg[2]['pose'], queue_no=1,
+                                # data['pose'] = smooth_func(data['pose'], queue_no=1, window_size=4, steep=.2)
+                                data['pose'] = getattr(self.smooth_obj_dict[key], apply_function)(data['pose'], queue_no=1,
                                                                                      window_size=6,
                                                                                      steep=.15)
 
@@ -195,20 +196,22 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         else:
                             print("No smoothing applied, forwarding unchanged")
                             # remove topic from dict when msgs finish
-                            print("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(topic, None)))
+                            print("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(key, None)))
 
                         # send modified message
-                        print(msg)
-                        await self.pub_socket.send_multipart([msg[0],  # topic
-                                                              msg[1],  # timestamp
-                                                              # data in JSON format or empty byte
-                                                              json.dumps(msg[2]).encode('utf-8')
-                                                              ])
+                        print("Smoothed data: {}".format(data))
+                        # await self.pub_socket.send_multipart([key,  # topic
+                        #                                       timestamp,  # timestamp
+                        #                                       # data in JSON format or empty byte
+                        #                                       json.dumps(data).encode('utf-8')
+                        #                                       ])
+                        await self.pub_socket.pub(data, key)
 
                 # send message we're done
                 else:
                     print("No more messages to pass; finished")
-                    await self.pub_socket.send_multipart([msg[0], b'', b''])
+                    # await self.pub_socket.send_multipart([key, b'', b''])
+                    await self.pub_socket.pub(b'', key)
 
         except:
             print("Error with sub")
@@ -222,10 +225,10 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
         while True:
             try:
-                [id_dealer, topic, data] = await self.rout_socket.recv_multipart()
-                print("Command received from '{}', with topic '{}' and msg '{}'".format(id_dealer, topic, data))
+                [id_dealer, key, data] = await self.rout_socket.recv_multipart()
+                print("Command received from '{}', with key '{}' and msg '{}'".format(id_dealer, key, data))
 
-                tp = topic.decode('ascii')
+                tp = key.decode('ascii')
                 # set multiplier parameters
                 if tp.startswith("multiplier"):
                     await self.set_multiplier(data.decode('utf-8'))

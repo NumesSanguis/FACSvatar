@@ -69,21 +69,19 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         try:
             # keep listening to all published message on topic 'facs'
             while True:
-                msg = await self.sub_socket.recv_multipart()
+                key, timestamp, data = await self.sub_socket.sub()
                 print()
-                print(msg)
+                print("Received message: {}".format([key, timestamp, data]))
 
                 # check not finished; timestamp is empty (b'')
-                if msg[1]:
-                    msg[2] = json.loads(msg[2].decode('utf-8'))
-
+                if timestamp:
                     # only pass on messages with enough tracking confidence; always send when no confidence param
-                    if 'confidence' not in msg[2] or msg[2]['confidence'] >= 0.7:
+                    if 'confidence' not in data or data['confidence'] >= 0.7:
                         # subscription key / topic
-                        topic = msg[0].decode('ascii')
+                        topic = key.decode('ascii')
 
                         # check au dict in data and not empty
-                        if "au_r" in msg[2] and msg[2]['au_r']:
+                        if "au_r" in data and data['au_r']:
 
                             # store data from not DNNed user for merging
                             if not topic.startswith("dnn."):
@@ -92,9 +90,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                     # store data from eye blink AUs
                                     # user_data_au.put({k: v for k, v in au_r_sorted.items() if k in
                                     #                  ['AU45']})
-                                    # au_data = {k: msg[2]['au_r'][k] for k in ('AU45',)}
-                                    au_data = {k: msg[2]['au_r'][k] for k in ('AU45', 'AU61', 'AU62', 'AU63', 'AU64')
-                                               if k in msg[2]['au_r']}
+                                    # au_data = {k: data['au_r'][k] for k in ('AU45',)}
+                                    au_data = {k: data['au_r'][k] for k in ('AU45', 'AU61', 'AU62', 'AU63', 'AU64')
+                                               if k in data['au_r']}
                                     print(au_data)
                                     user_data_au.put(au_data)
                                     print("\n\n")
@@ -103,49 +101,45 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             else:
                                 print("DNN uses stored data")
                                 # try to override AU data
-                                # msg[2]['au_r'] = {**msg[2]['au_r'], **stored_au}
+                                # data['au_r'] = {**data['au_r'], **stored_au}
                                 try:
                                 # stored_au = await user_data_au.get()
-                                    msg[2]['au_r'] = {**msg[2]['au_r'], **user_data_au.get_nowait()}
+                                    data['au_r'] = {**data['au_r'], **user_data_au.get_nowait()}
                                 except queue.Empty as e:
                                     print("Queue empty")
                                     print(e)
                                     
-                                print(msg[2]['au_r'])
+                                print(data['au_r'])
                                 print()
 
                         # check head rotation dict in data and not empty
-                        if "pose" in msg[2] and msg[2]['pose']:
+                        if "pose" in data and data['pose']:
                             # store data
                             if not topic.startswith("dnn."):
                                 # from not DNNed user for merging
                                 if self.dnn_user_store in topic.split("."):
                                     print("Storing data")
                                     # store data from eye blink AUs
-                                    user_data_pose.put(msg[2]['pose'])
+                                    user_data_pose.put(data['pose'])
 
                             # use stored data for head pose
                             else:
                                 print("DNN uses stored data")
                                 try:
-                                    msg[2]['pose'] = {**msg[2]['pose'], **user_data_pose.get_nowait()}
+                                    data['pose'] = {**data['pose'], **user_data_pose.get_nowait()}
                                 except queue.Empty as e:
                                     print("Queue empty")
                                     print(e)
                                     
-                                print(msg[2]['pose'])
+                                print(data['pose'])
                                 print()
 
                         # add target user to display data (and not display original data)
-                        msg[2]['user_ignore'] = self.dnn_user_store
+                        data['user_ignore'] = self.dnn_user_store
 
                         # send modified message
-                        print(msg)
-                        await self.pub_socket.send_multipart([msg[0],  # topic
-                                                              msg[1],  # timestamp
-                                                              # data in JSON format or empty byte
-                                                              json.dumps(msg[2]).encode('utf-8')
-                                                              ])
+                        # print(data)
+                        await self.pub_socket.pub(data, key)
                                                               
                     else:
                         print("Not enough tracking confidence to forward message")
@@ -153,7 +147,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 # send message we're done
                 else:
                     print("No more messages to pass; finished")
-                    await self.pub_socket.send_multipart([msg[0], b'', b''])
+                    await self.pub_socket.pub(b'', key)
 
         except:
             print("Error with sub")

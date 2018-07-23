@@ -269,7 +269,7 @@ class OpenFaceMsgFromCSV:
 
     """
 
-    def __init__(self, csv_arg, csv_folder='openface', every_x_frames=1):  # client
+    def __init__(self, csv_arg, csv_folder='openface', every_x_frames=1, reset_frames=0):  # client
         """
         generates messages from OpenFace .csv files
 
@@ -284,6 +284,7 @@ class OpenFaceMsgFromCSV:
         self.reset_msg = OpenFaceMessage()
         self.reset_msg.set_reset_msg()
         self.every_x_frames = every_x_frames
+        self.reset_frames = reset_frames
 
     # loop over all csv groups ([1 csv file] if single person, P1, P2, etc [multi csv files]
     async def msg_gen(self):
@@ -304,13 +305,15 @@ class OpenFaceMsgFromCSV:
             # frame = msg['frame']
             # self.reset_msg.msg['frame'] = frame
 
-            # send few empty messages when csv group is done
-            await asyncio.sleep(1)
-            for i in range(5):
-                # self.reset_msg.msg['frame'] += i
-                await asyncio.sleep(.05)
-                yield "reset", timestamp - time_start, json.dumps(self.reset_msg.msg)
-            await asyncio.sleep(.2)
+            # send empty frames
+            if self.reset_frames > 0:
+                # send few empty messages when csv group is done
+                await asyncio.sleep(.5)
+                for i in range(self.reset_frames):
+                    # self.reset_msg.msg['frame'] += i
+                    await asyncio.sleep(.1)
+                    yield "reset", timestamp - time_start, json.dumps(self.reset_msg.msg)
+                await asyncio.sleep(.2)
 
         # return that messages are finished (Python >= 3.6)
         yield None
@@ -377,9 +380,10 @@ class OpenFaceMsgFromCSV:
             print("waiting {} seconds before sending next message".format(time_sleep))
 
             # don't sleep negative time
-            if time_sleep >= 0:
+            if time_sleep > 0:
                 # currently can send about 3000 fps
                 await asyncio.sleep(time_sleep)  # time_sleep (~0.031)
+                # print("Test mode, no sleep: {}".format(time_sleep))
 
             # reduce frame rate
             if frame_tracker % self.every_x_frames == 0:
@@ -399,7 +403,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         super().__init__(**kwargs)
         # init class to process .csv files
         self.openface_msg = OpenFaceMsgFromCSV(self.misc['csv_arg'], self.misc['csv_folder'],
-                                               int(self.misc['every_x_frames']))
+                                               int(self.misc['every_x_frames']), int(self.misc['reset_frames']))
 
     # publishes facs values per frame to subscription key 'facs'
     async def facs_pub(self):
@@ -412,17 +416,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             print(msg)
             # send message if we have data
             if msg:
-                # reduce number of messages
-                # if msg_count % 3 == 0:
-                # await self.pub_socket.send_multipart([(self.pub_key + "." + msg[0]).encode('ascii'),  # topic
-                #                                       str(int(time.time() * 1000)).encode('ascii'),  # timestamp
-                #                                       #int(msg[1]*1000).to_bytes(4, byteorder='big'),  # timestamp
-                #                                       msg[2].encode('utf-8')  # data in JSON format or empty byte
-                #                                       ])
                 await self.pub_socket.pub(msg[2])
-
-                # else:
-                #     print("Skipping message")
 
                 msg_count += 1
 
@@ -431,8 +425,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 print("No more messages to publish; FACS done")
 
                 # tell network messages finished (timestamp == data == None)
-                # await self.pub_socket.send_multipart([self.pub_key.encode('ascii'), b'', b''])
-                await self.pub_socket.pub(b'')
+                await self.pub_socket.pub('')
 
 
 if __name__ == '__main__':
@@ -455,6 +448,8 @@ if __name__ == '__main__':
                         help="Name of folder with csv files; Default: openface")
     parser.add_argument("--every_x_frames", default="1",
                         help="Send every x frames a msg; Default 1 (all)")
+    parser.add_argument("--reset_frames", default="0",
+                        help="Number of reset data messages (AU=0, head_pose=0) to send after reading file finishes")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))

@@ -3,6 +3,8 @@
 # Copyright (c) Stef van der Struijk.
 # License: GNU Lesser General Public License
 
+import os
+import sys
 import traceback
 import logging
 from abc import ABC, abstractmethod
@@ -11,6 +13,7 @@ import zmq.asyncio
 from zmq.asyncio import Context
 import time
 import json
+import csv
 
 
 # setup ZeroMQ publisher / subscriber
@@ -46,7 +49,8 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             # add variable with key
             #self.pub_key = pub_key
 
-            self.pub_socket = FACSvatarSocket(self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind), pub_key)
+            self.pub_socket = FACSvatarSocket(self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind),
+                                              pub_key, "pub0.csv")
             print("Publisher socket set-up complete")
         else:
             print("pub_port not specified, not setting-up publisher")
@@ -58,7 +62,8 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             self.sub_key = sub_key  # TODO use sub_topic() instead
             # self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
 
-            self.sub_socket = FACSvatarSocket(self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind), sub_key)
+            self.sub_socket = FACSvatarSocket(self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind),
+                                              sub_key, "sub0.csv")
             self.sub_socket.sub_topic()
             print("Subscriber socket set-up complete")
         else:
@@ -156,7 +161,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             print("No functions given, nothing to start")
 
 
-# TODO check bytes or string
+# TODO option to enable / disable debugging
 class FACSvatarSocket:
     """Simplify sending messages according to FACSvatar format
 
@@ -166,9 +171,26 @@ class FACSvatarSocket:
     Access ZeroMQ socket functionality through `FACSvatarSocket.socket.xxx` (e.g. `.setsockopt()`
     """
 
-    def __init__(self, socket, key=''):
+    def __init__(self, socket, key='', csv_filename="test0.csv"):
         self.socket = socket
         self.key = key.encode('ascii')
+        # time previous message send or useful for start-up time before first message
+        self.pub_timestamp_old = self.time_now()
+        self.sub_time_received = 0
+        self.frame_count = -1
+
+        csv_filename = "timestamps_" + csv_filename
+
+        # increase file name number if file exist
+        print("Write timestamps to: {}".format(csv_filename))
+        while os.path.exists(csv_filename):
+            csv_filename = csv_filename[:-5] + str(int(csv_filename[-5]) + 1) + csv_filename[-4:]
+
+        with open(csv_filename, 'a') as file:
+            writer = csv.writer(file, delimiter=',')
+            writer.writerow(["msg", "time_prev", "time_now"])
+
+        self.csv_filename = csv_filename
 
     async def pub(self, data, key=None):
         """ Publish data async
@@ -177,6 +199,7 @@ class FACSvatarSocket:
         :param key: string or bytes encoded as 'ascii'; send specified key instead of default
         :return:
         """
+
         if not key:
             key = self.key
         else:
@@ -184,22 +207,45 @@ class FACSvatarSocket:
             if not isinstance(key, bytes):
                 key = key.encode('ascii')
 
-        # if data not yet bytes
-        if not isinstance(data, bytes):
-            # if data != JSON:
-            if not isinstance(data, str):
-                # change to json string
-                data = json.dumps(data)
+        # not b''
+        if data:
+            # if data not yet bytes
+            if not isinstance(data, bytes):
+                # if data != JSON:
+                if not isinstance(data, str):
+                    # change to json string
+                    data = json.dumps(data)
 
-            # change from string to bytes
-            data = data.encode('utf-8')
+                # change from string to bytes
+                data = data.encode('utf-8')
 
-        # TODO Python 3.7 time nanoseconds
-        timestamp = str(int(time.time() * 1000)).encode('ascii')  # time.time()
-        print("Time publishing: {}".format(timestamp))
+            timestamp = self.time_now()
+            timestamp_enc = str(timestamp).encode('ascii')
 
-        # print(f"Key type: {type(key)}\nTimestamp type: {type(timestamp)}\nData type: {type(data)}")
-        await self.socket.send_multipart([key, timestamp, data])
+            # print(f"Key type: {type(key)}\nTimestamp type: {type(timestamp)}\nData type: {type(data)}")
+            await self.socket.send_multipart([key, timestamp_enc, data])
+
+            print("PUB: Time prev msg:\t\t\t{}".format(self.pub_timestamp_old))
+            print("PUB: Time publishing:\t\t\t{}".format(timestamp))
+            print("PUB: Difference prev msg nanosec:\t{}".format(timestamp - self.pub_timestamp_old))
+            print("PUB: Difference prev msg seconds:\t{}".format((timestamp - self.pub_timestamp_old) / 1000000000))
+
+            # NOT WORKING due to pub and sub not using same instance of this class
+            # assume module: receive msg sub --> process --> pub when sub_time_received != 0
+            # print(self.sub_time_received)
+            # if self.sub_time_received:
+            #     print("Module performance diff sub-pub:\t{}".format(timestamp - self.sub_time_received))
+
+            self.write_to_csv([self.pub_timestamp_old, timestamp])
+
+            self.pub_timestamp_old = timestamp
+
+        # send message with no timestamp or data
+        else:
+            print("PUB: Data finished")
+            await self.socket.send_multipart([key, b'', b''])
+
+        print()
 
     async def sub(self, raw=False):
         """ Wait for subscribed data async
@@ -207,27 +253,44 @@ class FACSvatarSocket:
         :param raw: if False, decode (and json.loads()) key, timestamp and data; if True, return as-is (bytes)
         :return: key, timestamp, data
         """
+
         key, timestamp, data = await self.socket.recv_multipart()
-        timestamp_decoded = timestamp.decode('ascii')
-        print("Time data published: {}\nTime subscribed data received: {}"
-              .format(timestamp_decoded, int(time.time() * 1000)))
 
-        # byte data
-        if raw:
-            return key, timestamp, data
-        # decode data
+        # not received finish message b''
+        if timestamp:
+            self.sub_time_received = self.time_now()
+            timestamp_decoded = int(timestamp.decode('ascii'))
+            time_difference = self.sub_time_received - timestamp_decoded
+            print("SUB: Time data published:\t\t{}\nSUB: Time subscribed data received:\t{}\n"
+                  "SUB: Difference nanoseconds:\t\t{}\nSUB: Difference seconds:\t\t{}"
+                  .format(timestamp_decoded, self.sub_time_received, time_difference, time_difference / 1000000000))
+
+            self.write_to_csv([timestamp_decoded, self.sub_time_received])
+
+            # byte data
+            if raw:
+                return key, timestamp, data
+            # decode data
+            else:
+                data = data.decode('utf-8')
+                # # check not empty byte string b''
+                # if data:
+                data = json.loads(data)
+
+                return key.decode('ascii'), timestamp_decoded, data
+
         else:
-            return key.decode('ascii'), \
-                   timestamp_decoded, \
-                   json.loads(data.decode('utf-8'))
+            # key, '', ''
+            return key.decode('ascii'), timestamp.decode('ascii'), data.decode('utf-8')
 
-    # TODO key should be list
+    # TODO check if single key or list
     def sub_topic(self, key=None, unsub_all=False):
         """ Subscribe to a (new) key
 
         :param key: set new self.key and subscribe; if None, only subscribe to self.key
         :param unsub_all: if True, unsubscribe all keys
         """
+
         # TODO multiple sub keys
         if unsub_all:
             self.socket.setsockopt(zmq.UNSUBSCRIBE, self.key)
@@ -238,3 +301,32 @@ class FACSvatarSocket:
             self.key = key
 
         self.socket.setsockopt(zmq.SUBSCRIBE, self.key)
+
+    @staticmethod
+    def time_now():
+        """Return time as nanoseconds (more precise with >= python 3.7)"""
+
+        # Python 3.7 or newer use nanoseconds
+        if (sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major >= 4:
+            time_now = time.time_ns()
+        else:
+            # timestamp = int(time.time() * 1000)
+            # timestamp = timestamp.to_bytes((timestamp.bit_length() + 7) // 8, byteorder='big')
+            # match nanoseconds
+            time_now = int(time.time() * 1000000000)  # time.time()
+            #time_now = time.time()
+
+        return time_now
+
+    def write_to_csv(self, data):
+        print("Storing time data to csv")
+
+        with open(self.csv_filename, 'a') as file:
+            writer = csv.writer(file, delimiter=',')
+            # add frame no to beginning of data list
+            data.insert(0, self.frame_count)
+            # write data to csv
+            writer.writerow(data)
+            # writer.writerow(self.frame_count, data)
+
+        self.frame_count += 1

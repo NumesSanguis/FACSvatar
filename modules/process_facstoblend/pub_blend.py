@@ -74,32 +74,26 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     async def blenshape_sub_pub(self):
         # keep listening to all published message on topic 'facs'
         while True:
-            msg = await self.sub_socket.recv_multipart()
-            print("message: {}".format(msg))
+            # msg = await self.sub_socket.recv_multipart()
+            key, timestamp, data = await self.sub_socket.sub()
+            print("Received message: {}".format([key, timestamp, data]))
 
             # check not finished; timestamp is empty (b'')
-            if msg[1]:
-                # process message
-                msg[2] = json.loads(msg[2].decode('utf-8'))
+            if timestamp:
                 # check not empty
-                if msg[2]:
+                if data:
                     # transform Action Units to Blend Shapes
-                    msg[2]['blendshapes'] = await self.blendshape.facs_to_blendshape(msg[2]['au_r'])
+                    data['blendshapes'] = await self.blendshape.facs_to_blendshape(data['au_r'])
                     # remove au_r from dict
-                    msg[2].pop('au_r')
+                    data.pop('au_r')
 
-                print(msg)
-                # async always needs `send_multipart()`
-                await self.pub_socket.send_multipart([msg[0],  # topic
-                                          msg[1],  # timestamp
-                                          # data in JSON format or empty byte
-                                          json.dumps(msg[2]).encode('utf-8')
-                                          ])
+                print(data)
+                await self.pub_socket.pub(data, key)
 
             # send message we're done
             else:
                 print("No more messages to publish; Blend Shapes done")
-                await self.pub_socket.send_multipart([msg[0], b'', b''])
+                await self.pub_socket.pub(b'', key)
 
 
 if __name__ == '__main__':

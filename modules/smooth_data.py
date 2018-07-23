@@ -112,12 +112,12 @@ class SmoothData:
 
                 # apply AU multiplier
                 if queue_no == 0:
-                    print("\n\n")
-                    print(type(smooth_data))
-                    print(smooth_data)
+                    #print("\n\n")
+                    #print(type(smooth_data))
+                    #print(smooth_data)
                     smooth_data = smooth_data * self.multiplier
-                    print()
-                    print(smooth_data)
+                    #print()
+                    #print(smooth_data)
                     # sys.exit()
 
                 return smooth_data.to_dict()
