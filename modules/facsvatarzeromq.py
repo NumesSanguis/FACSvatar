@@ -179,18 +179,22 @@ class FACSvatarSocket:
         self.sub_time_received = 0
         self.frame_count = -1
 
+        csv_dir = "logging"
         csv_filename = "timestamps_" + csv_filename
+        csv_location = os.path.join(csv_dir, csv_filename)
+
+        os.makedirs(csv_dir, exist_ok=True)
 
         # increase file name number if file exist
-        print("Write timestamps to: {}".format(csv_filename))
-        while os.path.exists(csv_filename):
-            csv_filename = csv_filename[:-5] + str(int(csv_filename[-5]) + 1) + csv_filename[-4:]
+        print("Write timestamps to: {}".format(csv_location))
+        while os.path.exists(csv_location):
+            csv_location = csv_location[:-5] + str(int(csv_location[-5]) + 1) + csv_location[-4:]
 
-        with open(csv_filename, 'a') as file:
+        with open(csv_location, 'a') as file:
             writer = csv.writer(file, delimiter=',')
             writer.writerow(["msg", "time_prev", "time_now"])
 
-        self.csv_filename = csv_filename
+        self.csv_location = csv_location
 
     async def pub(self, data, key=None):
         """ Publish data async
@@ -321,7 +325,7 @@ class FACSvatarSocket:
     def write_to_csv(self, data):
         print("Storing time data to csv")
 
-        with open(self.csv_filename, 'a') as file:
+        with open(self.csv_location, 'a') as file:
             writer = csv.writer(file, delimiter=',')
             # add frame no to beginning of data list
             data.insert(0, self.frame_count)

@@ -3,9 +3,10 @@
 # Roadmap
 
 ## New v0.3.2
+
 * Timestamp of message receive and send per module (`if Python >= 3.7: time.time_ns(), else time.time()`)
 * Simplified sending receiving messages (`facsvatarzeromq.py` now takes care of encoding / decoding and adding timestamps)
-* Consistency fix: ROUTER / DEALER sockets use JSON formatted data
+* Time taken for smoothing per message reduced: 12.1 +/- 6.9 milliseconds to 7.9 +/- 4.6 milliseconds (pandas --> direct numpy)
 
 ## New v0.3.1
 
@@ -27,6 +28,7 @@
 * Documentation
 * Python modules:
     * Standardization pass over all modules / code clean-up
+    * Consistency fix: ROUTER / DEALER sockets use JSON formatted data
     * DOC string per class and function
     * Logger instead of print() statements
     * File structure for proper import of modules / pip?

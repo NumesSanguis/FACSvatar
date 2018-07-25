@@ -25,6 +25,7 @@ TODO: register somewhere for a bus overview"""
 
 
 import sys
+import time
 import argparse
 from functools import partial
 import zmq.asyncio
@@ -146,6 +147,10 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 if timestamp:
                     # msg[2] = json.loads(msg[2].decode('utf-8'))
 
+                    # measure time
+                    time_begin = time.time_ns()
+                    time_now = time_begin
+
                     # only pass on messages with enough tracking confidence; always send when no confidence param
                     if 'confidence' not in data or data['confidence'] >= 0.7:
                         # subscription key / topic
@@ -158,6 +163,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 self.smooth_obj_dict[key] = SmoothData()
                                 new_smooth_object = True
 
+                            print(f"TIME: smooth class init: {(time.time_ns() - time_now) / 1000000}")
+                            time_now = time.time_ns()
+
                             # check au dict in data and not empty
                             if "au_r" in data and data['au_r']:
                                 # convert gaze into AU 61, 62, 63, 64
@@ -165,6 +173,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                     data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
                                     # remove from message after AU convert
                                     data.pop('gaze')
+
+                                print(f"TIME: Convert gaze to AU: {(time.time_ns() - time_now) / 1000000}")
+                                time_now = time.time_ns()
                             
                                 # sort dict; dicts keep insert order Python 3.6+
                                 # au_r_dict = data['au_r']
@@ -183,6 +194,9 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                                                                       window_size=3,
                                                                                                       steep=.25)
 
+                                print(f"TIME: Smooth AU: {(time.time_ns() - time_now) / 1000000}")
+                                time_now = time.time_ns()
+
                             # check head rotation dict in data and not empty
                             if "pose" in data and data['pose']:
                                 # smooth head position
@@ -191,7 +205,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                                                      window_size=6,
                                                                                      steep=.15)
 
-                                # TODO add eye direction AU data
+                                print(f"TIME: Smooth head pose: {(time.time_ns() - time_now) / 1000000}")
+                                # time_now = time.time()
 
                         else:
                             print("No smoothing applied, forwarding unchanged")
@@ -199,12 +214,13 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             print("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(key, None)))
 
                         # send modified message
-                        print("Smoothed data: {}".format(data))
+                        print("TIME: Smoothed data: {}".format(data))
                         # await self.pub_socket.send_multipart([key,  # topic
                         #                                       timestamp,  # timestamp
                         #                                       # data in JSON format or empty byte
                         #                                       json.dumps(data).encode('utf-8')
                         #                                       ])
+
                         await self.pub_socket.pub(data, key)
 
                 # send message we're done
@@ -212,6 +228,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                     print("No more messages to pass; finished")
                     # await self.pub_socket.send_multipart([key, b'', b''])
                     await self.pub_socket.pub(b'', key)
+
+                print(f"TIME: Total bridge: {(time.time_ns() - time_begin) / 1000000}")
 
         except:
             print("Error with sub")
@@ -292,5 +310,5 @@ if __name__ == '__main__':
     # init FACSvatar message class
     facsvatar_messages = FACSvatarMessages(**vars(args))
     # start processing messages; get reference to function without executing
-    facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function, "trailing_moving_average"),
+    facsvatar_messages.start([partial(facsvatar_messages.pub_sub_function, "trailing_moving_average2"),
                               facsvatar_messages.set_parameters])

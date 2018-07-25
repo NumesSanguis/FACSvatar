@@ -151,4 +151,4 @@ modules/output_facstojson/facsjson/
 modules/process_facsdnnfacs/models/
 
 # debug data
-timestamps_*.csv
+*logging
