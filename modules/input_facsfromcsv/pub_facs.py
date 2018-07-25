@@ -181,6 +181,22 @@ class OpenFaceMessage:
         eye_gaze_col = self.df_csv.columns.str.contains("gaze_angle_*")
         self.df_eye_gaze = self.df_csv.loc[:, eye_gaze_col]
 
+    @staticmethod
+    def time_now():
+        """Return time as 100 nanoseconds (more precise with >= python 3.7)"""
+
+        # Python 3.7 or newer use nanoseconds
+        if (sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major >= 4:
+            time_now = int(time.time_ns() / 100)
+        else:
+            # timestamp = int(time.time() * 1000)
+            # timestamp = timestamp.to_bytes((timestamp.bit_length() + 7) // 8, byteorder='big')
+            # match nanoseconds
+            time_now = int(time.time() * 10000000)  # time.time()
+            # time_now = time.time()
+
+        return time_now
+
     def set_msg(self, frame_tracker):
         # get single frame
         row = self.df_csv.loc[frame_tracker]
@@ -236,6 +252,9 @@ class OpenFaceMessage:
             # head pose in message
             self.msg['pose'] = self.df_head_pose.loc[frame_tracker].to_dict()
             # print(msg['pose'])
+
+        # logging purpose; time taken from message publish to animation
+        self.msg['timestamp_utc'] = self.time_now()
 
     def set_reset_msg(self):
         # init a message dict
@@ -416,7 +435,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             print(msg)
             # send message if we have data
             if msg:
-                await self.pub_socket.pub(msg[2])
+                await self.pub_socket.pub(msg[2], key=str(self.pub_socket.key) + "." + msg[0])
 
                 msg_count += 1
 

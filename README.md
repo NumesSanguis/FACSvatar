@@ -6,7 +6,7 @@
 
 * Timestamp of message receive and send per module (`if Python >= 3.7: time.time_ns(), else time.time()`)
 * Simplified sending receiving messages (`facsvatarzeromq.py` now takes care of encoding / decoding and adding timestamps)
-* Time taken for smoothing per message reduced (asynchronous): 11.90 +/- 6.91 milliseconds to 6.83 +/- 2.79 milliseconds (pandas --> direct numpy)
+* Performance improvement: Time taken for smoothing per message reduced (asynchronous): 11.90 +/- 6.91 milliseconds to 6.83 +/- 2.79 milliseconds (pandas --> direct numpy)
 
 ## New v0.3.1
 
@@ -31,6 +31,7 @@
     * Consistency fix: ROUTER / DEALER sockets use JSON formatted data
     * DOC string per class and function
     * Logger instead of print() statements
+    * Debug as option to enable logger
     * File structure for proper import of modules / pip?
     * Use config file (in addition to command line arguments) + config filepath argument
 * Easy run: Docker container per module + Docker Compose

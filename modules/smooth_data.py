@@ -285,11 +285,12 @@ class SmoothData:
 
                     # faster; replace oldest (lowest) array and shift new below row to top
                     smooth_2d_array[-1] = array
-                    np.roll(smooth_2d_array, 1, axis=1)
+                    smooth_2d_array = np.roll(smooth_2d_array, 1, axis=0)
 
 
                 print("stacked")
                 print(smooth_2d_array)
+                print("\n\n\n")
 
                 # store for next message
                 self.data_list[queue_no] = smooth_2d_array

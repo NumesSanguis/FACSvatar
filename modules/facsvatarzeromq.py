@@ -50,7 +50,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             #self.pub_key = pub_key
 
             self.pub_socket = FACSvatarSocket(self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind),
-                                              pub_key, "pub0.csv")
+                                              pub_key, "pub.csv")
             print("Publisher socket set-up complete")
         else:
             print("pub_port not specified, not setting-up publisher")
@@ -63,7 +63,7 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             # self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
 
             self.sub_socket = FACSvatarSocket(self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind),
-                                              sub_key, "sub0.csv")
+                                              sub_key, "sub.csv")
             self.sub_socket.sub_topic()
             print("Subscriber socket set-up complete")
         else:
@@ -171,7 +171,7 @@ class FACSvatarSocket:
     Access ZeroMQ socket functionality through `FACSvatarSocket.socket.xxx` (e.g. `.setsockopt()`
     """
 
-    def __init__(self, socket, key='', csv_filename="test0.csv"):
+    def __init__(self, socket, key='', csv_filename="test.csv"):
         self.socket = socket
         self.key = key.encode('ascii')
         # time previous message send or useful for start-up time before first message
@@ -187,8 +187,12 @@ class FACSvatarSocket:
 
         # increase file name number if file exist
         print("Write timestamps to: {}".format(csv_location))
-        while os.path.exists(csv_location):
-            csv_location = csv_location[:-5] + str(int(csv_location[-5]) + 1) + csv_location[-4:]
+        # while os.path.exists(csv_location):
+        #     csv_location = csv_location[:-5] + str(int(csv_location[-5]) + 1) + csv_location[-4:]
+
+        # delete existing csv file
+        if os.path.exists(csv_location):
+            os.remove(csv_location)
 
         with open(csv_location, 'a') as file:
             writer = csv.writer(file, delimiter=',')
@@ -232,7 +236,7 @@ class FACSvatarSocket:
             print("PUB: Time prev msg:\t\t\t{}".format(self.pub_timestamp_old))
             print("PUB: Time publishing:\t\t\t{}".format(timestamp))
             print("PUB: Difference prev msg nanosec:\t{}".format(timestamp - self.pub_timestamp_old))
-            print("PUB: Difference prev msg seconds:\t{}".format((timestamp - self.pub_timestamp_old) / 1000000000))
+            print("PUB: Difference prev msg milliseconds:\t{}".format((timestamp - self.pub_timestamp_old) / 1000000))
 
             # NOT WORKING due to pub and sub not using same instance of this class
             # assume module: receive msg sub --> process --> pub when sub_time_received != 0
@@ -266,8 +270,8 @@ class FACSvatarSocket:
             timestamp_decoded = int(timestamp.decode('ascii'))
             time_difference = self.sub_time_received - timestamp_decoded
             print("SUB: Time data published:\t\t{}\nSUB: Time subscribed data received:\t{}\n"
-                  "SUB: Difference nanoseconds:\t\t{}\nSUB: Difference seconds:\t\t{}"
-                  .format(timestamp_decoded, self.sub_time_received, time_difference, time_difference / 1000000000))
+                  "SUB: Difference nanoseconds:\t\t{}\nSUB: Difference milliseconds:\t\t{}"
+                  .format(timestamp_decoded, self.sub_time_received, time_difference, time_difference / 1000000))
 
             self.write_to_csv([timestamp_decoded, self.sub_time_received])
 
