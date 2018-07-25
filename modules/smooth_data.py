@@ -277,12 +277,16 @@ class SmoothData:
 
                 # matrix not yet window size
                 if self.data_list[queue_no].shape[0] <= window_size:
-                    # smooth_2d_array = np.column_stack((array, smooth_2d_array))
+                    # add new array on top
                     smooth_2d_array = np.concatenate((array, smooth_2d_array), axis=0)
                 else:
-                    # drop last row and put new array above
-                    # smooth_2d_array = np.column_stack((array, smooth_2d_array[:-1, :]))
-                    smooth_2d_array = np.concatenate((array, smooth_2d_array[:-1, :]), axis=0)
+                    # slower; drop last row and put new array above
+                    # smooth_2d_array = np.concatenate((array, smooth_2d_array[:-1, :]), axis=0)
+
+                    # faster; replace oldest (lowest) array and shift new below row to top
+                    smooth_2d_array[-1] = array
+                    np.roll(smooth_2d_array, 1, axis=1)
+
 
                 print("stacked")
                 print(smooth_2d_array)
