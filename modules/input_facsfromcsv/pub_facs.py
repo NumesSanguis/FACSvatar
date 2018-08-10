@@ -435,7 +435,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             print(msg)
             # send message if we have data
             if msg:
-                await self.pub_socket.pub(msg[2], key=str(self.pub_socket.key) + "." + msg[0])
+                await self.pub_socket.pub(msg[2], key=self.pub_socket.key.decode('ascii') + "." + msg[0])
 
                 msg_count += 1
 
