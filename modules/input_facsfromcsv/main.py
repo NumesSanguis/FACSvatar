@@ -17,6 +17,7 @@ import time
 import json
 import asyncio
 import pandas as pd
+import logging
 
 
 # FACSvatar imports; if statement for documentation
@@ -216,7 +217,6 @@ class OpenFaceMessage:
         self.msg['frame'] = int(row['frame'])
         self.msg['timestamp'] = row['timestamp']
 
-        print(f"\n{self.smooth}\n")
         if not self.smooth:
             self.msg['smooth'] = False
 
@@ -427,7 +427,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # init class to process .csv files
-        print(f"\n{self.misc['smooth']}\n")
+        logging.debug(f"{self.misc['smooth']}")
         self.openface_msg = OpenFaceMsgFromCSV(self.misc['csv_arg'], self.misc['csv_folder'],
                                                int(self.misc['every_x_frames']), int(self.misc['reset_frames']),
                                                self.misc['smooth'])
