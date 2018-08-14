@@ -97,7 +97,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     def gaze_to_au(self, au_dict, gaze):
         # eye gaze in message as AU
         eye_angle = [gaze['gaze_angle_x'], gaze['gaze_angle_y']]  # radians
-        print(eye_angle)
+        print("Gaze: {}".format(eye_angle))
         # eyes go about 60 degree, which is 1.0472 rad, so no conversion needed?
 
         # set all to 0 (otherwise smoothing problems)
@@ -133,15 +133,15 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         new_smooth_object = False
 
         # await messages
-        print("Awaiting FACS data...")
+        logging.info("Awaiting FACS data...")
         # without try statement, no error output
         try:
             # keep listening to all published message on topic 'facs'
             while True:
                 # msg = await self.sub_socket.recv_multipart()
                 key, timestamp, data = await self.sub_socket.sub()
-                print()
-                print("Received message: {}".format([key, timestamp, data]))
+                # logging.debug("")
+                logging.debug("Received message: {}".format([key, timestamp, data]))
 
                 # check not finished; timestamp is empty (b'')
                 if timestamp:
@@ -156,6 +156,12 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                         # subscription key / topic
                         # topic = key  # .decode('ascii')
 
+                        # convert gaze into AU 61, 62, 63, 64
+                        if "gaze" in data:
+                            data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
+                            # remove from message after AU convert
+                            data.pop('gaze')
+
                         # don't smooth data with 'smooth' == False;
                         if 'smooth' not in data or data['smooth']:
                             # if topic changed, instantiate a new SmoothData object
@@ -163,19 +169,13 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 self.smooth_obj_dict[key] = SmoothData()
                                 new_smooth_object = True
 
-                            print(f"TIME: smooth class init: {(time.time_ns() - time_now) / 1000000}")
+                            logging.debug(f"TIME: smooth class init: {(time.time_ns() - time_now) / 1000000}")
                             time_now = time.time_ns()
 
                             # check au dict in data and not empty
                             if "au_r" in data and data['au_r']:
-                                # convert gaze into AU 61, 62, 63, 64
-                                if "gaze" in data:
-                                    data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
-                                    # remove from message after AU convert
-                                    data.pop('gaze')
-
-                                print(f"TIME: Convert gaze to AU: {(time.time_ns() - time_now) / 1000000}")
-                                time_now = time.time_ns()
+                                # logging.debug(f"TIME: Convert gaze to AU: {(time.time_ns() - time_now) / 1000000}")
+                                # time_now = time.time_ns()
                             
                                 # sort dict; dicts keep insert order Python 3.6+
                                 # au_r_dict = data['au_r']
@@ -194,7 +194,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                                                                       window_size=3,
                                                                                                       steep=.25)
 
-                                print(f"TIME: Smooth AU: {(time.time_ns() - time_now) / 1000000}")
+                                logging.debug(f"TIME: Smooth AU: {(time.time_ns() - time_now) / 1000000}")
                                 time_now = time.time_ns()
 
                             # check head rotation dict in data and not empty
@@ -205,22 +205,23 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                                                                      window_size=6,
                                                                                      steep=.15)
 
-                                print(f"TIME: Smooth head pose: {(time.time_ns() - time_now) / 1000000}")
+                                logging.debug(f"TIME: Smooth head pose: {(time.time_ns() - time_now) / 1000000}")
                                 # time_now = time.time()
 
                         else:
-                            print("No smoothing applied, forwarding unchanged")
+                            logging.debug("No smoothing applied, forwarding unchanged")
                             # remove topic from dict when msgs finish
-                            print("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(key, None)))
+                            logging.debug("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(key, None)))
 
                         # send modified message
-                        print("TIME: Smoothed data: {}".format(data))
+                        logging.debug("TIME: Smoothed data: {}".format(data))
                         # await self.pub_socket.send_multipart([key,  # topic
                         #                                       timestamp,  # timestamp
                         #                                       # data in JSON format or empty byte
                         #                                       json.dumps(data).encode('utf-8')
                         #                                       ])
 
+                        logging.info(data)
                         await self.pub_socket.pub(data, key)
 
                 # send message we're done
@@ -229,7 +230,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                     # await self.pub_socket.send_multipart([key, b'', b''])
                     await self.pub_socket.pub(b'', key)
 
-                print(f"TIME: Total bridge: {(time.time_ns() - time_begin) / 1000000}")
+                logging.debug(f"TIME: Total bridge: {(time.time_ns() - time_begin) / 1000000}")
 
         except:
             print("Error with sub")

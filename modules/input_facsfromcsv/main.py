@@ -155,8 +155,9 @@ class CrawlerCSV:
 
 
 class OpenFaceMessage:
-    def __init__(self):  # timestamp=b'', frame_no=b'', confidence=b'', pose=b'', gaze=b'', au_regression=b''
+    def __init__(self, smooth=True):  # timestamp=b'', frame_no=b'', confidence=b'', pose=b'', gaze=b'', au_regression=b''
         self.msg = dict()
+        self.smooth = smooth
 
     def set_df(self, df_csv):
         self.df_csv = df_csv
@@ -215,6 +216,10 @@ class OpenFaceMessage:
         self.msg['frame'] = int(row['frame'])
         self.msg['timestamp'] = row['timestamp']
 
+        print(f"\n{self.smooth}\n")
+        if not self.smooth:
+            self.msg['smooth'] = False
+
         # check confidence high enough, else return None as data
         if self.msg['confidence'] >= .7:
             # au_regression in message
@@ -262,7 +267,7 @@ class OpenFaceMessage:
 
         # metadata in message
         self.msg['frame'] = -1
-        self.msg['smooth'] = False  # don't smooth these data
+        self.msg['smooth'] = self.smooth  # don't smooth these data
         # self.msg['confidence'] = 2.0
 
         # au_regression in message
@@ -288,7 +293,7 @@ class OpenFaceMsgFromCSV:
 
     """
 
-    def __init__(self, csv_arg, csv_folder='openface', every_x_frames=1, reset_frames=0):  # client
+    def __init__(self, csv_arg, csv_folder='openface', every_x_frames=1, reset_frames=0, smooth=True):  # client
         """
         generates messages from OpenFace .csv files
 
@@ -300,10 +305,11 @@ class OpenFaceMsgFromCSV:
         self.crawler = CrawlerCSV()
         self.csv_list = self.crawler.gather_csv_list(csv_folder, csv_arg)
         print(f"using csv files: {self.csv_list}")
-        self.reset_msg = OpenFaceMessage()
+        self.reset_msg = OpenFaceMessage(False)
         self.reset_msg.set_reset_msg()
         self.every_x_frames = every_x_frames
         self.reset_frames = reset_frames
+        self.smooth = smooth
 
     # loop over all csv groups ([1 csv file] if single person, P1, P2, etc [multi csv files]
     async def msg_gen(self):
@@ -373,7 +379,7 @@ class OpenFaceMsgFromCSV:
                 print("Data rows in data frame: {}".format(df_au_row_count))
 
             # create msg object with dataframe info
-            ofmsg = OpenFaceMessage()
+            ofmsg = OpenFaceMessage(smooth=self.smooth)
             ofmsg.set_df(df_csv)
             ofmsg.df_split()
             ofmsg_list.append(ofmsg)
@@ -421,8 +427,10 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # init class to process .csv files
+        print(f"\n{self.misc['smooth']}\n")
         self.openface_msg = OpenFaceMsgFromCSV(self.misc['csv_arg'], self.misc['csv_folder'],
-                                               int(self.misc['every_x_frames']), int(self.misc['reset_frames']))
+                                               int(self.misc['every_x_frames']), int(self.misc['reset_frames']),
+                                               self.misc['smooth'])
 
     # publishes facs values per frame to subscription key 'facs'
     async def facs_pub(self):
@@ -445,6 +453,15 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                 # tell network messages finished (timestamp == data == None)
                 await self.pub_socket.pub('')
+
+
+# cast argument to bool
+# https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
+def str2bool(v):
+    if v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        return True
 
 
 if __name__ == '__main__':
@@ -481,6 +498,8 @@ if __name__ == '__main__':
                         help="Send every x frames a msg; Default 1 (all)")
     parser.add_argument("--reset_frames", default="0",
                         help="Number of reset data messages (AU=0, head_pose=0) to send after reading file finishes")
+    parser.add_argument("--smooth", default=True, type=str2bool,
+                        help="Whether AU and head pose data should be smoothed.")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))
