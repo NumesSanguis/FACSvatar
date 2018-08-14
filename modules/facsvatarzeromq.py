@@ -5,6 +5,8 @@
 
 import os
 import sys
+import inspect
+from pathlib import Path, PurePath
 import traceback
 import logging
 from abc import ABC, abstractmethod
@@ -20,7 +22,8 @@ import csv
 class FACSvatarZeroMQ(abstractmethod(ABC)):
     """Base class for initializing FACSvatar ZeroMQ sockets"""
 
-    def __init__(self, pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
+    def __init__(self, module_id="module", loglevel="INFO",
+                 pub_ip='127.0.0.1', pub_port=None, pub_key='', pub_bind=True,
                  sub_ip='127.0.0.1', sub_port=None, sub_key='', sub_bind=False,
                  deal_ip='127.0.0.1', deal_port=None, deal_key='', deal_topic='', deal_bind=False,
                  deal2_ip='127.0.0.1', deal2_port=None, deal2_key='', deal2_topic='', deal2_bind=False,
@@ -29,35 +32,57 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
                  **misc):
         """Sets-up a socket bound/connected to an url
 
+        module_id: string that identifies the module calling this class
+        loglevel: specifies how detailed terminal and logfile output should be
         xxx_ip: ip of publisher/subscriber/dealer/router
         xxx_port: port of publisher/subscriber/dealer/router
         xxx_key: key for filtering out messages (leave empty to receive all) (pub/sub only)
         xxx_bind: True for bind (only 1 socket can bind to 1 address) or false for connect (many can connect)
         """
 
+        # get filepath of the file calling this script
+        frame = inspect.stack()[1]
+        module = inspect.getmodule(frame[0])
+        file_path = Path(module.sys.argv[0]).absolute()
+        # print(f"path: {file_path.parts[-2]}\n\n")
+        # use module name in logfile
+        logfile = Path(file_path.parent, "logging", "logging_%s.log" % module_id)
+        # make logging dir if not exist
+        logfile.parent.mkdir(exist_ok=True)
+
+        # set logging level; TODO logger per module / pattern instead of root
+        numeric_level = getattr(logging, loglevel.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % loglevel)
+        logging.basicConfig(level=numeric_level)
+        logger = logging.getLogger()
+        fh = logging.FileHandler(filename=logfile, mode='w')
+        fh.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s"))
+        logger.addHandler(fh)
+
         # get ZeroMQ version
-        print("Current libzmq version is %s" % zmq.zmq_version())
-        print("Current  pyzmq version is %s" % zmq.pyzmq_version())
+        logging.info("Current libzmq version is %s" % zmq.zmq_version())
+        logging.info("Current  pyzmq version is %s" % zmq.pyzmq_version())
 
         self.pub_socket = None
         self.sub_socket = None
 
         # set-up publish socket only if a port is given
         if pub_port:
-            print("Publisher port is specified")
+            logging.info("Publisher port is specified")
             #self.pub_socket = self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind)
             # add variable with key
             #self.pub_key = pub_key
 
             self.pub_socket = FACSvatarSocket(self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind),
                                               pub_key, "pub.csv")
-            print("Publisher socket set-up complete")
+            logging.info("Publisher socket set-up complete")
         else:
-            print("pub_port not specified, not setting-up publisher")
+            logging.info("pub_port not specified, not setting-up publisher")
 
         # set-up subscriber socket only if a port is given
         if sub_port:
-            print("Subscriber port is specified")
+            logging.info("Subscriber port is specified")
             # self.sub_socket = self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind)
             self.sub_key = sub_key  # TODO use sub_topic() instead
             # self.sub_socket.setsockopt(zmq.SUBSCRIBE, self.sub_key.encode('ascii'))
@@ -65,52 +90,52 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
             self.sub_socket = FACSvatarSocket(self.zeromq_context(sub_ip, sub_port, zmq.SUB, sub_bind),
                                               sub_key, "sub.csv")
             self.sub_socket.sub_topic()
-            print("Subscriber socket set-up complete")
+            logging.info("Subscriber socket set-up complete")
         else:
-            print("sub_port not specified, not setting-up subscriber")
+            logging.info("sub_port not specified, not setting-up subscriber")
 
         # set-up dealer socket only if a port is given
         if deal_port:
-            print("Dealer port is specified")
+            logging.info("Dealer port is specified")
             self.deal_socket = self.zeromq_context(deal_ip, deal_port, zmq.DEALER, deal_bind)
             self.deal_socket.setsockopt(zmq.IDENTITY, deal_key.encode('ascii'))
             # add variable with key f
             self.deal_topic = deal_topic
-            print("Dealer socket set-up complete")
+            logging.info("Dealer socket set-up complete")
         else:
-            print("deal_port not specified, not setting-up dealer")
+            logging.info("deal_port not specified, not setting-up dealer")
 
         # set-up dealer socket only if a port is given; TODO better solution for multiple same sockets
         if deal2_port:
-            print("Dealer port 2 is specified")
+            logging.info("Dealer port 2 is specified")
             self.deal2_socket = self.zeromq_context(deal2_ip, deal2_port, zmq.DEALER, deal2_bind)
             self.deal2_socket.setsockopt(zmq.IDENTITY, deal2_key.encode('ascii'))
             # add variable with key f
             self.deal2_topic = deal2_topic
-            print("Dealer 2 socket set-up complete")
+            logging.info("Dealer 2 socket set-up complete")
         else:
-            print("deal2_port not specified, not setting-up dealer")
+            logging.info("deal2_port not specified, not setting-up dealer")
 
         # set-up dealer socket only if a port is given; TODO better solution for multiple same sockets
         if deal3_port:
-            print("Dealer port 3 is specified")
+            logging.info("Dealer port 3 is specified")
             self.deal3_socket = self.zeromq_context(deal3_ip, deal3_port, zmq.DEALER, deal3_bind)
             self.deal3_socket.setsockopt(zmq.IDENTITY, deal3_key.encode('ascii'))
             # add variable with key f
             self.deal3_topic = deal3_topic
-            print("Dealer 3 socket set-up complete")
+            logging.info("Dealer 3 socket set-up complete")
         else:
-            print("deal3_port not specified, not setting-up dealer")
+            logging.info("deal3_port not specified, not setting-up dealer")
 
         # set-up router socket only if a port is given
         if rout_port:
-            print("Router port is specified")
+            logging.info("Router port is specified")
             self.rout_socket = self.zeromq_context(rout_ip, rout_port, zmq.ROUTER, rout_bind)
-            print("Router socket set-up complete")
+            logging.info("Router socket set-up complete")
         else:
-            print("rout_port not specified, not setting-up router")
+            logging.info("rout_port not specified, not setting-up router")
 
-        print("ZeroMQ sockets successfully set-up\n")
+        logging.info("ZeroMQ sockets successfully set-up\n")
 
         # extra named arguments
         self.misc = misc
@@ -124,15 +149,15 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         """
 
         url = "tcp://{}:{}".format(ip, port)
-        print("Creating ZeroMQ context on: {}".format(url))
+        logging.info("Creating ZeroMQ context on: {}".format(url))
         ctx = Context.instance()
         socket = ctx.socket(socket_type)
         if bind:
             socket.bind(url)
-            print("Bind to {} successful".format(url))
+            logging.info("Bind to {} successful".format(url))
         else:
             socket.connect(url)
-            print("Connect to {} successful".format(url))
+            logging.info("Connect to {} successful".format(url))
 
         return socket
 
@@ -148,17 +173,16 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
                     [func() for func in async_func_list]
                 ))
             except Exception as e:
-                print("Error with async function")
+                logging.critical("Error with async function")
                 # print(e)
                 logging.error(traceback.format_exc())
-                print()
 
             finally:
                 # TODO disconnect pub/sub
                 pass
 
         else:
-            print("No functions given, nothing to start")
+            logging.info("No functions given, nothing to start")
 
 
 # TODO option to enable / disable debugging
@@ -186,7 +210,7 @@ class FACSvatarSocket:
         os.makedirs(csv_dir, exist_ok=True)
 
         # increase file name number if file exist
-        print("Write timestamps to: {}".format(csv_location))
+        logging.info("Write timestamps to: {}".format(csv_location))
         # while os.path.exists(csv_location):
         #     csv_location = csv_location[:-5] + str(int(csv_location[-5]) + 1) + csv_location[-4:]
 
@@ -233,24 +257,26 @@ class FACSvatarSocket:
             # print(f"Key type: {type(key)}\nTimestamp type: {type(timestamp)}\nData type: {type(data)}")
             await self.socket.send_multipart([key, timestamp_enc, data])
 
-            print("PUB: Time prev msg:\t\t\t{}".format(self.pub_timestamp_old))
-            print("PUB: Time publishing:\t\t\t{}".format(timestamp))
-            print("PUB: Difference prev msg nanosec:\t{}".format(timestamp - self.pub_timestamp_old))
-            print("PUB: Difference prev msg milliseconds:\t{}".format((timestamp - self.pub_timestamp_old) / 1000000))
+            # check if in DEBUG mode for logging performance; TODO seperate?
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("PUB: Time prev msg:\t\t\t{}".format(self.pub_timestamp_old))
+                logging.debug("PUB: Time publishing:\t\t\t{}".format(timestamp))
+                logging.debug("PUB: Difference prev msg nanosec:\t{}".format(timestamp - self.pub_timestamp_old))
+                logging.debug("PUB: Difference prev msg milliseconds:\t{}".format((timestamp - self.pub_timestamp_old) / 1000000))
 
-            # NOT WORKING due to pub and sub not using same instance of this class
-            # assume module: receive msg sub --> process --> pub when sub_time_received != 0
-            # print(self.sub_time_received)
-            # if self.sub_time_received:
-            #     print("Module performance diff sub-pub:\t{}".format(timestamp - self.sub_time_received))
+                # NOT WORKING due to pub and sub not using same instance of this class
+                # assume module: receive msg sub --> process --> pub when sub_time_received != 0
+                # print(self.sub_time_received)
+                # if self.sub_time_received:
+                #     print("Module performance diff sub-pub:\t{}".format(timestamp - self.sub_time_received))
 
-            self.write_to_csv([self.pub_timestamp_old, timestamp])
+                self.write_to_csv([self.pub_timestamp_old, timestamp])
 
-            self.pub_timestamp_old = timestamp
+                self.pub_timestamp_old = timestamp
 
         # send message with no timestamp or data
         else:
-            print("PUB: Data finished")
+            logging.info("PUB: Data finished")
             await self.socket.send_multipart([key, b'', b''])
 
         print()
@@ -266,14 +292,17 @@ class FACSvatarSocket:
 
         # not received finish message b''
         if timestamp:
-            self.sub_time_received = self.time_now()
             timestamp_decoded = int(timestamp.decode('ascii'))
-            time_difference = self.sub_time_received - timestamp_decoded
-            print("SUB: Time data published:\t\t{}\nSUB: Time subscribed data received:\t{}\n"
-                  "SUB: Difference nanoseconds:\t\t{}\nSUB: Difference milliseconds:\t\t{}"
-                  .format(timestamp_decoded, self.sub_time_received, time_difference, time_difference / 1000000))
 
-            self.write_to_csv([timestamp_decoded, self.sub_time_received])
+            # check if in DEBUG mode for logging performance; TODO seperate?
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                self.sub_time_received = self.time_now()
+                time_difference = self.sub_time_received - timestamp_decoded
+                logging.debug("SUB: Time data published:\t\t{}\nSUB: Time subscribed data received:\t{}\n"
+                      "SUB: Difference nanoseconds:\t\t{}\nSUB: Difference milliseconds:\t\t{}"
+                      .format(timestamp_decoded, self.sub_time_received, time_difference, time_difference / 1000000))
+
+                self.write_to_csv([timestamp_decoded, self.sub_time_received])
 
             # byte data
             if raw:
@@ -316,18 +345,20 @@ class FACSvatarSocket:
 
         # Python 3.7 or newer use nanoseconds
         if (sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major >= 4:
-            time_now = time.time_ns()
+            # 100 nanoseconds / 0.1 microseconds
+            time_now = int(time.time_ns() / 100)
         else:
             # timestamp = int(time.time() * 1000)
             # timestamp = timestamp.to_bytes((timestamp.bit_length() + 7) // 8, byteorder='big')
-            # match nanoseconds
-            time_now = int(time.time() * 1000000000)  # time.time()
+
+            # match 100 nanoseconds / 0.1 microseconds
+            time_now = int(time.time() * 10000000)  # time.time()
             #time_now = time.time()
 
         return time_now
 
     def write_to_csv(self, data):
-        print("Storing time data to csv")
+        logging.debug("Storing time data to csv")
 
         with open(self.csv_location, 'a') as file:
             writer = csv.writer(file, delimiter=',')

@@ -450,6 +450,16 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 if __name__ == '__main__':
     # command line arguments
     parser = argparse.ArgumentParser()
+
+    # logging commandline arguments
+    parser.add_argument("--module_id", default="openfaceoffline_1",
+                        help="Specify how detailed the terminal/logfile output should be;"
+                             "DEBUG, INFO, WARNING, ERROR or CRITICAL; Default: INFO")
+    parser.add_argument("--loglevel", default=argparse.SUPPRESS,
+                        help="Specify how detailed the terminal/logfile output should be;"
+                             "DEBUG, INFO, WARNING, ERROR or CRITICAL; Default: INFO")
+
+    # publisher setup commandline arguments
     parser.add_argument("--pub_ip", default=argparse.SUPPRESS,
                         help="IP (e.g. 192.168.x.x) of where to pub to; Default: 127.0.0.1 (local)")
     parser.add_argument("--pub_port", default="5570",
@@ -458,6 +468,8 @@ if __name__ == '__main__':
                         help="Key for filtering message; Default: openface")
     parser.add_argument("--pub_bind", default=False,
                         help="True: socket.bind() / False: socket.connect(); Default: False")
+
+    # module specific commandline arguments
     parser.add_argument("--csv_arg", default="demo",
                         help="specific csv (allows for wildcard *), "
                              "-2: message all csv in specified folder, "

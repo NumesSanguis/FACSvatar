@@ -7,6 +7,7 @@
 * Timestamp of message receive and send per module (`if Python >= 3.7: time.time_ns(), else time.time()`)
 * Simplified sending receiving messages (`facsvatarzeromq.py` now takes care of encoding / decoding and adding timestamps)
 * Performance improvement: Time taken for smoothing per message reduced (asynchronous): 11.90 +/- 6.91 milliseconds to 6.83 +/- 2.79 milliseconds (pandas --> direct numpy)
+* In progress: print() --> logger
 
 ## New v0.3.1
 
@@ -24,6 +25,7 @@
 
 
 ## TODO v0.4.0-beta
+From beta changes will be documented
 
 * Documentation
 * Python modules:
