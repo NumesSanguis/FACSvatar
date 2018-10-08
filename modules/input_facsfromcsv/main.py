@@ -470,8 +470,7 @@ if __name__ == '__main__':
 
     # logging commandline arguments
     parser.add_argument("--module_id", default="openfaceoffline_1",
-                        help="Specify how detailed the terminal/logfile output should be;"
-                             "DEBUG, INFO, WARNING, ERROR or CRITICAL; Default: INFO")
+                        help="Module id for different instances of same module")
     parser.add_argument("--loglevel", default=argparse.SUPPRESS,
                         help="Specify how detailed the terminal/logfile output should be;"
                              "DEBUG, INFO, WARNING, ERROR or CRITICAL; Default: INFO")

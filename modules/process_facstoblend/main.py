@@ -22,8 +22,8 @@ else:
 
 # process everything that is received
 class BlendShapeMsg:
-    def __init__(self):
-        self.au_to_blendshapes = AUtoBlendShapes()
+    def __init__(self, au_folder):
+        self.au_to_blendshapes = AUtoBlendShapes(au_folder)
 
     async def facs_to_blendshape(self, au_dict):  # , id_cb, type_cb
         # au_dict: received facs values in JSON format
@@ -69,7 +69,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.blendshape = BlendShapeMsg()
+        self.blendshape = BlendShapeMsg(self.misc["au_folder"])
 
     async def blenshape_sub_pub(self):
         # keep listening to all published message on topic 'facs'
@@ -100,6 +100,13 @@ if __name__ == '__main__':
     # command line arguments
     parser = argparse.ArgumentParser()
 
+    # logging commandline arguments
+    parser.add_argument("--module_id", default="facstoblend_1",
+                        help="Module id for different instances of same module")
+    parser.add_argument("--loglevel", default=argparse.SUPPRESS,
+                        help="Specify how detailed the terminal/logfile output should be;"
+                             "DEBUG, INFO, WARNING, ERROR or CRITICAL; Default: INFO")
+
     # subscriber to FACS / head movement data
     parser.add_argument("--sub_ip", default=argparse.SUPPRESS,
                         help="IP (e.g. 192.168.x.x) of where to sub to; Default: 127.0.0.1 (local)")
@@ -119,6 +126,10 @@ if __name__ == '__main__':
                         help="Key for filtering message; Default: blendshapes.human")
     parser.add_argument("--pub_bind", default=True,
                         help="True: socket.bind() / False: socket.connect(); Default: True")
+
+    # module specific commandline arguments
+    parser.add_argument("--au_folder", default="au_json",
+                        help="Name of folder with AU conversion files; Default: au_json")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))
