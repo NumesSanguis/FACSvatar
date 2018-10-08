@@ -20,14 +20,16 @@ public class NetMqListener
 {
     public string sub_to_ip;
     public string sub_to_port;
+    public bool facsvatar_logging = false;
     private readonly Thread _listenerWorker;
     private bool _listenerCancelled;
     public delegate void MessageDelegate(List<string> msg_list);
     private readonly MessageDelegate _messageDelegate;
     private readonly ConcurrentQueue<List<string>> _messageQueue = new ConcurrentQueue<List<string>>();
-	private string csv_path = "Assets/Logging/unity_timestamps_sub.csv";
-	private StreamWriter csv_writer;
-	private long msg_count;
+    //private string csv_folder = "Assets/Logging/";
+	  private string csv_path = "Assets/Logging/unity_timestamps_sub.csv";
+	  private StreamWriter csv_writer;
+	  private long msg_count;
     public NetMqListener(string sub_to_ip, string sub_to_port) {
         this.sub_to_ip = sub_to_ip;
         this.sub_to_port = sub_to_port;
@@ -35,7 +37,7 @@ public class NetMqListener
 
     private void ListenerWork()
     {
-		Debug.Log("Setting up subscriber sock");
+		    Debug.Log("Setting up subscriber sock");
         AsyncIO.ForceDotNet.Force();
         using (var subSocket = new SubscriberSocket())
         {
@@ -73,27 +75,32 @@ public class NetMqListener
                 //Debug.Log("Received messages:");
                 //Debug.Log(frame);
                 //Debug.Log(timestamp);
-				//Debug.Log(facsvatar_json);
+				        //Debug.Log(facsvatar_json);
 
                 // check if we're not done; timestamp is empty
                 if (timestamp != "")
                 {
-					//Debug.Log("NetMqListener log");
-					long timeNowMs = UnixTimeNowMillisec();
-					long timestamp2 = Convert.ToInt64(timestamp) / 100;
-					//Debug.Log(timeNowMs);
-					//Debug.Log(timestamp2);
-					//Debug.Log(timeNowMs - timestamp2);
-
-					// write to csv
-					string csvLine = string.Format("{0},{1},{2}", msg_count, timestamp2, timeNowMs);
-					csv_writer.WriteLine(csvLine);
-					msg_count++;
-
-					msg_list.Add(topic);
-					msg_list.Add(timestamp);
+                    msg_list.Add(topic);
+					          msg_list.Add(timestamp);
                     msg_list.Add(facsvatar_json);
-					msg_list.Add(timeNowMs.ToString());  // time msg received; for unity performance
+                    long timeNowMs = UnixTimeNowMillisec();
+                    msg_list.Add(timeNowMs.ToString());  // time msg received; for unity performance
+                    
+                    if (facsvatar_logging == true)
+                    {
+					              //Debug.Log("NetMqListener log");
+					              
+					              //Debug.Log(timeNowMs);
+					              //Debug.Log(timestamp2);
+					              //Debug.Log(timeNowMs - timestamp2);
+
+					              // write to csv
+					              // string csvLine = string.Format("{0},{1},{2}", msg_count, timestamp2, timeNowMs);
+					              string csvLine = string.Format("{0},{1}", msg_count, timeNowMs);
+					              csv_writer.WriteLine(csvLine);
+					          }
+					          msg_count++;
+					          
                     _messageQueue.Enqueue(msg_list);
                 }
                 // done
@@ -111,7 +118,7 @@ public class NetMqListener
     {
         DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
         long unixTimeStampInTicks = (DateTime.UtcNow - unixStart).Ticks;
-		long timeNowMs = unixTimeStampInTicks / (TimeSpan.TicksPerMillisecond / 10000);  // 100ns
+		    long timeNowMs = unixTimeStampInTicks / (TimeSpan.TicksPerMillisecond / 10000);  // 100ns
         //Debug.Log(timeNowMs);
         return timeNowMs;
     }
@@ -142,17 +149,20 @@ public class NetMqListener
 
     public void Start()
     {
-		// logging
-		Debug.Log("Setting up Logging NetMqListener");
-		msg_count = -1;
-		File.Delete(csv_path);  // delete previous csv if exist
-		csv_writer = new StreamWriter(csv_path, true);  // , true
-        csv_writer.WriteLine("msg,time_prev,time_now");
-		csv_writer.Flush();
-        //csv_writer.Close();
-		//csv_writer.Open();
-		//csv_writer.WriteLine("time_prev,time_now");
-		//csv_writer.Close();
+        if (facsvatar_logging == true)
+        {
+		        // logging
+		        Debug.Log("Setting up Logging NetMqListener");
+		        msg_count = -1;
+		        File.Delete(csv_path);  // delete previous csv if exist
+		        csv_writer = new StreamWriter(csv_path, true);  // , true
+            csv_writer.WriteLine("msg,time_prev,time_now");
+		        csv_writer.Flush();
+            //csv_writer.Close();
+		        //csv_writer.Open();
+		        //csv_writer.WriteLine("time_prev,time_now");
+		        //csv_writer.Close();
+        }
 
         _listenerCancelled = false;
         _listenerWorker.Start();
@@ -162,7 +172,10 @@ public class NetMqListener
     {
         _listenerCancelled = true;
         _listenerWorker.Join();
-		csv_writer.Close();
+        if (facsvatar_logging == true)
+        {
+		        csv_writer.Close();
+		    }
     }
 }
 
@@ -172,25 +185,27 @@ public class ZeroMQFACSvatar : MonoBehaviour
     private NetMqListener _netMqListener;
     public string sub_to_ip = "127.0.0.1";
     public string sub_to_port = "5572";
+    public bool facsvatar_logging = false;
 
     public Participants participants;
 
     // logging
-	private long msg_count;
-	private string csv_path = "Assets/Logging/unity_timestamps_pub.csv";
-	private StreamWriter csv_writer;   
-	private string csv_path_total = "Assets/Logging/unity_timestamps_total.csv";
+	  private long msg_count;
+	  private string csv_folder = "Assets/Logging/";
+	  private string csv_path = "Assets/Logging/unity_timestamps_sub.csv";
+	  private StreamWriter csv_writer;   
+	  private string csv_path_total = "Assets/Logging/unity_timestamps_total.csv";
     private StreamWriter csv_writer_total;
 
 
     // Facial expressions: Assign by dragging the GameObject with FACSnimator into the inspector before running the game.
     // Head rotations: Assign by dragging the GameObject with HeadAnimator into the inspector before running the game.
     public FACSnimator FACSModel0;
-	public HeadRotatorBone RiggedModel0;
-	public FACSnimator FACSModel1;
-	public HeadRotatorBone RiggedModel1;
+	  public HeadRotatorBone RiggedModel0;
+	  public FACSnimator FACSModel1;
+	  public HeadRotatorBone RiggedModel1;
     public FACSnimator FACSModelDnn;
-	public HeadRotatorBone RiggedModelDnn;
+	  public HeadRotatorBone RiggedModelDnn;
 
     // 2 users 2 models dnn case ignore data from replaced participant
     private string userIgnoreString = "p1";
@@ -201,12 +216,12 @@ public class ZeroMQFACSvatar : MonoBehaviour
         JObject facsvatar = JObject.Parse(msg_list[2]);
         // get Blend Shape dict
         JObject blend_shapes = facsvatar["blendshapes"].ToObject<JObject>();
-		// get head pose data
-		JObject head_pose = facsvatar["pose"].ToObject<JObject>();
-        
-		// split topic to determine target human model
-		//Debug.Log(msg_list[0]);
-		string[] topic_info = msg_list[0].Split('.'); // "facsvatar.S01_P1.p0.dnn" ["facsvatar", "S01_P1", "p0", "dnn"]
+		    // get head pose data
+		    JObject head_pose = facsvatar["pose"].ToObject<JObject>();
+            
+		    // split topic to determine target human model
+		    //Debug.Log(msg_list[0]);
+		    string[] topic_info = msg_list[0].Split('.'); // "facsvatar.S01_P1.p0.dnn" ["facsvatar", "S01_P1", "p0", "dnn"]
 
 
         // send to main tread
@@ -321,28 +336,31 @@ public class ZeroMQFACSvatar : MonoBehaviour
             }
         }
 
-		// logging
-		//Debug.Log("ZeroMQFACSvatar log");
-		long timeNowMs = UnixTimeNowMillisec();
-		long timestampMsgArrived = Convert.ToInt64(msg_list[3]);
+    if (facsvatar_logging == true)
+    {
+		    // logging
+		    //Debug.Log("ZeroMQFACSvatar log");
+		    long timeNowMs = UnixTimeNowMillisec();
+		    long timestampMsgArrived = Convert.ToInt64(msg_list[3]);
         //Debug.Log(timeNowMs);
-		//Debug.Log(timestampMsgArrived);
-		//Debug.Log(timeNowMs - timestampMsgArrived);
+		    //Debug.Log(timestampMsgArrived);
+		    //Debug.Log(timeNowMs - timestampMsgArrived);
 
         // write to csv
-		string csvLine = string.Format("{0},{1},{2}", msg_count, timestampMsgArrived, timeNowMs);
+		    string csvLine = string.Format("{0},{1},{2}", msg_count, timestampMsgArrived, timeNowMs);
         csv_writer.WriteLine(csvLine);
 
-		// if data contains timestamp_utc, write total time      
-		if (facsvatar["timestamp_utc"] != null)
-		{
-			//Debug.Log(facsvatar["timestamp_utc"]);
-			long timeFirstSend = Convert.ToInt64(facsvatar["timestamp_utc"].ToString());
-			//Debug.Log((timeNowMs - timeFirstSend) / 10000);
+		    // if data contains timestamp_utc, write total time      
+		    if (facsvatar["timestamp_utc"] != null)
+		    {
+			    //Debug.Log(facsvatar["timestamp_utc"]);
+			    long timeFirstSend = Convert.ToInt64(facsvatar["timestamp_utc"].ToString());
+			    //Debug.Log((timeNowMs - timeFirstSend) / 10000);
 
-			// write to csv
-			string csvLine_total = string.Format("{0},{1},{2}", msg_count, timeFirstSend, timeNowMs);
-            csv_writer_total.WriteLine(csvLine_total);
+			    // write to csv
+			    string csvLine_total = string.Format("{0},{1},{2}", msg_count, timeFirstSend, timeNowMs);
+          csv_writer_total.WriteLine(csvLine_total);
+		    }
 		}
 
 		msg_count++;
@@ -359,19 +377,23 @@ public class ZeroMQFACSvatar : MonoBehaviour
 
     private void Start()
     {
-		// logging
-		Debug.Log("Setting up Logging ZeroMQFACSvatar");
-        msg_count = -1;
+        if (facsvatar_logging == true)
+        {
+		        // logging
+		        Debug.Log("Setting up Logging ZeroMQFACSvatar");
+            msg_count = -1;
 
-        File.Delete(csv_path);  // delete previous csv if exist
-		csv_writer = new StreamWriter(csv_path, true);  // true; keep steam open
-        csv_writer.WriteLine("msg,time_prev,time_now");
-        csv_writer.Flush();
+            Directory.CreateDirectory(csv_folder);
+            File.Delete(csv_path);  // delete previous csv if exist
+            csv_writer = new StreamWriter(csv_path, true);  // true; keep steam open
+            csv_writer.WriteLine("msg,time_prev,time_now");
+            csv_writer.Flush();
 
-		File.Delete(csv_path_total);  // delete previous csv if exist
-		csv_writer_total = new StreamWriter(csv_path_total, true);  // true; keep steam open
-		csv_writer_total.WriteLine("msg,time_prev,time_now");
-		csv_writer_total.Flush();
+		        File.Delete(csv_path_total);  // delete previous csv if exist
+		        csv_writer_total = new StreamWriter(csv_path_total, true);  // true; keep steam open
+		        csv_writer_total.WriteLine("msg,time_prev,time_now");
+		        csv_writer_total.Flush();
+		    }
 
         _netMqListener = new NetMqListener(HandleMessage);
         _netMqListener.sub_to_ip = sub_to_ip;
