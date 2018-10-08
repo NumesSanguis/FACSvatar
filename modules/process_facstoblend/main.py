@@ -25,28 +25,13 @@ class BlendShapeMsg:
     def __init__(self, au_folder):
         self.au_to_blendshapes = AUtoBlendShapes(au_folder)
 
-    async def facs_to_blendshape(self, au_dict):  # , id_cb, type_cb
+    async def facs_to_blendshape(self, au_dict):
         # au_dict: received facs values in JSON format
-
-        # print("----------------------------")
-        # print(type(au_dict))
-        # # change JSON to Python internal dict
-        # facs_dict = json.loads(au_dict)
-        # print(type(facs_dict))
-        # print("---")
-        # pretty printing
-        #print(json.dumps(facs_dict, indent=4))  # , indent=4, sort_keys=True
 
         # change facs to blendshapes
         # TODO if None (should not receive any None prob)
         blend_dict = self.au_to_blendshapes.output_blendshapes(au_dict)
-        # print(blend_dict)
 
-        # add blend dict under 'data' to received message and remove FACS
-        # msg_dict = self.structure_dict(facs_dict, blend_dict)
-
-        # publish blendshapes
-        # print(blend_dict)
         return blend_dict
 
     # # restructure to frame, timestamp, data={head_pose, blendshape}

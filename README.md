@@ -103,7 +103,8 @@ Note: The poster still shows Crossbar.io, but this has been replaced with ZeroMQ
 
 ## Software
 * [Blender](https://www.blender.org/) + [Manuel Bastioni Lab addon](http://www.manuelbastioni.com/)  (create human models)
-  * [MBlab wikia](http://manuelbastionilab.wikia.com/wiki/Manuel_Bastioni_Lab_Wiki) 
+  * [MBlab wikia](http://manuelbastionilab.wikia.com/wiki/Manuel_Bastioni_Lab_Wiki)
+* [FACSHuman](https://www.michaelgilbert.fr/facshuman/) add-on for MakeHuman
 * [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace)  (extract FACS data)
 * [Unity 3D](https://unity3d.com/) 2017.3 (animate in game engine)
 * [ZeroMQ (PyZMQ)](http://zeromq.org/) (distributed messaging library)

@@ -39,10 +39,10 @@ import queue
 # own import; if statement for documentation
 if __name__ == '__main__':
     sys.path.append("..")
-    from facsvatarzeromq import FACSvatarZeroMQ
+    from facsvatarzeromq import FACSvatarZeroMQ, time_hns
     from smooth_data import SmoothData
 else:
-    from modules.facsvatarzeromq import FACSvatarZeroMQ
+    from modules.facsvatarzeromq import FACSvatarZeroMQ, time_hns
     from .smooth_data import SmoothData
 
 
@@ -55,44 +55,6 @@ class FACSvatarMessages(FACSvatarZeroMQ):
         # keep dict of smooth object per topic
         self.smooth_obj_dict = {}
 
-    # # overwrite existing start function
-    # def start(self, async_func_list=None):
-    #     """No functions given --> data pass through only; else apply function on data before forwarding
-    #
-    #     N publishers to 1 sub; proxy 1 sub to 1 pub; publish to M subscribers
-    #     """
-    #
-    #     # make sure pub / sub is initialised
-    #     if not self.pub_socket or not self.sub_socket:
-    #         print("Both pub and sub needs to be initiliased and set to bind")
-    #         print("Pub: {}".format(self.pub_socket))
-    #         print("Sub: {}".format(self.sub_socket))
-    #         sys.exit()
-    #
-    #     # apply function to data to passing through data
-    #     if async_func_list:
-    #         import asyncio
-    #         # capture ZeroMQ errors; ZeroMQ using asyncio doesn't print out errors
-    #         try:
-    #             asyncio.get_event_loop().run_until_complete(asyncio.wait(
-    #                 [func() for func in async_func_list]
-    #             ))
-    #         except Exception as e:
-    #             print("Error with async function")
-    #             # print(e)
-    #             logging.error(traceback.format_exc())
-    #             print()
-    #
-    #         finally:
-    #             # TODO disconnect pub/sub
-    #             pass
-    #
-    #     # don't duplicate the message, just pass through
-    #     else:
-    #         print("Try: Proxy... CONNECT!")
-    #         zmq.proxy(self.pub_socket, self.sub_socket)
-    #         print("CONNECT successful!")
-    
     # converts gaze radians into eye rotation AU values
     def gaze_to_au(self, au_dict, gaze):
         # eye gaze in message as AU
@@ -125,11 +87,6 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     async def pub_sub_function(self, apply_function):  # async
         """Subscribes to FACS data, smooths, publishes it"""
 
-        # # class with data smoothing functions
-        # self.smooth_data = SmoothData()
-        # # get the function we need to pass data to
-        # smooth_func = getattr(self.smooth_data, apply_function)
-
         new_smooth_object = False
 
         # await messages
@@ -140,22 +97,16 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             while True:
                 # msg = await self.sub_socket.recv_multipart()
                 key, timestamp, data = await self.sub_socket.sub()
-                # logging.debug("")
                 logging.debug("Received message: {}".format([key, timestamp, data]))
 
                 # check not finished; timestamp is empty (b'')
                 if timestamp:
-                    # msg[2] = json.loads(msg[2].decode('utf-8'))
-
                     # measure time
-                    time_begin = time.time_ns()
+                    time_begin = time_hns()
                     time_now = time_begin
 
                     # only pass on messages with enough tracking confidence; always send when no confidence param
                     if 'confidence' not in data or data['confidence'] >= 0.7:
-                        # subscription key / topic
-                        # topic = key  # .decode('ascii')
-
                         # convert gaze into AU 61, 62, 63, 64
                         if "gaze" in data:
                             data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
@@ -169,8 +120,8 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 self.smooth_obj_dict[key] = SmoothData()
                                 new_smooth_object = True
 
-                            logging.debug(f"TIME: smooth class init: {(time.time_ns() - time_now) / 1000000}")
-                            time_now = time.time_ns()
+                            logging.debug("TIME: smooth class init: {}".format((time_hns() - time_now) / 1000000))
+                            time_now = time_hns()
 
                             # check au dict in data and not empty
                             if "au_r" in data and data['au_r']:
@@ -190,47 +141,43 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                                 # steep: weight newer data
                                 # data['au_r'] = smooth_func(au_r_sorted, queue_no=0, window_size=4, steep=.35)
                                 data['au_r'] = getattr(self.smooth_obj_dict[key], apply_function)(data['au_r'],
-                                                                                                      queue_no=0,
-                                                                                                      window_size=3,
-                                                                                                      steep=.25)
+                                                                                                  queue_no=0,
+                                                                                                  window_size=3,
+                                                                                                  steep=.25)
 
-                                logging.debug(f"TIME: Smooth AU: {(time.time_ns() - time_now) / 1000000}")
-                                time_now = time.time_ns()
+                                logging.debug("TIME: Smooth AU: {}".format((time_hns() - time_now) / 1000000))
+                                time_now = time_hns()
 
                             # check head rotation dict in data and not empty
                             if "pose" in data and data['pose']:
                                 # smooth head position
                                 # data['pose'] = smooth_func(data['pose'], queue_no=1, window_size=4, steep=.2)
-                                data['pose'] = getattr(self.smooth_obj_dict[key], apply_function)(data['pose'], queue_no=1,
-                                                                                     window_size=6,
-                                                                                     steep=.15)
+                                data['pose'] = getattr(self.smooth_obj_dict[key], apply_function)(data['pose'],
+                                                                                                  queue_no=1,
+                                                                                                  window_size=6,
+                                                                                                  steep=.15)
 
-                                logging.debug(f"TIME: Smooth head pose: {(time.time_ns() - time_now) / 1000000}")
+                                logging.debug("TIME: Smooth head pose: {}".format((time_hns() - time_now) / 1000000))
                                 # time_now = time.time()
 
                         else:
                             logging.debug("No smoothing applied, forwarding unchanged")
                             # remove topic from dict when msgs finish
-                            logging.debug("Removing topic from smooth_obj_dict: {}".format(self.smooth_obj_dict.pop(key, None)))
+                            removed_topic = self.smooth_obj_dict.pop(key, None)
+                            logging.debug("Removing topic from smooth_obj_dict: {}"
+                                          .format(removed_topic))
 
                         # send modified message
                         logging.debug("TIME: Smoothed data: {}".format(data))
-                        # await self.pub_socket.send_multipart([key,  # topic
-                        #                                       timestamp,  # timestamp
-                        #                                       # data in JSON format or empty byte
-                        #                                       json.dumps(data).encode('utf-8')
-                        #                                       ])
-
                         logging.info(data)
                         await self.pub_socket.pub(data, key)
 
                 # send message we're done
                 else:
                     print("No more messages to pass; finished")
-                    # await self.pub_socket.send_multipart([key, b'', b''])
                     await self.pub_socket.pub(b'', key)
 
-                logging.debug(f"TIME: Total bridge: {(time.time_ns() - time_begin) / 1000000}")
+                logging.debug("TIME: Total bridge: {}".format((time_hns() - time_now) / 1000000))
 
         except:
             print("Error with sub")
@@ -251,8 +198,6 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                 # set multiplier parameters
                 if tp.startswith("multiplier"):
                     await self.set_multiplier(data.decode('utf-8'))
-                # elif tp.startswith("dnn"):
-                #     await self.set_dnn_user(data.decode('utf-8'))
                 else:
                     print("Command ignored")
 

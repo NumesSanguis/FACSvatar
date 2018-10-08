@@ -19,10 +19,6 @@ class AUtoBlendShapes:
         # AU to blendshapes
         self.blendshape_dict_new = json.load(open(join('blendshapes_MB.json'), 'r'))
 
-        # test
-        # for i in range(3):
-        #     self.output_blendshapes()
-
     # open all AU .json file in directory
     def load_json(self, json_dir):
         au_dict = {}

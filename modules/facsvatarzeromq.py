@@ -70,10 +70,6 @@ class FACSvatarZeroMQ(abstractmethod(ABC)):
         # set-up publish socket only if a port is given
         if pub_port:
             logging.info("Publisher port is specified")
-            #self.pub_socket = self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind)
-            # add variable with key
-            #self.pub_key = pub_key
-
             self.pub_socket = FACSvatarSocket(self.zeromq_context(pub_ip, pub_port, zmq.PUB, pub_bind),
                                               pub_key, "pub.csv")
             logging.info("Publisher socket set-up complete")
@@ -199,7 +195,7 @@ class FACSvatarSocket:
         self.socket = socket
         self.key = key.encode('ascii')
         # time previous message send or useful for start-up time before first message
-        self.pub_timestamp_old = self.time_now()
+        self.pub_timestamp_old = time_hns()
         self.sub_time_received = 0
         self.frame_count = -1
 
@@ -251,7 +247,8 @@ class FACSvatarSocket:
                 # change from string to bytes
                 data = data.encode('utf-8')
 
-            timestamp = self.time_now()
+            # timestamp = self.time_now()
+            timestamp = time_hns()
             timestamp_enc = str(timestamp).encode('ascii')
 
             # print(f"Key type: {type(key)}\nTimestamp type: {type(timestamp)}\nData type: {type(data)}")
@@ -296,7 +293,8 @@ class FACSvatarSocket:
 
             # check if in DEBUG mode for logging performance; TODO seperate?
             if logging.getLogger().isEnabledFor(logging.DEBUG):
-                self.sub_time_received = self.time_now()
+                # self.sub_time_received = self.time_now()
+                self.sub_time_received = time_hns()
                 time_difference = self.sub_time_received - timestamp_decoded
                 logging.debug("SUB: Time data published:\t\t{}\nSUB: Time subscribed data received:\t{}\n"
                       "SUB: Difference nanoseconds:\t\t{}\nSUB: Difference milliseconds:\t\t{}"
@@ -339,24 +337,6 @@ class FACSvatarSocket:
 
         self.socket.setsockopt(zmq.SUBSCRIBE, self.key)
 
-    @staticmethod
-    def time_now():
-        """Return time as nanoseconds (more precise with >= python 3.7)"""
-
-        # Python 3.7 or newer use nanoseconds
-        if (sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major >= 4:
-            # 100 nanoseconds / 0.1 microseconds
-            time_now = int(time.time_ns() / 100)
-        else:
-            # timestamp = int(time.time() * 1000)
-            # timestamp = timestamp.to_bytes((timestamp.bit_length() + 7) // 8, byteorder='big')
-
-            # match 100 nanoseconds / 0.1 microseconds
-            time_now = int(time.time() * 10000000)  # time.time()
-            #time_now = time.time()
-
-        return time_now
-
     def write_to_csv(self, data):
         logging.debug("Storing time data to csv")
 
@@ -369,3 +349,22 @@ class FACSvatarSocket:
             # writer.writerow(self.frame_count, data)
 
         self.frame_count += 1
+
+
+# @staticmethod
+def time_hns():
+    """Return time in 100 nanoseconds (more precise with >= python 3.7)"""
+
+    # Python 3.7 or newer use nanoseconds
+    if (sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major >= 4:
+        # 100 nanoseconds / 0.1 microseconds
+        time_now = int(time.time_ns() / 100)
+    else:
+        # timestamp = int(time.time() * 1000)
+        # timestamp = timestamp.to_bytes((timestamp.bit_length() + 7) // 8, byteorder='big')
+
+        # match 100 nanoseconds / 0.1 microseconds
+        time_now = int(time.time() * 10000000)  # time.time()
+        # time_now = time.time()
+
+    return time_now

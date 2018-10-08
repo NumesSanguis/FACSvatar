@@ -25,10 +25,10 @@ if __name__ == '__main__':
     # TODO work irrespectively of folder
     # sys.path.append(".")
     sys.path.append("..")
-    from facsvatarzeromq import FACSvatarZeroMQ
+    from facsvatarzeromq import FACSvatarZeroMQ, time_hns
     from openfacefiltercsv import FilterCSV
 else:
-    from modules.facsvatarzeromq import FACSvatarZeroMQ
+    from modules.facsvatarzeromq import FACSvatarZeroMQ, time_hns
     from .openfacefiltercsv import FilterCSV
 
 
@@ -49,9 +49,6 @@ class CrawlerCSV:
         # get all csv files in folder raw
         csv_raw = self.search_csv(csv_folder_raw)
         print(csv_raw)
-        # folder not found, return empty list
-        # if not csv_raw:
-        #     return []
 
         # rename folder to folder_clean
         csv_folder_clean = csv_folder_raw.parent / (csv_folder_raw.parts[-1] + '_clean')
@@ -68,7 +65,6 @@ class CrawlerCSV:
             if raw not in csv_clean:
                 # call clean on csv and save in clean folder
                 self.filter_csv.clean_controller(csv_folder_raw / raw, csv_folder_clean)
-                # self.filter_csv()
 
         #   use argument to determine which csv files will be returned for message generation
         csv_message_list = []
@@ -156,7 +152,9 @@ class CrawlerCSV:
 
 
 class OpenFaceMessage:
-    def __init__(self, smooth=True):  # timestamp=b'', frame_no=b'', confidence=b'', pose=b'', gaze=b'', au_regression=b''
+    """OpenFace csv based Dataframe to ZeroMQ message"""
+
+    def __init__(self, smooth=True):
         self.msg = dict()
         self.smooth = smooth
 
@@ -182,22 +180,6 @@ class OpenFaceMessage:
         # eye gaze data frame
         eye_gaze_col = self.df_csv.columns.str.contains("gaze_angle_*")
         self.df_eye_gaze = self.df_csv.loc[:, eye_gaze_col]
-
-    @staticmethod
-    def time_now():
-        """Return time as 100 nanoseconds (more precise with >= python 3.7)"""
-
-        # Python 3.7 or newer use nanoseconds
-        if (sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major >= 4:
-            time_now = int(time.time_ns() / 100)
-        else:
-            # timestamp = int(time.time() * 1000)
-            # timestamp = timestamp.to_bytes((timestamp.bit_length() + 7) // 8, byteorder='big')
-            # match nanoseconds
-            time_now = int(time.time() * 10000000)  # time.time()
-            # time_now = time.time()
-
-        return time_now
 
     def set_msg(self, frame_tracker):
         # get single frame
@@ -233,33 +215,13 @@ class OpenFaceMessage:
             self.msg['gaze'] = {}
             self.msg['gaze']['gaze_angle_x'] = eye_angle[0]
             self.msg['gaze']['gaze_angle_y'] = eye_angle[1]
-            
-            # set all to 0 (otherwise smoothing problems)
-            #self.msg['au_r']['AU61'] = 0
-            #self.msg['au_r']['AU62'] = 0
-            #self.msg['au_r']['AU63'] = 0
-            #self.msg['au_r']['AU64'] = 0
-
-            # eye_angle_x left
-            #if eye_angle[0] < 0:
-            #    self.msg['au_r']['AU61'] = min(eye_angle[0]*-1, 1.0)
-            # eye_angle_x right
-            #else:
-            #    self.msg['au_r']['AU62'] = min(eye_angle[0], 1.0)
-
-            # eye_angle_y up
-            #if eye_angle[1] >= 0:
-            #    self.msg['au_r']['AU63'] = min(eye_angle[1], 1.0)
-            # eye_angle_y down
-            #else:
-            #    self.msg['au_r']['AU64'] = min(eye_angle[1] * -1, 1.0)
 
             # head pose in message
             self.msg['pose'] = self.df_head_pose.loc[frame_tracker].to_dict()
             # print(msg['pose'])
 
         # logging purpose; time taken from message publish to animation
-        self.msg['timestamp_utc'] = self.time_now()
+        self.msg['timestamp_utc'] = time_hns()  # self.time_now()
 
     def set_reset_msg(self):
         # init a message dict
@@ -317,7 +279,6 @@ class OpenFaceMsgFromCSV:
             print("\n\n")
             time_start = time.time()
             print(csv_group)
-            # sys.exit("\nCSV crawler check finished")
 
             async for i, msg in self.msg_from_csv(csv_group):
                 print(msg)
@@ -325,10 +286,6 @@ class OpenFaceMsgFromCSV:
 
                 # return filename, timestamp and msg as JSON string
                 yield f"p{i}." + csv_group[i].stem, timestamp - time_start, json.dumps(msg)
-
-            # continue frame count
-            # frame = msg['frame']
-            # self.reset_msg.msg['frame'] = frame
 
             # send empty frames
             if self.reset_frames > 0:
@@ -362,17 +319,6 @@ class OpenFaceMsgFromCSV:
             # read csv as Pandas dataframe
             df_csv = pd.read_csv(csv)  # FilterCSV(csv).df_csv
             print(df_csv.head())
-
-            # # check df same length when using multi-session
-            # if df_au_row_count != 0:
-            #     if not df_au_row_count == df_csv.shape[0]:
-            #         sys.exit(f"rowcount of csv files not the same: {csv_group}")
-            #
-            # # if first dataframe, set number of rows
-            # else:
-            #     # get number of rows in dataframe;
-            #     df_au_row_count = df_csv.shape[0]
-            #     print("Data rows in data frame: {}".format(df_au_row_count))
 
             if df_csv.shape[0] > df_au_row_count:
                 df_au_row_count = df_csv.shape[0]
