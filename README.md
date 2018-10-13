@@ -9,6 +9,7 @@
 * Performance improvement: Time taken for smoothing per message reduced (asynchronous): 11.90 +/- 6.91 milliseconds to 6.83 +/- 2.79 milliseconds (pandas --> direct numpy)
 * In progress: print() --> logger
 * `process_facstoblend` module accepts folder argument for different AU --> Blend Shape conversions
+* OpenFace modification updated to v2.0.6
 
 ## New v0.3.1
 
