@@ -1,4 +1,4 @@
-- Download Source code OpenFace 2.0.3 from https://github.com/TadasBaltrusaitis/OpenFace/releases
+- Download Source code OpenFace 2.0.6 from https://github.com/TadasBaltrusaitis/OpenFace/releases
 - Install Visial Studio 2015 / 2017
 - Run download_models.ps1 / .sh
 or copy cen_patches_x.xx_of.dat to OpenFace\lib\local\LandmarkDetector\model\patch_experts
@@ -12,4 +12,4 @@ or copy cen_patches_x.xx_of.dat to OpenFace\lib\local\LandmarkDetector\model\pat
 4. Don't update AsyncIO to a newer version (v0.1.40)
 5. Search for `json`; Install Newtonsoft.Json by James Newton-King v11.0.2
 6. Select OpenFaceOffline --> Release, x64, OpenFaceOffline --> Build --> (Re)build OpenFaceOffline
-7. Copy `config.xml` from FACSvatar GitHub
+7. Copy `config.xml` from FACSvatar GitHub and put it at `OpenFace\x64\Release\config.xml`  # DON'T FORGET - otherwise crashes at startup

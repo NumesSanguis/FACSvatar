@@ -100,7 +100,6 @@ namespace OpenFaceOffline
         public Dictionary<string, double> au_c;
         public Dictionary<string, double> au_r;
     }
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -110,7 +109,7 @@ namespace OpenFaceOffline
         PublisherSocket pubSocket = null;
         long frame_no = 0;
         string topic = "openface";
-        //Mode running_mode = Mode.standalone;
+        //Mode running_mode = Mode.standalone;                           
 
         // Timing for measuring FPS
         #region High-Resolution Timing
@@ -249,7 +248,6 @@ namespace OpenFaceOffline
             }
 
             // End of Huang's code
-
             InitializeComponent();
             this.DataContext = this; // For WPF data binding
 
@@ -284,7 +282,7 @@ namespace OpenFaceOffline
                 pubSocket.Connect("tcp://" + serveraddress + ":" + port);
             else
                 pubSocket.Bind("tcp://" + myaddress + ":" + port);
-            // end of Huang's code
+            // end of Huang's code                        
         }
 
         // ----------------------------------------------------------
@@ -341,8 +339,8 @@ namespace OpenFaceOffline
             landmark_detector.Reset();
 
             // Loading an image file
-            var frame = new RawImage(reader.GetNextImage());
-            var gray_frame = new RawImage(reader.GetCurrentFrameGray());
+            var frame = reader.GetNextImage();
+            var gray_frame = reader.GetCurrentFrameGray();
 
             // Setup recording
             RecorderOpenFaceParameters rec_params = new RecorderOpenFaceParameters(true, reader.IsWebcam(),
@@ -384,7 +382,6 @@ namespace OpenFaceOffline
                 SendZeroMQMessage(detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), reader.GetTimestamp());
 
 
-
                 if(RecordTracked)
                 { 
                     recorder.WriteObservationTracked();
@@ -398,8 +395,8 @@ namespace OpenFaceOffline
                 if (skip_frames > 0)
                     skip_frames--;
 
-                frame = new RawImage(reader.GetNextImage());
-                gray_frame = new RawImage(reader.GetCurrentFrameGray());
+                frame = reader.GetNextImage();
+                gray_frame = reader.GetCurrentFrameGray();
 
                 lastFrameTime = CurrentTime;
                 processing_fps.AddFrame();
@@ -456,8 +453,8 @@ namespace OpenFaceOffline
             face_analyser = new FaceAnalyserManaged(AppDomain.CurrentDomain.BaseDirectory, false, image_output_size, MaskAligned);
 
             // Loading an image file
-            var frame = new RawImage(reader.GetNextImage());
-            var gray_frame = new RawImage(reader.GetCurrentFrameGray());
+            var frame = reader.GetNextImage();
+            var gray_frame = reader.GetCurrentFrameGray();
 
             // For FPS tracking
             DateTime? startTime = CurrentTime;
@@ -478,6 +475,8 @@ namespace OpenFaceOffline
                     reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);
 
                 RecorderOpenFace recorder = new RecorderOpenFace(reader.GetName(), rec_params, record_root);
+
+                visualizer_of.SetImage(frame, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy());
 
                 // Detect faces here and return bounding boxes
                 List<Rect> face_detections = new List<Rect>();
@@ -517,11 +516,13 @@ namespace OpenFaceOffline
                     RecordObservation(recorder, visualizer_of.GetVisImage(), i, detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0, 0);
 
                     // This line is added by Huang
-                    SendZeroMQMessage(detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);
+                    SendZeroMQMessage(detection_succeeding, reader.GetFx(), reader.GetFy(), reader.GetCx(), reader.GetCy(), 0);                   
                 }
 
-                frame = new RawImage(reader.GetNextImage());
-                gray_frame = new RawImage(reader.GetCurrentFrameGray());
+                recorder.SetObservationVisualization(visualizer_of.GetVisImage());
+
+                frame = reader.GetNextImage();
+                gray_frame = reader.GetCurrentFrameGray();
 
                 // Write out the tracked image
                 if(RecordTracked)
@@ -696,7 +697,6 @@ namespace OpenFaceOffline
             pubSocket.SendMultipartMessage(output_message);
 
         }
-
         private void VisualizeFeatures(RawImage frame, Visualizer visualizer, List<Tuple<float, float>> landmarks, List<bool> visibilities, bool detection_succeeding, 
             bool new_image, bool multi_face, float fx, float fy, float cx, float cy, double progress)
         {
@@ -1102,7 +1102,7 @@ namespace OpenFaceOffline
                 processing_thread.Join();
             }
             // Added by Huang
-            pubSocket.Close();
+            pubSocket.Close();        
         }
 
         // Stopping the tracking
