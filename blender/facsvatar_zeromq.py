@@ -21,8 +21,10 @@ class FACSvatarZeroMQ(bpy.types.Operator):
 
     _timer = None
 
-    def __init__(self, address='127.0.0.1', port='5572'):
+    def __init__(self, address='127.0.0.1', port='5572', head_movement=True):
         print("FACSvatar ZeroMQ initialising...")
+
+        self.head_movement = head_movement
 
         # init ZeroMQ subscriber
         url = "tcp://{}:{}".format(address, port)
@@ -109,28 +111,32 @@ class FACSvatarZeroMQ(bpy.types.Operator):
                     self.find_MBLabModel()
 
                 # # set pose only if pose data is available and not empty
-                # if 'pose' in msg[2] and msg[2]['pose']:
-                #     # set head rotation
-                #     if len(self.head_bones) == 2:
-                #         bpy.context.scene.objects.active = self.mb_obj
-                #         bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
-                #
-                #         # for pose_name in enumerate(msg_json['data']['head_pose']):
-                #         pose_head = msg[2]['pose']
-                #         self.rotate_head_bones(0, pose_head['pose_Rx'])  # pitch
-                #         self.rotate_head_bones(1, pose_head['pose_Ry'], -1)  # jaw
-                #         self.rotate_head_bones(2, pose_head['pose_Rz'], -1)  # roll
-                #
-                #         # set key frames
-                #         bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
-                #         self.head_bones[0].keyframe_insert(data_path="rotation_euler", frame=self.frame)
-                #         self.head_bones[1].keyframe_insert(data_path="rotation_euler", frame=self.frame)
-                #
-                #     else:
-                #         print("Head bone and neck bone not found")
-                #
-                # else:
-                #     print("No pose data found")
+                if self.head_movement:
+                    if 'pose' in msg[2] and msg[2]['pose']:
+                        # set head rotation
+                        if len(self.head_bones) == 2:
+                            bpy.context.scene.objects.active = self.mb_obj
+                            bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
+
+                            # for pose_name in enumerate(msg_json['data']['head_pose']):
+                            pose_head = msg[2]['pose']
+                            self.rotate_head_bones(0, pose_head['pose_Rx'])  # pitch
+                            self.rotate_head_bones(1, pose_head['pose_Ry'], -1)  # jaw
+                            self.rotate_head_bones(2, pose_head['pose_Rz'], -1)  # roll
+
+                            # set key frames
+                            bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
+                            self.head_bones[0].keyframe_insert(data_path="rotation_euler", frame=self.frame)
+                            self.head_bones[1].keyframe_insert(data_path="rotation_euler", frame=self.frame)
+
+                        else:
+                            print("Head bone and neck bone not found")
+
+                    else:
+                        print("No pose data found")
+
+                else:
+                    print("Head movement data ignored")
 
                 # set blendshapes only if blendshape data is available and not empty
                 if 'blendshapes' in msg[2] and msg[2]['blendshapes']:
