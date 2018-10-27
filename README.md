@@ -1,17 +1,28 @@
 # FACSvatar v0.3.2-Alpha
 
+Please cite the following paper when using this framework in a paper (updated when published):  
+van der Struijk, Stef and Huang, Hung-Hsuan and Mirzaei, Maryam Sadat and Nishida, Toyoaki "FACSvatar: An Open Source Modular Framework for Real-Time FACS based Facial Animation" In Proceedings of 18th ACM International Conference on Intelligent Virtual Agents (AVI 2018). ACM, New York, NY, USA, 6 pages.
+Stef van der Struijk, Hung-Hsuan Huang, Maryam Sadat Mirzaei, and Toyoaki Nishida. 2018. FACSvatar: An Open
+Source Modular Framework for Real-Time FACS based Facial Animation. In Proceedings of 18th ACM International
+Conference on Intelligent Virtual Agents (IVA 2018). ACM, New York, NY, USA, 6 pages.
+
+DOI: https://doi.org/10.1145/10.1145/3267851.3267918  
+ISBN: 978-1-4503-6013-5/18/11
+
 # Roadmap
 
-## New v0.3.2
+## New/changes v0.3.2-alpha
 
-* Timestamp of message receive and send per module (`if Python >= 3.7: time.time_ns(), else time.time()`)
 * Simplified sending receiving messages (`facsvatarzeromq.py` now takes care of encoding / decoding and adding timestamps)
+* Timestamp of message receive and send per module (`if Python >= 3.7: time.time_ns(), else time.time()`)
+* Timestamp unified as string (ascii), formatted as 100 nanosecond precision integer, across modules; Default message parts: topic (string - ascii), timestamp (string - ascii), data (JSON formatted string - utf8)
 * Performance improvement: Time taken for smoothing per message reduced (asynchronous): 11.90 +/- 6.91 milliseconds to 6.83 +/- 2.79 milliseconds (pandas --> direct numpy)
 * In progress: print() --> logger
 * `process_facstoblend` module accepts folder argument for different AU --> Blend Shape conversions
 * OpenFace modification updated to v2.0.6
+* Directly integrated with FACSHuman
 
-## New v0.3.1
+## New v0.3.1-alpha
 
 * OpenFace v2.0.3
 * Eye movement based on eye gaze data
