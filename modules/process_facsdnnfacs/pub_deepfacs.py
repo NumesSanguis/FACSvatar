@@ -14,6 +14,7 @@ import keras
 import traceback
 import logging
 import zmq.asyncio
+import asyncio
 
 
 # own imports; if statement for documentation
@@ -36,6 +37,7 @@ class DeepFACSMsg:
         # TODO invert process by only keeping trained AU
         # temporary remove eye gaze AU data
         au_gaze = ('AU61', 'AU62', 'AU63', 'AU64')
+        # TODO check if exists
         au_gaze_dict = {k: au_dict.pop(k) for k in au_gaze if k in au_dict}
 
         # for au in :
@@ -75,19 +77,19 @@ class DeepFACSMsg:
         #with tf.device('/gpu:0'):
         deep_au_array_val = self.facs_model.predict(au_array_val)  # [np.newaxis]
         # print()dd ignored file
-        print(deep_au_array_val)
+        #print(deep_au_array_val)
         # print(np.asarray(deep_au_array_val))
 
         # cast into dict format
         # print()
-        print(np.squeeze(deep_au_array_val))
+        #print(np.squeeze(deep_au_array_val))
         deep_au_dict = dict(zip(au_array_key, np.squeeze(deep_au_array_val).tolist()))
-        print(deep_au_dict)
+        #print(deep_au_dict)
         # change key type from byte to string
         deep_au_dict = {k.decode("utf-8"): v for k, v in deep_au_dict.items()}
         # print(deep_au_dict)
 
-        print("\n")
+        print("")
         #print(au_dict)
         print(deep_au_dict)
 
@@ -102,40 +104,44 @@ class FACSvatarMessages(FACSvatarZeroMQ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.deepfacs = DeepFACSMsg()
+        self.json_file = "AU_json.json"
 
     # receiving data
     async def deep_sub_pub(self):
+        # # 1 time fake data to init DNN model
+        if os.path.exists(self.json_file):
+            print("Sending fake data to DNN to reduce start-up time...")
+            with open(self.json_file, 'r') as j:
+                fake_data = json.load(j)
+                result = await self.deepfacs.facs_deep_facs(fake_data)
+                # print("Fake data: {}".format(result))
+                print("Fake data done")
+
+        print("\nListening for message...")
         # keep listening to all published message on topic 'facs'
         while True:
-            msg = await self.sub_socket.recv_multipart()
-            print("message: {}".format(msg))
+            # msg = await self.sub_socket.recv_multipart()
+            key, timestamp, data = await self.sub_socket.sub()
+            print("Received message: {}".format([key, timestamp, data]))
 
             # if pub key is specified
             # if self.pub_key:
-            #     msg[0] = self.pub_key.encode('utf-8')
+            #     key = self.pub_key.encode('utf-8')
             
-            msg[0] = ("dnn." + msg[0].decode('ascii')).encode('ascii')
+            # key = ("dnn." + key.decode('ascii')).encode('ascii')
+            key = "dnn." + key
 
             # check not finished; timestamp is empty (b'')
-            if msg[1]:
-                # process message
-                msg[2] = json.loads(msg[2].decode('utf-8'))
+            if timestamp:
                 # generate Action Units based on user Action Units
-                msg[2]['au_r'] = await self.deepfacs.facs_deep_facs(msg[2]['au_r'])
+                data['au_r'] = await self.deepfacs.facs_deep_facs(data['au_r'])
 
-                # async always needs `send_multipart()`
-                # print(msg)
-
-                await self.pub_socket.send_multipart([msg[0],  # topic / key
-                                          msg[1],  # timestamp
-                                          # data in JSON format or empty byte
-                                          json.dumps(msg[2]).encode('utf-8')
-                                          ])
+                await self.pub_socket.pub(data, key)
 
             # send message we're done
             else:
                 print("No more messages to publish; Deep FACS done")
-                await self.pub_socket.send_multipart([msg[0], b'', b''])
+                await self.pub_socket.pub(b'', key)
 
     # receiving commands
     async def set_parameters(self):

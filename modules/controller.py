@@ -42,10 +42,11 @@ class Controller(FACSvatarZeroMQ):
         msg['pose'] = self.slicedict(dict_config, "pose")
 
         # send message
-        self.pub_socket.send_multipart(["gui.face_config".encode('ascii'),  # topic
-                                        str(int(time.time() * 1000)).encode('ascii'),  # timestamp
-                                        json.dumps(msg).encode('utf-8')  # data in JSON format or empty byte
-                                        ])
+        # self.pub_socket.send_multipart(["gui.face_config".encode('ascii'),  # topic
+        #                                 str(int(time.time() * 1000)).encode('ascii'),  # timestamp
+        #                                 json.dumps(msg).encode('utf-8')  # data in JSON format or empty byte
+        #                                 ])
+        self.pub_socket.pub(msg, "gui.face_config ")
 
     # change AU multiplier values
     def multiplier(self, dict_au):

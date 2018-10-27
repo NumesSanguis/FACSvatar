@@ -28,7 +28,8 @@ class Messages(FACSvatarZeroMQ):
     async def msg_sub(self):
         # keep listening to all published message on topic 'facs'
         while True:
-            msg = await self.sub_socket.recv_multipart()
+            # key, timestamp, data = await self.sub_socket.sub()
+            msg = await self.sub_socket.socket.recv_multipart()  # raw data
             print("message received: {}".format(msg))
 
     async def msg_pub(self):

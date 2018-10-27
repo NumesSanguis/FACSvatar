@@ -8,9 +8,9 @@ from collections import defaultdict
 # change AU values from OpenFace to Blend Shape (Shape Key) values understood by Unity / Blender / Unreal
 # for characters created in Blender + Manual Bastioni addon
 class AUtoBlendShapes:
-    def __init__(self):
-        # dictionary of values for changing AU to blendshapes
-        self.au_dict = self.load_json(join('AU_json'))
+    def __init__(self, au_folder="AU_json"):
+        # call function for dictionary of values for changing AU to blendshapes
+        self.au_dict = self.load_json(au_folder)
         print(self.au_dict)
 
         # frame tracker for index in dataframe
@@ -18,10 +18,6 @@ class AUtoBlendShapes:
 
         # AU to blendshapes
         self.blendshape_dict_new = json.load(open(join('blendshapes_MB.json'), 'r'))
-
-        # test
-        # for i in range(3):
-        #     self.output_blendshapes()
 
     # open all AU .json file in directory
     def load_json(self, json_dir):
