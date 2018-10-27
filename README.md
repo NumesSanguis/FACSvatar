@@ -1,10 +1,8 @@
 # FACSvatar v0.3.2-Alpha
 
-Please cite the following paper when using this framework in a paper (updated when published):  
+Please cite the following paper when using this framework in a paper (updated when published):
+
 van der Struijk, Stef and Huang, Hung-Hsuan and Mirzaei, Maryam Sadat and Nishida, Toyoaki "FACSvatar: An Open Source Modular Framework for Real-Time FACS based Facial Animation" In Proceedings of 18th ACM International Conference on Intelligent Virtual Agents (AVI 2018). ACM, New York, NY, USA, 6 pages.
-Stef van der Struijk, Hung-Hsuan Huang, Maryam Sadat Mirzaei, and Toyoaki Nishida. 2018. FACSvatar: An Open
-Source Modular Framework for Real-Time FACS based Facial Animation. In Proceedings of 18th ACM International
-Conference on Intelligent Virtual Agents (IVA 2018). ACM, New York, NY, USA, 6 pages.
 
 DOI: https://doi.org/10.1145/10.1145/3267851.3267918  
 ISBN: 978-1-4503-6013-5/18/11
