@@ -627,6 +627,16 @@ namespace OpenFaceOffline
 
         }
 
+        // added by Stef
+        public static long UnixTimeNowMillisec()
+        {
+            DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            long unixTimeStampInTicks = (DateTime.UtcNow - unixStart).Ticks;
+            long timeNowMs = unixTimeStampInTicks / (TimeSpan.TicksPerMillisecond / 10000);  // 100ns
+                                                                                             //Debug.Log(timeNowMs);
+            return timeNowMs;
+        }
+
         // added by Huang
         private void SendZeroMQMessage(bool success, float fx, float fy, float cx, float cy, double openface_timestamp)
         {
@@ -643,9 +653,10 @@ namespace OpenFaceOffline
 
             json_data.frame = frame_no++;
 
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan difference = DateTime.UtcNow - origin;
-            output_message.Append((long)difference.TotalMilliseconds);
+            //DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            //TimeSpan difference = DateTime.UtcNow - origin;
+            //output_message.Append((long)difference.TotalMilliseconds);
+            output_message.Append((UnixTimeNowMillisec()).ToString());  // Changed by Stef
 
             json_data.timestamp = openface_timestamp;
 
