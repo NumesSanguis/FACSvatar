@@ -153,3 +153,7 @@ modules/process_facsdnnfacs/models/
 
 # debug data
 *logging
+
+# old documentation
+docs/source_old
+
