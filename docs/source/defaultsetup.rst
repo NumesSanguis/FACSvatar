@@ -1,5 +1,5 @@
 ========================
-FACSvatar default set-up
+Default set-up
 ========================
 
 There 3 things that have to be setup:
@@ -7,6 +7,8 @@ There 3 things that have to be setup:
 1. `FACS input`_ (Modified OpenFace)
 #. `FACSvatar modules`_ (Python 3.5+)
 #. `Animation-Visualization`_ (Unity3D / Blender)
+
+If you're already done setting FACSvatar up, please head here: :doc:`firstrun`
 
 | but before that, let's download the FACSvatar GitHub repro with:
 | ``git clone https://github.com/NumesSanguis/FACSvatar.git``
@@ -25,7 +27,7 @@ If interactivity is not your goal, the offline version is most likely a better c
 ^^^^^^^^^^^^^^
 Real-time
 ^^^^^^^^^^^^^^
-Note: Windows only (due to ZeroMQ being integrated in the GUI)
+Note: Requires 1 Windows PC (due to ZeroMQ being integrated in the GUI)
 
 For the real-time version of FACSvatar we need to use a modified OpenFace which includes a ZeroMQ component
 to stream AU, gaze and head pose data out of it into.
@@ -64,13 +66,77 @@ Build OpenFace with ZeroMQ
 ^^^^^^^^^^^^^^
 Offline
 ^^^^^^^^^^^^^^
+- (Windows GUI) Use the modified OpenFace found under the header `Real-time`_ or
+  Download OpenFace_2.0.6_win_xYY.zip from: https://github.com/TadasBaltrusaitis/OpenFace/releases
+- (Other) Follow instructions here: https://github.com/TadasBaltrusaitis/OpenFace/wiki#installation
 
 ------------------------
 FACSvatar modules
 ------------------------
-d
+At present, all the core modules work with Python, so let's setup an environment.
+FACSvatar recommends using `Anaconda <https://www.anaconda.com/download/>`_ for managing packages and
+virtual environments for Python, therefore code instructions assume Anaconda.
+Probably ``pip install ..`` will do the same without problems.
+
+This project uses the `Asyncio library <https://asyncio.readthedocs.io/en/latest/>`_ for
+asynchronous code execution, hence we use Python 3.6+ (although some modules work with Python 3.5).
+I wanted to keep it Python 3.5 compatible, but due to the use of asynchronous generators used
+in some standard modules, the default version is 3.6+.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Anaconda setup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   conda create --name facsvatar python=3.7  # new virtual env and force python 3.x
+   #conda install python=3.7  # IF you already have an existing env
+   source activate facsvatar  # activate env (Windows: conda activate facsvatar)
+
+   conda install pyzmq  # make sure it's for py3.6
+   conda install pandas  # library for dataframes; used for .csv reading and JSON-to-Dataframe
+
+   # Basic environment setup finished, but ipykernel setup recommended for control panel GUI
+
+   conda install ipykernel  # allows the use of env kernels in jupyter notebook
+   conda install ipywidgets  # GUI elements in jupyter notebook
+   python -m ipykernel install --user --name facsvatar --display-name "py3 facsvatar"  # enable our env as kernel in jupyter notebook
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Test new environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Go into a Python environment in your terminal with: ``python`` - `enter`
+
+.. code-block:: python
+
+   import zmq
+   print("Current libzmq version is %s" % zmq.zmq_version())  # 4.2.5 at time of writing
+   print("Current  pyzmq version is %s" % zmq.__version__)  # 17.1.2 at time of writing
 
 ------------------------
 Animation-Visualization
 ------------------------
-d
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Unity3D - game engine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Recommended for real-time or game like interaction applications.
+
+1. Download either Unity3D (single version) or UnityHub (recommended; manages Unity3D versions)
+
+   * Windows/Mac: `Download Unity(3D/Hub) <https://unity3d.com/get-unity/download/archive>`_
+   * Linux: `Download UnityHub <https://forum.unity.com/threads/unity-hub-release-candidate-0-20-1-is-now-available.546315/>`_
+   * Linux: `Download Unity3D <https://forum.unity.com/threads/unity-on-linux-release-notes-and-known-issues.350256/page-2>`_
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Blender - open source 3D creation suite
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Recommended for high-quality image/video rendering and post-modification.
+| Hopefully going to be real-time when version 2.8 with EEVEE is released.
+
+1. `Download Blender <https://www.blender.org/>`_
+2. MBLAB
+
+.. ------------------------
+   Setup complete!
+   ------------------------
+   Please head to this page for how to run FACSvatar: :doc:`firstrun`

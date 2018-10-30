@@ -1,5 +1,5 @@
 ====================
-FACSvatar quickstart
+Quickstart
 ====================
 
 This document will be updated with how to download FACSvatar's Dockerized containers and run them

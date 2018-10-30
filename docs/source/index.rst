@@ -32,8 +32,8 @@ Links
   https://www.reddit.com/r/FACSvatar/
 
 
-Documentation contents
-=====================================
+.. Documentation contents
+   =====================================
 
 .. toctree::
    :maxdepth: 2
@@ -41,6 +41,7 @@ Documentation contents
 
    quickstart
    defaultsetup
+   firstrun
    license
 
 Indices and tables
