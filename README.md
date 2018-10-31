@@ -1,4 +1,4 @@
-# FACSvatar v0.3.2-Alpha
+# FACSvatar v0.3.3-Alpha
 
 Please cite the following paper when using this framework in a paper (updated when published):
 
@@ -7,7 +7,16 @@ van der Struijk, Stef and Huang, Hung-Hsuan and Mirzaei, Maryam Sadat and Nishid
 DOI: https://doi.org/10.1145/10.1145/3267851.3267918  
 ISBN: 978-1-4503-6013-5/18/11
 
+# Documentation
+[Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!
+It contains everything you need to know about how to use this framework.
+
 # Roadmap
+
+## New v0.3.3-alpha
+
+* Significant improvement in documentation!
+* GUI in Jupyter Notebook working again with new code base
 
 ## New/changes v0.3.2-alpha
 
@@ -70,19 +79,6 @@ Affective computing and avatar animation both share that a person's facial expre
 This interoperability is possible, because FACSvatar uses the [Facial Action Coding System (FACS)](https://en.wikipedia.org/wiki/Facial_Action_Coding_System "https://en.wikipedia.org/wiki/Facial_Action_Coding_System") by Paul Ekman as an intermediate data representation. FACS describes facial expressions in terms of muscle groups, called Action Units (AUs). By giving these AUs a value between 0-1, we can describe the contractions / relaxation of facial muscles.
 
 [![FACSvatar demo 2018-09](https://img.youtube.com/vi/J2FvrIl-ypU/0.jpg)](https://www.youtube.com/watch?v=J2FvrIl-ypU)
-
-# Documentation & simple how to run
-
-Open 3 terminals and open the project `unity_FACSvatar` in Unity 3D (2018.2.13f1)
-
-0. Press 'play' in the Unity editor
-0. Install the PyZMQ library (ZeroMQ for Python)
-0. Terminal: `python N_proxy_M_bus.py`  (/modules/)
-0. Terminal: `python main.py`  (/modules/02_facs-to-blendshapes/)
-0. Terminal: `python main.py`  (/modules/01_facs-from-csv/)
-0. See an avatar move its head and make facial expressions!
-
-For more detailed instructions, see the [FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/).
 
 
 # Modules & cross-platform
