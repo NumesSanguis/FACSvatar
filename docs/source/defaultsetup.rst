@@ -129,7 +129,7 @@ Recommended for real-time or game like interaction applications.
 
 2. Open the FACSvatar project in Unity3D by navigation to ``unity_FACSvatar`` folder
    in the FACSvatar GitHub repro.
-3. In the ``Asset Store`` tab, download
+3. In the ``Asset Store`` tab: Search for JSON .NET for Unity (by PARENTELEMENT, LLC) and click ``Download``.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Blender - open source 3D creation suite
@@ -138,7 +138,8 @@ Blender - open source 3D creation suite
 | Hopefully going to be real-time when version 2.8 with EEVEE is released.
 
 1. `Download Blender <https://www.blender.org/>`_
-2. MBLAB
+2. `Download Manuel Bastioni LAB add-on for Blender <http://www.manuelbastioni.com/>`_
+3. Install it (more instructions coming soon)
 
 .. ------------------------
    Setup complete!
