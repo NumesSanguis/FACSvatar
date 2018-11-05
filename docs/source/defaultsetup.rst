@@ -127,6 +127,10 @@ Recommended for real-time or game like interaction applications.
    * Linux: `Download UnityHub <https://forum.unity.com/threads/unity-hub-release-candidate-0-20-1-is-now-available.546315/>`_
    * Linux: `Download Unity3D <https://forum.unity.com/threads/unity-on-linux-release-notes-and-known-issues.350256/page-2>`_
 
+2. Open the FACSvatar project in Unity3D by navigation to ``unity_FACSvatar`` folder
+   in the FACSvatar GitHub repro.
+3. In the ``Asset Store`` tab, download
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Blender - open source 3D creation suite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

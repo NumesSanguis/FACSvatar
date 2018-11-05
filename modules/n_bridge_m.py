@@ -107,11 +107,7 @@ class FACSvatarMessages(FACSvatarZeroMQ):
 
                     # only pass on messages with enough tracking confidence; always send when no confidence param
                     if 'confidence' not in data or data['confidence'] >= 0.7:
-                        # convert gaze into AU 61, 62, 63, 64
-                        if "gaze" in data:
-                            data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
-                            # remove from message after AU convert
-                            data.pop('gaze')
+
 
                         # don't smooth data with 'smooth' == False;
                         if 'smooth' not in data or data['smooth']:
@@ -166,6 +162,12 @@ class FACSvatarMessages(FACSvatarZeroMQ):
                             removed_topic = self.smooth_obj_dict.pop(key, None)
                             logging.debug("Removing topic from smooth_obj_dict: {}"
                                           .format(removed_topic))
+
+                        # convert gaze into AU 61, 62, 63, 64
+                        if "gaze" in data:
+                            data['au_r'] = self.gaze_to_au(data['au_r'], data['gaze'])
+                            # remove from message after AU convert
+                            data.pop('gaze')
 
                         # send modified message
                         logging.debug("TIME: Smoothed data: {}".format(data))

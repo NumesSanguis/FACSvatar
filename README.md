@@ -17,6 +17,7 @@ It contains everything you need to know about how to use this framework.
 
 * Significant improvement in documentation!
 * GUI in Jupyter Notebook working again with new code base
+* Deep Learning module Python file renamed to `main.py` for consistency
 
 ## New/changes v0.3.2-alpha
 

@@ -233,6 +233,8 @@ class SmoothData:
             logging.debug("\t\tTIME SMOOTH: dict to array: {}".format((time_hns() - time_now) / 1000000))
             time_now = time_hns()
 
+            print(array)
+
             # create a new queue to store a new type of data when no queue exist yet
             if len(self.data_list) <= queue_no:
                 logging.debug("smooth 2d array")
@@ -245,6 +247,10 @@ class SmoothData:
                 # smooth_2d_array = array
 
                 # TODO call calculate denominator
+
+                # change AU intensity with GUI multiplier
+                if queue_no == 0:
+                    array = array * self.multiplier
 
                 # values back into dict
                 data_dict = dict(zip(data_dict.keys(), array.flatten()))
@@ -283,6 +289,10 @@ class SmoothData:
             # matrix to smoothed array
             # TODO function
             data_smoothed = self.softmax_smooth2(smooth_2d_array, steep)
+
+            # change AU intensity with GUI multiplier
+            if queue_no == 0:
+                data_smoothed = data_smoothed * self.multiplier
 
             # values back into dict
             data_dict = dict(zip(data_dict.keys(), data_smoothed))
