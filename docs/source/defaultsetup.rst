@@ -34,6 +34,8 @@ to stream AU, gaze and head pose data out of it into.
 You can either
 
 * Download a `modified OpenFace v2.0.6 <https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/>`_
+   * All copyright of OpenFace belongs to Carnegie Mellon University. By using this software, you agree to their licensing terms found here: https://github.com/TadasBaltrusaitis/OpenFace/
+   * 
 * Or build the modified version yourself following these instructions:
 
 """"""""""""""""""""""""""
@@ -134,12 +136,20 @@ Recommended for real-time or game like interaction applications.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Blender - open source 3D creation suite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Sorry, these instructions are still a mess.
 | Recommended for high-quality image/video rendering and post-modification.
-| Hopefully going to be real-time when version 2.8 with EEVEE is released.
+| Hopefully going to be real-time and as a Blender add-on when version 2.8 with EEVEE is released. 
 
-1. `Download Blender <https://www.blender.org/>`_
-2. `Download Manuel Bastioni LAB add-on for Blender <http://www.manuelbastioni.com/>`_
-3. Install it (more instructions coming soon)
+1. `Download Blender <https://www.blender.org/>`_ 
+#. `Download Manuel Bastioni LAB (MBLAB) add-on for Blender <http://www.manuelbastioni.com/>`_
+#. Import the .zip into Blender to install add-on
+#. Create a model with MBLAB and press ``finalize``
+#. If Blender version is below 2.8 (likely the case if done in 2018 or earlier):
+
+   * Create a Python 3.5 environment by following the instructions under `Anaconda setup`_ , but replacing ``--name facsvatar python=3.7`` for ``--name blender python=3.5`` (you can skip commands about ``Jupyter Notebook``)
+
+#. Change line 7 in ``FACSvatar/blender/facsvatar_zeromq.py`` to correctly point to your blender anaconda environment.
+
 
 .. ------------------------
    Setup complete!

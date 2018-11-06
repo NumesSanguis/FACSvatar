@@ -4,7 +4,7 @@ Please cite the following paper when using this framework in a paper (updated wh
 
 van der Struijk, Stef and Huang, Hung-Hsuan and Mirzaei, Maryam Sadat and Nishida, Toyoaki "FACSvatar: An Open Source Modular Framework for Real-Time FACS based Facial Animation" In Proceedings of 18th ACM International Conference on Intelligent Virtual Agents (AVI 2018). ACM, New York, NY, USA, 6 pages.
 
-DOI: https://doi.org/10.1145/10.1145/3267851.3267918  
+DOI: https://doi.org/10.1145/10.1145/3267851.3267918
 ISBN: 978-1-4503-6013-5/18/11
 
 # Documentation
@@ -15,7 +15,7 @@ It contains everything you need to know about how to use this framework.
 
 ## New v0.3.3-alpha
 
-* Significant improvement in documentation!
+* Decent improvements in documentation!
 * GUI in Jupyter Notebook working again with new code base
 * Deep Learning module Python file renamed to `main.py` for consistency
 

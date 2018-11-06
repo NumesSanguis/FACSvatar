@@ -42,6 +42,7 @@ Links
    quickstart
    defaultsetup
    firstrun
+   deeplearning
    license
 
 Indices and tables

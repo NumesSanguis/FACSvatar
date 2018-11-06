@@ -4,7 +4,7 @@ import bpy
 import os
 import sys
 import asyncio
-sys.path.append('/home/nishida-stef-ubuntu/anaconda3/envs/blender/lib/python3.5/site-packages')
+sys.path.append('/*path*/anaconda3/envs/blender/lib/python3.5/site-packages')
 import zmq
 #from zmq.asyncio import Context
 import json
