@@ -1,6 +1,12 @@
 ========================
 Default set-up
 ========================
+Probably you want to either run FACSvatar in real-time mode for interactive purposes or
+create high-quality facial animation/pictures.
+
+* Real-time: Modified OpenFace --> FACSvatar modules --> Unity3D
+* Offline: (Modified) OpenFace --> .csv --> FACSvatar modules --> Blender
+
 
 There 3 things that have to be setup:
 
@@ -142,14 +148,28 @@ Blender - open source 3D creation suite
 
 1. `Download Blender <https://www.blender.org/>`_ 
 #. `Download Manuel Bastioni LAB (MBLAB) add-on for Blender <http://www.manuelbastioni.com/>`_
-#. Import the .zip into Blender to install add-on
-#. Create a model with MBLAB and press ``finalize``
+#. Start Blender in terminal by opening a terminal in the folder ``blender-2.79`` and run:
+
+   * Windows: ``blender.exe`` (TODO test in Windows)
+   * Ubuntu: ``./blender``
+
+#. Import the .zip into Blender to install add-on: File --> User Preferences --> Add-ons --> Install Add-on from File
+   --> manuelbastionilab_161a.zip --> check-mark in front of ``Characters: ManuelbastioniLAB``
+#. Create a model with MBLAB by clicking ``Init character`` (leave default options for export to Unity3D), modify and
+   press ``Finalize tools --> Finalize``
 #. If Blender version is below 2.8 (likely the case if done in 2018 or earlier):
 
    * Create a Python 3.5 environment by following the instructions under `Anaconda setup`_ , but replacing ``--name facsvatar python=3.7`` for ``--name blender python=3.5`` (you can skip commands about ``Jupyter Notebook``)
 
 #. Change line 7 in ``FACSvatar/blender/facsvatar_zeromq.py`` to correctly point to your blender anaconda environment.
 
+"""""""""""""""""""""""""""""""""""""
+Enabling FACS sliders in MBLAB add-on
+"""""""""""""""""""""""""""""""""""""
+Copy .json files found in ``FACSvatar/modules/process_facstoblend/au_json`` to:
+
+* Windows: ``C:\Users\*user*\AppData\Roaming\Blender Foundation\Blender\2.79\scripts\addons\manuelbastionilab\data\expressions_comb\human_expressions\``
+* Ubuntu: ``/home/*user*/.config/blender/2.79/scripts/addons/manuelbastionilab/data/expressions_comb/human_expressions/``
 
 .. ------------------------
    Setup complete!
