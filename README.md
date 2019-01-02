@@ -1,5 +1,7 @@
-# FACSvatar v0.3.3.1-Alpha
+# FACSvatar v0.3.4-Alpha
+Orchestrate modules to enable OS and software independent interactive facial animation.
 
+# Paper
 Please cite the following paper when using this framework in a paper:
 
 [van der Struijk, Stef and Huang, Hung-Hsuan and Mirzaei, Maryam Sadat and Nishida, Toyoaki "FACSvatar: An Open Source Modular Framework for Real-Time FACS based Facial Animation" In Proceedings of 18th ACM International Conference on Intelligent Virtual Agents (pp. 159-164). ACM, 2018.](https://dl.acm.org/citation.cfm?id=3267918)
@@ -8,10 +10,35 @@ DOI: https://doi.org/10.1145/10.1145/3267851.3267918
 ISBN: 978-1-4503-6013-5/18/11
 
 # Documentation
+## Quick start:
+Tested with Ubuntu and Windows, but should work on MacOS:
+
+0. Install Docker: https://docs.docker.com/install/#supported-platforms
+1. With a terminal openend in folder `FACSvatar/modules`, run: `docker-compose up`
+2. Open a 2nd terminal and get docker ip with: `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' modules_facsvatar_facstoblend_1`
+3. Open `unity_FACSvatar` folder with Unity3D 
+4. In Unity: Click `UnityMainThreadDispatcher` and copy IP you found 2 steps back into the field `Sub_to_ip`
+5. Press the play button in Unity3D
+
+Offline version:
+
+6. In 2nd terminal, run: `docker-compose exec facsvatar_facsfromcsv bash`
+7. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
+
+With webcam for real-time (Windows only):
+
+6. Download modified OpenFace with ZeroMQ ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
+
+## More details
 [Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!
-It contains everything you need to know about how to use this framework.
+It contains everything you need to know about how to use FACSvatar.
 
 # Roadmap
+## New v0.3.4-alpha - Happy New Year!
+
+* Dockerized core modules for easy setup and automatic IP configuration between modules
+* Bridge and GUI are now in a separate folder, following other modules, to accommodate Docker
+* Update OpenFace with ZeroMQ to v2.1.0
 
 ## New v0.3.3-alpha
 

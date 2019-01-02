@@ -4,7 +4,7 @@ import bpy
 import os
 import sys
 import asyncio
-sys.path.append('/*path*/anaconda3/envs/blender/lib/python3.5/site-packages')
+sys.path.append('/home/stef-ubuntu/anaconda3/envs/blender/lib/python3.5/site-packages')
 import zmq
 #from zmq.asyncio import Context
 import json
@@ -116,7 +116,7 @@ class FACSvatarZeroMQ(bpy.types.Operator):
                         # set head rotation
                         if len(self.head_bones) == 2:
                             bpy.context.scene.objects.active = self.mb_obj
-                            bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
+                            #bpy.ops.object.mode_set(mode='POSE')  # mode for bone rotation
 
                             # for pose_name in enumerate(msg_json['data']['head_pose']):
                             pose_head = msg[2]['pose']
@@ -125,7 +125,7 @@ class FACSvatarZeroMQ(bpy.types.Operator):
                             self.rotate_head_bones(2, pose_head['pose_Rz'], -1)  # roll
 
                             # set key frames
-                            bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
+                            #bpy.ops.object.mode_set(mode='OBJECT')  # mode for key frame
                             self.head_bones[0].keyframe_insert(data_path="rotation_euler", frame=self.frame)
                             self.head_bones[1].keyframe_insert(data_path="rotation_euler", frame=self.frame)
 

@@ -10,11 +10,11 @@ import sys
 import numpy as np
 
 # own import; if statement for documentation
-if __name__ == '__main__':
-    sys.path.append("..")
-    from facsvatarzeromq import time_hns
-else:
-    from modules.facsvatarzeromq import time_hns
+# if __name__ == '__main__':
+sys.path.append("..")
+from facsvatarzeromq import time_hns
+# else:
+#     from modules.facsvatarzeromq import time_hns
 
 
 class SmoothData:
