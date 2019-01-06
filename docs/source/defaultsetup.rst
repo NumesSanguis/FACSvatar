@@ -41,7 +41,6 @@ You can either
 
 * Download a `modified OpenFace v2.0.6 <https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/>`_
    * All copyright of OpenFace belongs to Carnegie Mellon University. By using this software, you agree to their licensing terms found here: https://github.com/TadasBaltrusaitis/OpenFace/
-   * 
 * Or build the modified version yourself following these instructions:
 
 """"""""""""""""""""""""""
@@ -124,18 +123,21 @@ Go into a Python environment in your terminal with: ``python`` - `enter`
 ------------------------
 Animation-Visualization
 ------------------------
+
+.. _unity3d-setup:
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Unity3D - game engine
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Recommended for real-time or game like interaction applications.
+Recommended for real-time or game like interaction applications. Unity3D version 2018.2.10f1 recommended.
 
 1. Download either Unity3D (single version) or UnityHub (recommended; manages Unity3D versions)
 
    * Windows/Mac: `Download Unity(3D/Hub) <https://unity3d.com/get-unity/download/archive>`_
-   * Linux: `Download UnityHub <https://forum.unity.com/threads/unity-hub-release-candidate-0-20-1-is-now-available.546315/>`_
+   * Linux: `Download UnityHub <https://public-cdn.cloud.unity3d.com/hub/prod/UnityHubSetup.AppImage>`_
    * Linux: `Download Unity3D <https://forum.unity.com/threads/unity-on-linux-release-notes-and-known-issues.350256/page-2>`_
 
-2. Open the FACSvatar project in Unity3D by navigation to ``unity_FACSvatar`` folder
+2. Open the FACSvatar project in Unity3D by navigation to ``FACSvatar/unity_FACSvatar`` folder
    in the FACSvatar GitHub repro.
 3. In the ``Asset Store`` tab: Search for JSON .NET for Unity (by PARENTELEMENT, LLC) and click ``Download``.
 

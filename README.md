@@ -11,26 +11,32 @@ ISBN: 978-1-4503-6013-5/18/11
 
 # Documentation
 ## Quickstart (NEW):
-Tested with Ubuntu and Windows, but should work on MacOS:
+FACSvatar is tested on Ubuntu and Windows, but should work on MacOS.
+More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart.html).
 
-0. Install Docker: https://docs.docker.com/install/#supported-platforms
-1. With a terminal openend in folder `FACSvatar/modules`, run: `docker-compose up`
-2. Open `unity_FACSvatar` folder with Unity3D and press the play button
+0. Download this repository: `git clone https://github.com/NumesSanguis/FACSvatar.git` / press the green `Clone or Download` button --> `Download ZIP`
+1. With a terminal openend in folder `FACSvatar/modules` and execute: `docker-compose up` (Ubuntu with `sudo`)
+    * You need to have installed: [Docker](https://docs.docker.com/install/#supported-platforms)
+2. Download unity_FACSvatar compiled / run with editor:
+    * [unity_FACSvatar.exe (Windows)]()
+    * [Linux / Mac / Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine)
+3. Double click .exe / Press play button in Unity3D editor
 
 Offline version:
 
-3. Open 2nd terminal, run: `docker-compose exec facsvatar_facsfromcsv bash`
+3. Open 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
 4. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
 
 With webcam for real-time (Windows only):
 
-3. Download modified OpenFace with ZeroMQ ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
+3. Download a [modified OpenFace with ZeroMQ (v2.0.6)](https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
 
+## Quickstart video (NEW)
 See the quickstart video: 
 
-## More details
+## Full documentation
 [Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!
-It contains everything you need to know about how to use FACSvatar.
+It contains everything you need to know about how to use FACSvatar. Including a slightly more detailed quickstart.
 
 # Roadmap
 ## New v0.3.4-alpha - Happy New Year!

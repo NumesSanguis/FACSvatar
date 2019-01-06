@@ -8,6 +8,8 @@
 
 Welcome to FACSvatar's documentation!
 =====================================
+Orchestrate modules to enable OS and software independent interactive facial animation.
+
 FACSvatar is a combination of the terms **FACS** and **Avatar**.
 FACS stands for Facial Action Coding System and is a way to describe a person's facial expression
 in terms of muscle contraction and relaxation.
@@ -42,6 +44,7 @@ Links
    quickstart
    defaultsetup
    firstrun
+   docker
    deeplearning
    license
 

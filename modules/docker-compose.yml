@@ -1,6 +1,7 @@
 version: "3"
 services:
   facsvatar_bridge:
+    image: facsvatar/facsvatar_bridge:v0.3.4
     build:
       context: .
       dockerfile: ./process_bridge/Dockerfile
@@ -9,6 +10,7 @@ services:
     - "5571:5571"
 
   facsvatar_facstoblend:
+    image: facsvatar/facsvatar_facstoblend:v0.3.4
     build:
       context: .
       dockerfile: ./process_facstoblend/Dockerfile
@@ -16,6 +18,7 @@ services:
       - "5572:5572"
 
   facsvatar_facsfromcsv:
+    image: facsvatar/facsvatar_facsfromcsv:v0.3.4
     build:
       context: .  # Docker context from folder of this file; needed to include requirement.txt
       dockerfile: ./input_facsfromcsv/Dockerfile
