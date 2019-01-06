@@ -10,24 +10,23 @@ DOI: https://doi.org/10.1145/10.1145/3267851.3267918
 ISBN: 978-1-4503-6013-5/18/11
 
 # Documentation
-## Quick start:
+## Quickstart (NEW):
 Tested with Ubuntu and Windows, but should work on MacOS:
 
 0. Install Docker: https://docs.docker.com/install/#supported-platforms
 1. With a terminal openend in folder `FACSvatar/modules`, run: `docker-compose up`
-2. Open a 2nd terminal and get docker ip with: `docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' modules_facsvatar_facstoblend_1`
-3. Open `unity_FACSvatar` folder with Unity3D 
-4. In Unity: Click `UnityMainThreadDispatcher` and copy IP you found 2 steps back into the field `Sub_to_ip`
-5. Press the play button in Unity3D
+2. Open `unity_FACSvatar` folder with Unity3D and press the play button
 
 Offline version:
 
-6. In 2nd terminal, run: `docker-compose exec facsvatar_facsfromcsv bash`
-7. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
+3. Open 2nd terminal, run: `docker-compose exec facsvatar_facsfromcsv bash`
+4. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
 
 With webcam for real-time (Windows only):
 
-6. Download modified OpenFace with ZeroMQ ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
+3. Download modified OpenFace with ZeroMQ ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
+
+See the quickstart video: 
 
 ## More details
 [Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!
@@ -38,7 +37,8 @@ It contains everything you need to know about how to use FACSvatar.
 
 * Dockerized core modules for easy setup and automatic IP configuration between modules
 * Bridge and GUI are now in a separate folder, following other modules, to accommodate Docker
-* Update OpenFace with ZeroMQ to v2.1.0
+* Update ZeroMQ OpenFace to v2.1.0
+* Unity3D to 2018.2.20f1
 
 ## New v0.3.3-alpha
 
