@@ -15,24 +15,31 @@ FACSvatar is tested on Ubuntu and Windows, but should work on MacOS.
 More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart.html).
 
 0. Download this repository: `git clone https://github.com/NumesSanguis/FACSvatar.git` / press the green `Clone or Download` button --> `Download ZIP`
-1. With a terminal openend in folder `FACSvatar/modules` and execute: `docker-compose up` (Ubuntu with `sudo`)
-    * You need to have installed: [Docker](https://docs.docker.com/install/#supported-platforms)
+1. With a terminal openend in folder `FACSvatar/modules` and execute: `docker-compose pull && docker-compose up`
+    * [General Docker instructions](https://docs.docker.com/install/#supported-platforms)
+    * [Docker Toolbox for Windows 7/8/10 Home](https://docs.docker.com/toolbox/overview/)
+    * [Docker for Windows 10  Pro, Enterprise or Education](https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install)
+    * Ubuntu: [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [docker-compose](https://docs.docker.com/compose/install/) and `sudo usermod -a -G docker $USER`
 2. Download unity_FACSvatar compiled / run with editor:
     * [unity_FACSvatar.exe (Windows)]()
-    * [Linux / Mac / Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine)
+    * [Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine) (Windows / Linux / Mac)
 3. Double click .exe / Press play button in Unity3D editor
 
-Offline version:
+### Offline version:
 
-3. Open 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
+3. Open a 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
 4. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
 
-With webcam for real-time (Windows only):
+### With webcam for real-time (Windows only for now):
 
-3. Download a [modified OpenFace with ZeroMQ (v2.0.6)](https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
+3. Download a [modified OpenFace with ZeroMQ (v2.0.6)](https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt))
+4. Unpack .zip and open folder `openface_x.x.x_zeromq`
+5. (Windows 7/8 only (maybe 10 Home too)) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
+6. (Windows 7/8 only (maybe 10 Home too)) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
+7. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
 
 ## Quickstart video (NEW)
-See the quickstart video: 
+See the quickstart video: SOON
 
 ## Full documentation
 [Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!

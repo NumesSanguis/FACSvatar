@@ -18,6 +18,16 @@ Download the FACSvatar repository:
 ------------------------
 It is best to follow the `official Docker instructions <https://docs.docker.com/install/#supported-platforms>`_ for installation.
 
+^^^^^^^^^^^^^^^^^^^^^
+Windows 7/8/10 Home
+^^^^^^^^^^^^^^^^^^^^^
+Docker Toolbox: https://docs.docker.com/toolbox/overview/
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Windows 10  Pro, Enterprise or Education
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Docker Community Edition: https://docs.docker.com/docker-for-windows/install/
+
 ^^^^^^^^^^^^^^^^^
 Ubuntu
 ^^^^^^^^^^^^^^^^^
@@ -32,7 +42,7 @@ Direct links:
 ------------------------------------------------
 With a terminal opened in folder `FACSvatar/modules`:
 
-* ``docker-compose up``  (this will start all FACSvatar modules as Docker container using `docker-compose.yml`)
+* ``docker-compose pull && docker-compose up``  (This will download and then start all FACSvatar modules as Docker container using the file `docker-compose.yml`)
 
 ------------------------
 3. Start Unity3D
