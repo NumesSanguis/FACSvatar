@@ -149,10 +149,14 @@ Blender - open source 3D creation suite
 | Hopefully going to be real-time and as a Blender add-on when version 2.8 with EEVEE is released. 
 
 1. `Download Blender <https://www.blender.org/>`_ 
-#. `Download Manuel Bastioni LAB (MBLAB) add-on for Blender <http://www.manuelbastioni.com/>`_
+#. `Download Manuel Bastioni LAB (MBLAB) add-on v.1.6.1a for Blender <https://numessanguis.stackstorage.com/s/jLamuetD8drgCfP>`_
+
+   * The author of MBLAB unfortunately stopped with his project (http://www.manuelbastioni.com/)
+   * However, the community is still active: https://github.com/animate1978/MB-Lab
+
 #. Start Blender in terminal by opening a terminal in the folder ``blender-2.79`` and run:
 
-   * Windows: ``blender.exe`` (TODO test in Windows)
+   * Windows: ``blender.exe``
    * Ubuntu: ``./blender``
 
 #. Import the .zip into Blender to install add-on: File --> User Preferences --> Add-ons --> Install Add-on from File

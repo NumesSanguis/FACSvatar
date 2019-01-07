@@ -21,7 +21,8 @@ More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart
     * [Docker for Windows 10  Pro, Enterprise or Education](https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install)
     * Ubuntu: [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [docker-compose](https://docs.docker.com/compose/install/) and `sudo usermod -a -G docker $USER`
 2. Download unity_FACSvatar compiled / run with editor:
-    * [unity_FACSvatar.exe (Windows)]()
+    * [unity_FACSvatar.exe (Windows 7, 8 10 Home?)](https://numessanguis.stackstorage.com/s/5IyeOu8VxlTRrCh)
+    * [unity_FACSvatar.exe (Windows Pro, Enterprise or Education (10 Home?))](https://numessanguis.stackstorage.com/s/ZUhJGCItnSp14u1)
     * [Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine) (Windows / Linux / Mac)
 3. Double click .exe / Press play button in Unity3D editor
 
@@ -32,11 +33,14 @@ More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart
 
 ### With webcam for real-time (Windows only for now):
 
-3. Download a [modified OpenFace with ZeroMQ (v2.0.6)](https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt))
+3. Download a [modified OpenFace with ZeroMQ (v2.1.0)](https://numessanguis.stackstorage.com/s/MkifmnI6LltflOI) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt))
 4. Unpack .zip and open folder `openface_x.x.x_zeromq`
 5. (Windows 7/8 only (maybe 10 Home too)) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
 6. (Windows 7/8 only (maybe 10 Home too)) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
 7. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
+
+### Unity3D
+Use the numbers 0, 1, 2 on your keyboard to change camera.
 
 ## Quickstart video (NEW)
 See the quickstart video: SOON
