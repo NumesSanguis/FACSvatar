@@ -149,8 +149,8 @@ The modularity is made possible by using [ZeroMQ - brokerless messaging library]
 * Stream your facial expressions in real-time into Unity 3D
 * Set Shape Keys in Blender with your facial expressions for high-quality rendering and/or export your facial animation for classic trigger-based animation in e.g. games.
 [![Manuel Bastioni FACS expressions](https://img.youtube.com/vi/ImB3it_26bc/0.jpg)](https://www.youtube.com/watch?v=ImB3it_26bc)
-* [near-future] Deep Neural Network generation of facial expressions for Human-Agent Interaction.
-* [your modules] Please add your own modules, release your code, and let's expand the functionality of this framework :) More details in the documentation.
+* Deep Neural Network generation of facial expressions for Human-Agent Interaction (See `modules/process_facsdnnfacs`)
+* [your modules] Please add your own modules, release your code, wrap it in a Docker container and let's expand the functionality of this framework :) More details in the documentation.
 
 
 ## Detailed workings (English & 日本語)
@@ -160,10 +160,10 @@ More can be found on the project's website: [FACSvatar homepage](https://surafus
 
 
 ## Software
-* [Blender](https://www.blender.org/) + [Manuel Bastioni Lab addon](http://www.manuelbastioni.com/)  (create human models)
+* [Blender](https://www.blender.org/) + [Manuel Bastioni Lab add-on](~~http://www.manuelbastioni.com/~~ https://github.com/animate1978/MB-Lab)  (create human models)
   * [MBlab wikia](http://manuelbastionilab.wikia.com/wiki/Manuel_Bastioni_Lab_Wiki)
 * [FACSHuman](https://www.michaelgilbert.fr/facshuman/) add-on for MakeHuman
 * [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace)  (extract FACS data)
-* [Unity 3D](https://unity3d.com/) 2018.2.13f1 (animate in game engine)
+* [Unity 3D](https://unity3d.com/) 2018.2.20f1 (animate in game engine)
 * [ZeroMQ (PyZMQ)](http://zeromq.org/) (distributed messaging library)
-* [Docker (future)](https://www.docker.com/)  (|future| containerization for easy distribution)
+* [Docker](https://www.docker.com/)  (containerization for easy distribution)
