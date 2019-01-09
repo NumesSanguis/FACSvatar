@@ -14,29 +14,38 @@ ISBN: 978-1-4503-6013-5/18/11
 FACSvatar is tested on Ubuntu and Windows, but should work on MacOS.
 More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart.html).
 
-0. Download this repository: `git clone https://github.com/NumesSanguis/FACSvatar.git` / press the green `Clone or Download` button --> `Download ZIP`
-1. With a terminal openend in folder `FACSvatar/modules` and execute: `docker-compose pull && docker-compose up`
+0. Downloads - Go to the [release page of this GitHub repo](https://github.com/NumesSanguis/FACSvatar/releases) and download:
+    * openface_2.1.0_zeromq.zip
+        * Unzip and execute `download_models.sh or .ps1` to download trained models
+    * Windows 7 / 8 / 10 Home: unity_FACSvatar_standalone_docker-ip.zip
+    * Windows 10 Pro / Enterprise / Education: unity_FACSvatar_standalone.zip
+    * Windows / Linux / Mac: [Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine)
+    * Source code (zip / tar.gz) or download this repository with:
+        * `git clone https://github.com/NumesSanguis/FACSvatar.git`
+        * Press the green `Clone or Download` button on this page --> `Download ZIP`
+
+1. Docker Install - Let's you execute applications without worrying about OS or programming language.
     * [General Docker instructions](https://docs.docker.com/install/#supported-platforms)
     * [Docker Toolbox for Windows 7/8/10 Home](https://docs.docker.com/toolbox/overview/)
     * [Docker for Windows 10  Pro, Enterprise or Education](https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install)
     * Ubuntu: [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [docker-compose](https://docs.docker.com/compose/install/) and `sudo usermod -a -G docker $USER`
-2. Download unity_FACSvatar compiled / run with editor:
-    * [unity_FACSvatar.exe (Windows 7, 8 10 Home?)](https://numessanguis.stackstorage.com/s/5IyeOu8VxlTRrCh)
-    * [unity_FACSvatar.exe (Windows Pro, Enterprise or Education (10 Home?))](https://numessanguis.stackstorage.com/s/ZUhJGCItnSp14u1)
-    * [Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine) (Windows / Linux / Mac)
-3. Double click .exe / Press play button in Unity3D editor
+
+2. Docker Modules - Open a terminal (W7/8: cmd.exe / W10: PowerShell) and navigate to folder `FACSvatar/modules`, then execute:
+    1. `docker-compose pull`  (Downloads FACSvatar Docker containers)
+    2. `docker-compose up`  (Starts downloaded Docker containers)
+    
+3. Facial Animation with Unity3D - Navigate inside folder unity_FACSvatar_standalone(_docker-ip) and Double-click `unity_FACSvatar.exe` / Press play button in Unity3D editor
 
 ### Offline version:
 
-3. Open a 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
-4. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
+4. Open a 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
+5. Inside Docker container - Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
 
 ### With webcam for real-time (Windows only for now):
 
-3. Download a [modified OpenFace with ZeroMQ (v2.1.0)](https://numessanguis.stackstorage.com/s/MkifmnI6LltflOI) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt))
-4. Unpack .zip and open folder `openface_x.x.x_zeromq`
-5. (Windows 7/8 only (maybe 10 Home too)) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
-6. (Windows 7/8 only (maybe 10 Home too)) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
+4. Navigate inside folder `openface_x.x.x_zeromq`
+5. (Windows 7/8/10 Home - only) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
+6. (Windows 7/8/10 Home - only) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
 7. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
 
 ### Unity3D

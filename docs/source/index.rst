@@ -46,6 +46,7 @@ Links
    firstrun
    docker
    deeplearning
+   contribute
    license
 
 Indices and tables
