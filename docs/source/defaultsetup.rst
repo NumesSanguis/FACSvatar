@@ -18,6 +18,8 @@ If you're already done setting FACSvatar up, please head here: :doc:`firstrun`
 
 | but before that, let's download the FACSvatar GitHub repro with:
 | ``git clone https://github.com/NumesSanguis/FACSvatar.git``
+| and download all other necessary files from the release page:
+| https://github.com/NumesSanguis/FACSvatar/releases
 
 ------------------------
 FACS input
@@ -39,7 +41,7 @@ For the real-time version of FACSvatar we need to use a modified OpenFace which 
 to stream AU, gaze and head pose data out of it into.
 You can either
 
-* Download a `modified OpenFace v2.0.6 <https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/>`_
+* Download a `modified OpenFace v2.1.0 <https://github.com/NumesSanguis/FACSvatar/releases/download/v0.3.4-alpha-release/openface_2.1.0_zeromq.zip>`_
    * All copyright of OpenFace belongs to Carnegie Mellon University. By using this software, you agree to their licensing terms found here: https://github.com/TadasBaltrusaitis/OpenFace/
 * Or build the modified version yourself following these instructions:
 
@@ -47,7 +49,7 @@ You can either
 Build OpenFace with ZeroMQ
 """"""""""""""""""""""""""
 
-- Download Source code OpenFace 2.0.6 from https://github.com/TadasBaltrusaitis/OpenFace/releases
+- Download Source code OpenFace 2.1.0 from https://github.com/TadasBaltrusaitis/OpenFace/releases
 - Install Visial Studio 2015 / 2017
 - Run download_models.ps1 / .sh
   or copy ``cen_patches_x.xx_of.dat`` to ``OpenFace\lib\local\LandmarkDetector\model\patch_experts``
@@ -139,7 +141,9 @@ Recommended for real-time or game like interaction applications. Unity3D version
 
 2. Open the FACSvatar project in Unity3D by navigation to ``FACSvatar/unity_FACSvatar`` folder
    in the FACSvatar GitHub repro.
-3. In the ``Asset Store`` tab: Search for JSON .NET for Unity (by PARENTELEMENT, LLC) and click ``Download``.
+3. (In the ``Asset Store`` tab: Search for JSON .NET for Unity (by PARENTELEMENT, LLC) and click ``Download``.)
+
+   * This step is probably not needed anymore.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Blender - open source 3D creation suite
@@ -149,7 +153,7 @@ Blender - open source 3D creation suite
 | Hopefully going to be real-time and as a Blender add-on when version 2.8 with EEVEE is released. 
 
 1. `Download Blender <https://www.blender.org/>`_ 
-#. `Download Manuel Bastioni LAB (MBLAB) add-on v.1.6.1a for Blender <https://numessanguis.stackstorage.com/s/jLamuetD8drgCfP>`_
+#. `Download Manuel Bastioni LAB (MBLAB) add-on v.1.6.1a for Blender <https://github.com/NumesSanguis/FACSvatar/releases/download/v0.3.4-alpha-release/manuelbastionilab_161a.zip>`_
 
    * The author of MBLAB unfortunately stopped with his project (http://www.manuelbastioni.com/)
    * However, the community is still active: https://github.com/animate1978/MB-Lab
@@ -168,6 +172,9 @@ Blender - open source 3D creation suite
    * Create a Python 3.5 environment by following the instructions under `Anaconda setup`_ , but replacing ``--name facsvatar python=3.7`` for ``--name blender python=3.5`` (you can skip commands about ``Jupyter Notebook``)
 
 #. Change line 7 in ``FACSvatar/blender/facsvatar_zeromq.py`` to correctly point to your blender anaconda environment.
+
+   * Windows (something like): c:\\Users\\*you*\\AppData\\Local\\conda\\conda\\envs\\blender\\Lib\\site-packages
+   * Ubuntu (something like): /home/*you*/anaconda3/envs/blender/lib/python3.5/site-packages
 
 """""""""""""""""""""""""""""""""""""
 Enabling FACS sliders in MBLAB add-on

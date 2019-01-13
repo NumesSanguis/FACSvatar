@@ -52,7 +52,9 @@ More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart
 Use the numbers 0, 1, 2 on your keyboard to change camera.
 
 ## Quickstart video (NEW)
-See the quickstart video: SOON
+See the quickstart video:
+
+[![FACSvatar Quickstart 2019-01 (v0.3.4)](https://img.youtube.com/vi/OOoXDfkn8fk/0.jpg)](https://www.youtube.com/watch?v=OOoXDfkn8fk)
 
 ## Full documentation
 [Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!
