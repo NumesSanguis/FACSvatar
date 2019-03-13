@@ -39,7 +39,18 @@ See the quickstart video:
 It contains everything you need to know about how to use FACSvatar. Including a slightly more detailed quickstart.
 
 # Roadmap
-## New v0.3.4-alpha - Happy New Year!
+## v0.3.5-alpha (New) - small update to saving data
+
+* Module `output_datatofile` now supports all data (.json) or FACS / blendshape (.csv)
+    * `output_facstofile` renamed to `output_datatofile`
+    * Argument `--folder_output` added to specify output directory
+    * Now creates a sub folder in specified output dir based on the data key. That means multi-file processing is supported.
+    * Instead of deleting existing data at specified output dir, rename it to `*_bak`. If a `*_bak` exist, delete it. You ass is now being saved 1 time, up from 0.
+    * (TODO) Docker support for this module
+
+* (TODO) `docker-compose-save.yml` does the same as no `-save`, but with the addition of starting `output_datatofile`
+
+## v0.3.4-alpha - Happy New Year!
 
 * Dockerized core modules for easy setup and automatic IP configuration between modules
 * Bridge and GUI are now in a separate folder, following other modules, to accommodate Docker

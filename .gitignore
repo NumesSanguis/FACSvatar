@@ -144,9 +144,9 @@ sysinfo.txt
 # OpenFace csv files
 modules/input_facsfromcsv/openface
 
-# json files
-modules/output_facstofile/facsjson
-modules/output_facstofile/facscsv
+# json/csv files
+modules/output_datatofile/data_output
+modules/output_datatofile/data_output_bak
 
 # deep neural network models
 modules/process_facsdnnfacs/models/
