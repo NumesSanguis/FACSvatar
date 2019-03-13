@@ -1,10 +1,11 @@
-# script = "/*path*/blender/facsvatar_zeromq.py"
+# script = "/*path*/blender/facsvatar_zeromq.py"  # change / to \\ in Windows
 # exec(compile(open(script).read(), script, 'exec'))
 import bpy
 import os
 import sys
 import asyncio
-sys.path.append('/home/stef-ubuntu/anaconda3/envs/blender/lib/python3.5/site-packages')
+sys.path.append('/home/*you*/anaconda3/envs/blender/lib/python3.5/site-packages')
+#Windows: sys.path.append('c:\\Users\\*you*\\AppData\\Local\\conda\\conda\\envs\\blender\\Lib\\site-packages')
 import zmq
 #from zmq.asyncio import Context
 import json

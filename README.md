@@ -14,25 +14,47 @@ ISBN: 978-1-4503-6013-5/18/11
 FACSvatar is tested on Ubuntu and Windows, but should work on MacOS.
 More [detailed quickstart](https://facsvatar.readthedocs.io/en/latest/quickstart.html).
 
-0. Download this repository: `git clone https://github.com/NumesSanguis/FACSvatar.git` / press the green `Clone or Download` button --> `Download ZIP`
-1. With a terminal openend in folder `FACSvatar/modules` and execute: `docker-compose up` (Ubuntu with `sudo`)
-    * You need to have installed: [Docker](https://docs.docker.com/install/#supported-platforms)
-2. Download unity_FACSvatar compiled / run with editor:
-    * [unity_FACSvatar.exe (Windows)]()
-    * [Linux / Mac / Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine)
-3. Double click .exe / Press play button in Unity3D editor
+0. Downloads - Go to the [release page of this GitHub repo](https://github.com/NumesSanguis/FACSvatar/releases) and download:
+    * openface_2.1.0_zeromq.zip
+        * Unzip and execute `download_models.sh or .ps1` to download trained models
+    * Windows 7 / 8 / 10 Home: unity_FACSvatar_standalone_docker-ip.zip
+    * Windows 10 Pro / Enterprise / Education: unity_FACSvatar_standalone.zip
+    * Windows / Linux / Mac: [Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine)
+    * Source code (zip / tar.gz) or download this repository with:
+        * `git clone https://github.com/NumesSanguis/FACSvatar.git`
+        * Press the green `Clone or Download` button on this page --> `Download ZIP`
 
-Offline version:
+1. Docker Install - Let's you execute applications without worrying about OS or programming language.
+    * [General Docker instructions](https://docs.docker.com/install/#supported-platforms)
+    * [Docker Toolbox for Windows 7/8/10 Home](https://docs.docker.com/toolbox/overview/)
+    * [Docker for Windows 10  Pro, Enterprise or Education](https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install)
+    * Ubuntu: [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [docker-compose](https://docs.docker.com/compose/install/) and `sudo usermod -a -G docker $USER`
 
-3. Open 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
-4. Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
+2. Docker Modules - Open a terminal (W7/8: cmd.exe / W10: PowerShell) and navigate to folder `FACSvatar/modules`, then execute:
+    1. `docker-compose pull`  (Downloads FACSvatar Docker containers)
+    2. `docker-compose up`  (Starts downloaded Docker containers)
+    
+3. Facial Animation with Unity3D - Navigate inside folder unity_FACSvatar_standalone(_docker-ip) and Double-click `unity_FACSvatar.exe` / Press play button in Unity3D editor
 
-With webcam for real-time (Windows only):
+### Offline version:
 
-3. Download a [modified OpenFace with ZeroMQ (v2.0.6)](https://numessanguis.stackstorage.com/s/qHqzGSi5zxC73rk/) ([see copyright](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/Copyright.txt)) –> menu: File –> Open Webcam
+4. Open a 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
+5. Inside Docker container - Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
+
+### With webcam for real-time (Windows only for now):
+
+4. Navigate inside folder `openface_x.x.x_zeromq`
+5. (Windows 7/8/10 Home - only) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
+6. (Windows 7/8/10 Home - only) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
+7. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
+
+### Unity3D
+Use the numbers 0, 1, 2 on your keyboard to change camera.
 
 ## Quickstart video (NEW)
-See the quickstart video: 
+See the quickstart video:
+
+[![FACSvatar Quickstart 2019-01 (v0.3.4)](https://img.youtube.com/vi/OOoXDfkn8fk/0.jpg)](https://www.youtube.com/watch?v=OOoXDfkn8fk)
 
 ## Full documentation
 [Read the FACSvatar documentation](https://facsvatar.readthedocs.io/en/latest/)!
@@ -140,8 +162,8 @@ The modularity is made possible by using [ZeroMQ - brokerless messaging library]
 * Stream your facial expressions in real-time into Unity 3D
 * Set Shape Keys in Blender with your facial expressions for high-quality rendering and/or export your facial animation for classic trigger-based animation in e.g. games.
 [![Manuel Bastioni FACS expressions](https://img.youtube.com/vi/ImB3it_26bc/0.jpg)](https://www.youtube.com/watch?v=ImB3it_26bc)
-* [near-future] Deep Neural Network generation of facial expressions for Human-Agent Interaction.
-* [your modules] Please add your own modules, release your code, and let's expand the functionality of this framework :) More details in the documentation.
+* Deep Neural Network generation of facial expressions for Human-Agent Interaction (See `modules/process_facsdnnfacs`)
+* [your modules] Please add your own modules, release your code, wrap it in a Docker container and let's expand the functionality of this framework :) More details in the documentation.
 
 
 ## Detailed workings (English & 日本語)
@@ -151,10 +173,10 @@ More can be found on the project's website: [FACSvatar homepage](https://surafus
 
 
 ## Software
-* [Blender](https://www.blender.org/) + [Manuel Bastioni Lab addon](http://www.manuelbastioni.com/)  (create human models)
+* [Blender](https://www.blender.org/) + [Manuel Bastioni Lab add-on](~~http://www.manuelbastioni.com/~~ https://github.com/animate1978/MB-Lab)  (create human models)
   * [MBlab wikia](http://manuelbastionilab.wikia.com/wiki/Manuel_Bastioni_Lab_Wiki)
 * [FACSHuman](https://www.michaelgilbert.fr/facshuman/) add-on for MakeHuman
 * [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace)  (extract FACS data)
-* [Unity 3D](https://unity3d.com/) 2018.2.13f1 (animate in game engine)
+* [Unity 3D](https://unity3d.com/) 2018.2.20f1 (animate in game engine)
 * [ZeroMQ (PyZMQ)](http://zeromq.org/) (distributed messaging library)
-* [Docker (future)](https://www.docker.com/)  (|future| containerization for easy distribution)
+* [Docker](https://www.docker.com/)  (containerization for easy distribution)

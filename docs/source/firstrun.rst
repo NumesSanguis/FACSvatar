@@ -18,10 +18,13 @@ Visualization: Unity3D - real-time
 ------------------------------------------------
 Visualization: Blender - offline
 ------------------------------------------------
-Sorry, these instructions are still a mess.
+Sorry, these instructions are still a mess. Look at the Blender tutorial video for clearer instructions.
 
 0. Do these steps before running other FACSvatar modules.
 1. Copy the first 2 lines of code found in ``FACSvatar/blender/facsvatar_zeromq.py`` into the Blender terminal (but change path to match your system's path to that file).
+
+* Windows: Change ``/`` to ``\\``
+
 2. Your Blender now freezes and waits for data from Blend Shapes module. (You can safely send 1x a cancel command in terminal that runs Blender to cancel listening for data).
 3. Yes, I know, the freezing part is bad. This, and all these instructions, should be gone once the Blender component of FACSvatar is turned into a Blender add-on.
 4. Data is streamed into the timeline of Blender and can be modified following the normal workflow of Blender.
@@ -35,8 +38,8 @@ Open 3 terminals
 1. Start bridge module
 
    1. ``source activate facsvatar``
-   2. ``cd *your_path*/FACSvatar/modules``
-   3. ``python n_bridge_m.py``
+   2. ``cd *your_path*/FACSvatar/modules/process_bridge``
+   3. ``python main.py``
 
 #. Start FACS to Blend Shapes module
 
