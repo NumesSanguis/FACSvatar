@@ -89,7 +89,7 @@ from . blendzmq_panel import BLENDZMQ_PT_zmqConnector
 # classes_operators = SOCKET_OT_connect_subscriber
 from . blendzmq import (
     SOCKET_OT_connect_subscriber,
-    OBJECT_OT_reload_module,
+    # OBJECT_OT_reload_module,
     # OBJECT_OT_convertcurve,
     # OBJECT_OT_objecttrace,
     # OBJECT_OT_objectconnect,
@@ -137,7 +137,7 @@ classes = (
     ZMQSocketProperties,
     BLENDZMQ_PT_zmqConnector,
     SOCKET_OT_connect_subscriber,
-    OBJECT_OT_reload_module,
+    # OBJECT_OT_reload_module,
     # OBJECT_OT_convertcurve,
     # OBJECT_OT_objecttrace,
     # OBJECT_OT_objectconnect,

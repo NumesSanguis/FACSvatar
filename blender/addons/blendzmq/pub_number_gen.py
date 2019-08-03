@@ -18,14 +18,16 @@ def main(ip="127.0.0.1"):
     topic = 'foo'.encode('ascii')
 
     while True:
-        user_msg = input("Please type a message to send: ")
-        msg = user_msg.encode('utf-8')
+        # user_msg = input("Please type a message to send: ")
+        msg = str(i).encode('utf-8')
         # publish data
         socket.send_multipart([topic, msg])  # 'test'.format(i)
         print("On topic {}, send data: {}".format(topic, msg))
-        # time.sleep(.5)
+        time.sleep(.01)
 
         i += 1
+        if i > 100:
+            i = 0
 
 
 if __name__ == "__main__":

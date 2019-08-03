@@ -19,6 +19,7 @@
 
 import bpy
 import zmq
+import functools
 # import selection_utils
 from bpy.types import Operator
 from random import (
@@ -38,61 +39,99 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
 
     def execute(self, context):        # execute() is called when running the operator.
-        socket_settings = context.window_manager.socket_settings
+        self.blend_ctx = context
+        self.socket_settings = context.window_manager.socket_settings
 
-        self.ctx = zmq.Context()  # zmq.Context().instance()  # Context
-        self.url = f"tcp://{socket_settings.socket_ip}:5550"
+        self.ctx = zmq.Context().instance()  # zmq.Context().instance()  # Context
+        self.url = f"tcp://{self.socket_settings.socket_ip}:{self.socket_settings.socket_port}"
         self.socket = self.ctx.socket(zmq.SUB)
         self.socket.connect(self.url)  # subscriber connects to publisher
         self.socket.setsockopt(zmq.SUBSCRIBE, ''.encode('ascii'))
         print("Sub bound to: {}\nWaiting for data...".format(self.url))
-        # wait for publisher data
-        topic, msg = self.socket.recv_multipart()
-        print("On topic {}, received data: {}".format(topic, msg))
-        socket_settings.msg_received = msg.decode('utf-8')
 
-        # ZMQ connection
-        # url = f"tcp://{socket_settings.socket_ip}:5550"
-        # ctx = zmq.Context()
-        # socket = ctx.socket(zmq.PUB)
+        # poller socket for checking server replies (synchronous)
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, zmq.POLLIN)
+
+        bpy.app.timers.register(self.timed_msg_poller)
 
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
-    # bl_idname = "wm.start_zmq_sub"
-    # bl_label = "Starts a ZMQ subscriber"
-    #
-    # def execute(self, context):
-    #     print("Initializing socket :D")
+    def timed_msg_poller(self):
+        # get sockets with messages (0: don't wait for msgs)
+        sockets = dict(self.poller.poll(0))
+        # check if our sub socket has a message
+        if self.socket in sockets:
+            # get the message
+            topic, msg = self.socket.recv_multipart()
+            print("On topic {}, received data: {}".format(topic, msg))
+            # context stays the same as when started?
+            # self.socket_settings.msg_received = msg.decode('utf-8')
 
-class OBJECT_OT_reload_module(bpy.types.Operator):
-    bl_idname = "object.reload_module"
-    bl_label = "Reload specified module"
-    bl_options = {'REGISTER'}
+            # move cube
+            for obj in self.blend_ctx.scene.objects:
+                obj.location.x = int(msg.decode('utf-8')) * .1
 
-    def execute(self, context):
-        print("Hello")
-        socket_settings = context.window_manager.socket_settings
+        # keep running
+        return 0.001
 
-        import importlib
-        import sys
 
-        module_name = socket_settings.reload_module_name
-        # module_name = "blendzmq"
-        mod = sys.modules.get(module_name)
-        mod.__addon_enabled__ = False
-        try:
-            importlib.reload(mod)
-        except Exception as ex:
-            # handle_error(ex)
-            print(f"Failed: {ex}")
-            del sys.modules[module_name]
-            return None
+# OLD
+# # class StartZMQSub(bpy.types.Operator):
+# class SOCKET_OT_connect_subscriber(bpy.types.Operator):
+#     """Connects ZeroMQ socket: Subscriber"""  # Use this as a tooltip for menu items and buttons.
+#     # bl_idname = "object.move_x"  # Unique identifier for buttons and menu items to reference.
+#     bl_idname = "socket.connect_subscriber"
+#     bl_label = "Connect socket"  # Display name in the interface.
+#     bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
+#
+#     def execute(self, context):        # execute() is called when running the operator.
+#         socket_settings = context.window_manager.socket_settings
+#
+#         self.ctx = zmq.Context().instance()  # zmq.Context().instance()  # Context
+#         self.url = f"tcp://{socket_settings.socket_ip}:{socket_settings.socket_port}"
+#         self.socket = self.ctx.socket(zmq.SUB)
+#         self.socket.connect(self.url)  # subscriber connects to publisher
+#         self.socket.setsockopt(zmq.SUBSCRIBE, ''.encode('ascii'))
+#         print("Sub bound to: {}\nWaiting for data...".format(self.url))
+#         # # wait for publisher data
+#         # topic, msg = self.socket.recv_multipart()
+#         # print("On topic {}, received data: {}".format(topic, msg))
+#         # socket_settings.msg_received = msg.decode('utf-8')
+#
+#         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
-        mod.register()
-        # * OK loaded successfully! *
-        mod.__addon_enabled__ = True
 
-        return {'FINISHED'}
+
+# class OBJECT_OT_reload_module(bpy.types.Operator):
+#     bl_idname = "object.reload_module"
+#     bl_label = "Reload specified module"
+#     bl_options = {'REGISTER'}
+#
+#     def execute(self, context):
+#         print("Hello")
+#         socket_settings = context.window_manager.socket_settings
+#
+#         import importlib
+#         import sys
+#
+#         module_name = socket_settings.reload_module_name
+#         # module_name = "blendzmq"
+#         mod = sys.modules.get(module_name)
+#         mod.__addon_enabled__ = False
+#         try:
+#             importlib.reload(mod)
+#         except Exception as ex:
+#             # handle_error(ex)
+#             print(f"Failed: {ex}")
+#             del sys.modules[module_name]
+#             return None
+#
+#         mod.register()
+#         # * OK loaded successfully! *
+#         mod.__addon_enabled__ = True
+#
+#         return {'FINISHED'}
 
 
 # class SelectionOrder(bpy.types.Operator):

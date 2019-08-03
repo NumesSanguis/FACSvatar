@@ -36,6 +36,10 @@ class ZMQSocketProperties(PropertyGroup):
                               description="IP of ZMQ publisher socket",
                               default="127.0.0.1",
                               )
+    socket_port: StringProperty(name="Socket port",
+                              description="Port of ZMQ publisher socket",
+                              default="5550",
+                              )
     msg_received: StringProperty(name="Received msg",
                               description="Message received from ZMQ subscriber socket",
                               default="Awaiting msg...",

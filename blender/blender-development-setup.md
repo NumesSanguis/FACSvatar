@@ -13,10 +13,12 @@ py_path = Path(sys.prefix) / "bin"
 py_exec = str(next(py_path.glob("python*")))  # first file that starts with "python" in "bin" dir
 # TODO check permission rights
 subprocess.call([py_exec, "-m", "ensurepip"])
+# Output should be: 0
 # upgrade pip to latest version
 subprocess.call([py_exec, "-m", "pip", "install", "--upgrade", "pip"])
+# Output should be: 0
 ```
-This should return `0`. If it returns `1`, it's likely that you're not running Blender with Admin rights.
+This should return 2x `0`. If it returns `1`, it's likely that you're not running Blender with Admin rights.
 
 ## Next steps
 ```
@@ -62,7 +64,11 @@ print(addon_utils.paths())
 ```
 
 ## Command to reload your addon (Blender 2.8):
-`bpy.ops.preferences.addon_enable(module='your_addon')`
+Reload all add-ons: `bpy.ops.script.reload()`
+You're not suppose to use: `bpy.ops.preferences.addon_enable(module='your_addon')`
 
-## Set reload keyboard shortcut
+### Set reload keyboard shortcut
 Reload all add-ons: https://devtalk.blender.org/t/reload-button-in-2-8/1708
+
+### More details for reloading
+https://developer.blender.org/T66924

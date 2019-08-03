@@ -20,10 +20,11 @@ class BLENDZMQ_PT_zmqConnector(Panel):
         # obj = context.object
 
         # row = layout.row
-        layout.prop(socket_settings, "reload_module_name")
-        layout.operator("object.reload_module")
+        # layout.prop(socket_settings, "reload_module_name")
+        # layout.operator("object.reload_module")
         # layout.operator("bpy.ops.script.reload()")
         layout.prop(socket_settings, "socket_ip")
+        layout.prop(socket_settings, "socket_port")
         layout.operator("socket.connect_subscriber")
         layout.prop(socket_settings, "msg_received")
 
