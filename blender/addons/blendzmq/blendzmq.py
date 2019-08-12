@@ -47,14 +47,15 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
         # TODO check if all objects are MBLab models
 
         self.blend_ctx = context
-        self.socket_settings = context.window_manager.socket_settings
+        self.frame_start = context.scene.frame_current
 
+        self.socket_settings = context.window_manager.socket_settings
         self.ctx = zmq.Context().instance()  # zmq.Context().instance()  # Context
         self.url = f"tcp://{self.socket_settings.socket_ip}:{self.socket_settings.socket_port}"
         self.socket = self.ctx.socket(zmq.SUB)
         self.socket.connect(self.url)  # subscriber connects to publisher
         self.socket.setsockopt(zmq.SUBSCRIBE, ''.encode('ascii'))
-        print("Sub bound to: {}\nWaiting for data...".format(self.url))
+        print("Sub bound to: {}\nWaiting for msgs...".format(self.url))
 
         # poller socket for checking server replies (synchronous)
         self.poller = zmq.Poller()
@@ -76,7 +77,7 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
             if msg[1]:
                 msg[2] = json.loads(msg[2].decode('utf8'))
                 # context stays the same as when started?
-                # self.socket_settings.msg_received = msg.decode('utf-8')
+                self.socket_settings.msg_received = "Receiving msgs..."
 
                 print(self.mblab_models)
                 # for every mblab model that was selected at connection time
@@ -93,15 +94,16 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
                                 # if not bs == "Expressions_eyeClosedR_max":
                                 val = msg[2]['blendshapes'][bs]
                                 mb_model.data.shape_keys.key_blocks[bs].value = val
-                                # mb_model.data.shape_keys.key_blocks[bs] \
-                                #     .keyframe_insert(data_path="value", frame=self.frame)
+                                mb_model.data.shape_keys.key_blocks[bs] \
+                                    .keyframe_insert(data_path="value", frame=self.frame_start + msg[2]['frame'])
 
                     else:
                         print("No blendshapes data found")
                         # None means finished TODO not working
             else:
                 print("No more messages")
-                return None
+                self.socket_settings.msg_received = "No more msgs, awaiting msgs..."
+                # return None
 
             # move cube
             # for obj in self.blend_ctx.scene.objects:
