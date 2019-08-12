@@ -75,10 +75,23 @@ class FACSvatarMessages(FACSvatarZeroMQ):
             if timestamp:
                 # check not empty
                 if data:
-                    # filter Blend Shape values that don't significantly differ from previous msgs
-                    data['blendshapes'] = await self.filter_msg.filter_dict(data['blendshapes'], 0)
+                    # we're filtering AU data
+                    if 'au_r' in data:
+                        # filter Blend Shape values that don't significantly differ from previous msgs
+                        data['au_r'] = await self.filter_msg.filter_dict(data['au_r'], 0)
+
+                    # we're filtering Blend Shape data
+                    else:
+                        # filter Blend Shape values that don't significantly differ from previous msgs
+                        data['blendshapes'] = await self.filter_msg.filter_dict(data['blendshapes'], 0)
+
+                    # filter head pose only if users wants that
+                    if self.misc["filter_pose"]:
+                        # filter bone rotation values that don't significantly differ from previous msgs
+                        data['pose'] = await self.filter_msg.filter_dict(data['pose'], 1)
 
                 #print(data)
+                # publish data
                 await self.pub_socket.pub(data, key)
 
             # send message we're done
@@ -121,6 +134,8 @@ if __name__ == '__main__':
     # module specific commandline arguments
     parser.add_argument("--filter_threshold", default="0.01",
                         help="Value that is considered big enough as value change")
+    parser.add_argument("--filter_pose", default=False,
+                        help="Whether head pose should also be filtered")
 
     args, leftovers = parser.parse_known_args()
     print("The following arguments are used: {}".format(args))

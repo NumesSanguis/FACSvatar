@@ -79,9 +79,11 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
                 # context stays the same as when started?
                 self.socket_settings.msg_received = "Receiving msgs..."
 
-                print(self.mblab_models)
+                # print(self.mblab_models)
                 # for every mblab model that was selected at connection time
                 for mb_model in self.mblab_models:
+                    current_frame = self.frame_start + msg[2]['frame']
+
                     # set blendshapes only if blendshape data is available and not empty
                     if 'blendshapes' in msg[2] and msg[2]['blendshapes']:
                         # set all shape keys values
@@ -94,11 +96,47 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
                                 # if not bs == "Expressions_eyeClosedR_max":
                                 val = msg[2]['blendshapes'][bs]
                                 mb_model.data.shape_keys.key_blocks[bs].value = val
-                                mb_model.data.shape_keys.key_blocks[bs] \
-                                    .keyframe_insert(data_path="value", frame=self.frame_start + msg[2]['frame'])
+                                # save as key frames if enabled
+                                if self.socket_settings.keyframing:
+                                    mb_model.data.shape_keys.key_blocks[bs] \
+                                        .keyframe_insert(data_path="value", frame=current_frame)
 
                     else:
                         print("No blendshapes data found")
+                        # None means finished TODO not working
+
+                    # TODO make faster (with quaternions?)
+                    # set pose only if bone rotation is on, pose data is available and not empty
+                    if self.socket_settings.rotate_head and 'pose' in msg[2] and msg[2]['pose']:
+                        # get head and neck bone for rotation
+                        head_bones = [mb_model.parent.pose.bones['head'], mb_model.parent.pose.bones['neck']]
+                        for bone in head_bones:
+                            # https://blender.stackexchange.com/questions/28159/how-to-rotate-a-bone-using-python
+                            # Set rotation mode to Euler XYZ, easier to understand than default quaternions
+                            bone.rotation_mode = 'XYZ'
+                        # print(head_bones)
+
+                        pose_head = msg[2]['pose']
+                        if self.socket_settings.mirror_head:
+                            mirror_head = -1
+                        else:
+                            mirror_head = 1
+
+                        # in case we filter data
+                        if 'pose_Rx' in pose_head:
+                            self.rotate_head_bones(head_bones, 0, pose_head['pose_Rx'], 1)  # pitch
+                        if 'pose_Ry' in pose_head:
+                            self.rotate_head_bones(head_bones, 1, pose_head['pose_Ry'], -1 * mirror_head)  # jaw
+                        if 'pose_Rz' in pose_head:
+                            self.rotate_head_bones(head_bones, 2, pose_head['pose_Rz'], -1 * mirror_head)  # roll
+
+                        # save as key frames if enabled
+                        if self.socket_settings.keyframing:
+                            head_bones[0].keyframe_insert(data_path="rotation_euler", frame=current_frame)
+                            head_bones[1].keyframe_insert(data_path="rotation_euler", frame=current_frame)
+
+                    else:
+                        print("No head rotate data found")
                         # None means finished TODO not working
             else:
                 print("No more messages")
@@ -111,6 +149,16 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
 
         # keep running
         return 0.001
+
+    # match head pose name with bones in blender
+    def rotate_head_bones(self, head_bones, xyz, pose, inv=1):
+        # print(f"Rotate value: {pose}")
+        # head bone
+        # print(head_bones[0].rotation_euler[xyz])
+        head_bones[0].rotation_euler[xyz] = pose * .95 * inv
+        # print(head_bones[0].rotation_euler[xyz])
+        # neck bone
+        head_bones[1].rotation_euler[xyz] = pose * .5 * inv
 
 
 # OLD

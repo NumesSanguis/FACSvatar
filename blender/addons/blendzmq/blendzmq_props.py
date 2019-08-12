@@ -44,10 +44,25 @@ class ZMQSocketProperties(PropertyGroup):
                               description="Message received from ZMQ subscriber socket",
                               default="Awaiting msg...",
                               )
-    reload_module_name: StringProperty(name="Name",
-                              description="Reload this module",
-                              default="blendzmq",
-                              )
+    # reload_module_name: StringProperty(name="Name",
+    #                           description="Reload this module",
+    #                           default="blendzmq",
+    #                           )
+
+    rotate_head: BoolProperty(
+        name="Rotate bones",
+        description="Use rotate data to rotate head and neck bones",
+        default=True)
+
+    mirror_head: BoolProperty(
+        name="Mirror head",
+        description="Invert yaw and roll to rotate the head as you would see in a mirror",
+        default=False)
+
+    keyframing: BoolProperty(
+        name="Insert key frames",
+        description="Save the received data as key frames",
+        default=False)
 
 
 # Class to define properties

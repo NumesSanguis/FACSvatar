@@ -27,6 +27,11 @@ class BLENDZMQ_PT_zmqConnector(Panel):
         layout.prop(socket_settings, "socket_port")
         layout.operator("socket.connect_subscriber")
         layout.prop(socket_settings, "msg_received")
+        row = layout.row()
+        row.prop(socket_settings, 'rotate_head')
+        row.prop(socket_settings, 'mirror_head')
+        layout.prop(socket_settings, 'keyframing')
+
 
 
 
