@@ -19,7 +19,6 @@
 
 import bpy
 import zmq
-import json
 import functools
 # import selection_utils
 from bpy.types import Operator
@@ -40,12 +39,6 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
 
     def execute(self, context):        # execute() is called when running the operator.
-        # set active MBLab model(s) as receiver of facial data (needs object mode?)
-        self.mblab_models = context.selected_objects
-        print(f"Selected models animating facial expressions: {self.mblab_models}")
-
-        # TODO check if all objects are MBLab models
-
         self.blend_ctx = context
         self.socket_settings = context.window_manager.socket_settings
 
@@ -70,42 +63,14 @@ class SOCKET_OT_connect_subscriber(bpy.types.Operator):
         # check if our sub socket has a message
         if self.socket in sockets:
             # get the message
-            msg = self.socket.recv_multipart()  # topic, timestamp, msg
-            # check not finished; timestamp is empty (b'')
-            print("On topic {}, received data: {}".format(msg[0], msg[2]))
-            if msg[1]:
-                msg[2] = json.loads(msg[2].decode('utf8'))
-                # context stays the same as when started?
-                # self.socket_settings.msg_received = msg.decode('utf-8')
-
-                print(self.mblab_models)
-                # for every mblab model that was selected at connection time
-                for mb_model in self.mblab_models:
-                    # set blendshapes only if blendshape data is available and not empty
-                    if 'blendshapes' in msg[2] and msg[2]['blendshapes']:
-                        # set all shape keys values
-                        # bpy.context.scene.objects.active = self.mb_body
-                        for bs in msg[2]['blendshapes']:
-                            # skip setting shape keys for breathing from data
-                            if not bs.startswith("Expressions_chestExpansion"):
-                                # print(bs)
-                                # MB fix Caucasian female
-                                # if not bs == "Expressions_eyeClosedR_max":
-                                val = msg[2]['blendshapes'][bs]
-                                mb_model.data.shape_keys.key_blocks[bs].value = val
-                                # mb_model.data.shape_keys.key_blocks[bs] \
-                                #     .keyframe_insert(data_path="value", frame=self.frame)
-
-                    else:
-                        print("No blendshapes data found")
-                        # None means finished TODO not working
-            else:
-                print("No more messages")
-                return None
+            topic, msg = self.socket.recv_multipart()
+            print("On topic {}, received data: {}".format(topic, msg))
+            # context stays the same as when started?
+            # self.socket_settings.msg_received = msg.decode('utf-8')
 
             # move cube
-            # for obj in self.blend_ctx.scene.objects:
-            #     obj.location.x = int(msg.decode('utf-8')) * .1
+            for obj in self.blend_ctx.scene.objects:
+                obj.location.x = int(msg.decode('utf-8')) * .1
 
         # keep running
         return 0.001
