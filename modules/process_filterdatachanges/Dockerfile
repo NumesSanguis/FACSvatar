@@ -15,4 +15,4 @@ ADD process_filterdatachanges /app/process_filterdatachanges
 EXPOSE 5573
 WORKDIR /app/process_filterdatachanges
 # part of Docker network and therefore tcp://facsvatar_bridge:557x resolves
-CMD ["python", "main.py", "--pub_ip", "*", "--sub_ip", "facsvatar_bridge"]
+CMD ["python", "main.py", "--pub_ip", "*", "--sub_ip", "facsvatar_facstoblend"]
