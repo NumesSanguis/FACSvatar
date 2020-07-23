@@ -10,11 +10,14 @@ FACSvatar is a combination of the terms **FACS** and **Avatar**.
 
 Code on GitHub: https://github.com/NumesSanguis/FACSvatar
 
+Don't know where to start? Check out :doc:`getting_started/how_to_use`.
+
 .. toctree::
    :maxdepth: 2
    :name: start
    :caption: Getting Started:
 
+   getting_started/how_to_use
    getting_started/README
 
 
@@ -23,20 +26,39 @@ Code on GitHub: https://github.com/NumesSanguis/FACSvatar
    :name: modules
    :caption: FACSvatar modules:
 
+   modules/firstrun
    modules/overview
+   modules/gui
+   modules/message_standard
    modules/across_machines
    modules/docker
-   modules/module_creation
+   modules/contributed_modules
+   modules/custom_module
 
 .. toctree::
    :maxdepth: 2
-   :name: avatar
-   :caption: Avatar:
+   :name: trackers
+   :caption: Trackers (framework input):
 
-   avatar/facs_theory
-   avatar/mblab
-   avatar/facshuman
-   avatar/custom_avatar
+   trackers/openface
+
+.. toctree::
+   :maxdepth: 2
+   :name: visualization
+   :caption: Visualization Engines (framework output):
+
+   visualization/blender
+   visualization/unity3d
+   visualization/facshuman
+
+.. toctree::
+   :maxdepth: 2
+   :name: avatars
+   :caption: Avatars:
+
+   avatars/facs_theory
+   avatars/mblab
+   avatars/custom_avatar
 
 .. toctree::
    :maxdepth: 2

@@ -8,3 +8,8 @@ It is a system found by Paul Ekman and is often used in affective research.
 Since FACS describes facial configurations, it is not only useful for affective analysis,
 but also for animation.
 More information about FACS can be found here: https://en.wikipedia.org/wiki/Facial_Action_Coding_System
+
+
+Data format
+-----------
+[0.2, ]

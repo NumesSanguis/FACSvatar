@@ -1,18 +1,23 @@
-# FACSvatar v0.4.0-Alpha: An Open Source Modular Framework for Real-Time FACS based Facial Animation
-Track facial expressions with any software and visualize that data on any avatar in real-time,
+# What is FACSvatar? (v0.4.0-Alpha)
+> FACSvatar is An Open Source Modular Framework for Real-Time FACS based Facial Animation
+
+Or in plain English:
+
+> Track facial expressions with any software and visualize that data on any avatar in real-time,
 powered by the FACS representation.
 No more need to modify your avatar to support your tracking software.
 All written in your favorite programming language, on any OS, and across machines.
 
-
-## Why FACSvatar?
 TODO diagram FACS advantage.
 
-- **FACS**: A data description of muscle group contraction/relaxation in the human face
-  ([learn more]() **TODO** link to documentation).
+- Facial Action Coding System (**FACS**): A description of how muscle groups in the human face contract/relax
+  to make any facial configuration possible.
+  ([learn more](https://facsvatar.readthedocs.io/en/latest/facs_theory.html)).
+  * Action Unit (**AU**): The amount of contraction of a single muscle group.
 - **Modular**: Software and OS independent. You only need to know what data goes in and what comes out.
 - **Extendable**: Write your code, add a ZeroMQ message socket, and let it talk to other modules.
 - **Real-time**: Create lively avatars that respond to your user.
+- **Machine/Deep Learning**: Input/output data-fied facial configurations.
 
 [![FACSvatar demo 2018-09](https://img.youtube.com/vi/J2FvrIl-ypU/0.jpg)](https://www.youtube.com/watch?v=J2FvrIl-ypU)
 
@@ -22,10 +27,9 @@ Message to:
 - **Animators**: Copy facial expressions from a video/webcam to your avatar.
 - **Affective Computing**: Enable Human-Agent Interaction (HAI) by inputting your human-analysis into a ML-model,
 output FACS values, and have your Embodied Conversational Agent (ECA) display it.
-- **Psychologists**: Create stimuli with the same facial expressions across avatars of different sex, age and ethnicity.
+- **Psychologists**: Create stimuli with the same facial configurations across avatars of different sex, age and ethnicity.
 
 FACSvatar is already operable with:
-- This framework's glue, allowing modules to communicate: [ZeroMQ](https://zeromq.org/)
 - Tracking software:
   * [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace): Extract facial AUs from videos/webcam.
 - Visualization software:
@@ -34,7 +38,8 @@ FACSvatar is already operable with:
   * [Unity3D](https://unity.com/)
   * [FACSHuman](https://www.michaelgilbert.fr/facshuman/)
 - Modules for additional data processing, and allowing m trackers - to - n avatars (`modules` folder)
-- Containerization with [Docker](https://www.docker.com/) to run FACSvatar modules everywhere.
+- [ZeroMQ](https://zeromq.org/): This framework's glue, allowing modules to communicate with each other.
+- [Containerization with Docker](https://www.docker.com/) to run FACSvatar modules everywhere.
 
 **Disclaimer**: This is an open-source project, hopefully being flexible enough for your facial animation needs.
 This is not software supported by a company / commercially, but by users like you.
@@ -42,20 +47,20 @@ If you need some new capability, you likely have to code it yourself (or ask/hir
 but questions for guidance are always welcome (make a [GitHub issue](https://github.com/NumesSanguis/FACSvatar/issues))!
 Read more about FACSvatar's limitations (TODO doc link).
 
-**Full documentation**: https://facsvatar.readthedocs.io/
+##Full documentation
+Read the Docs: https://facsvatar.readthedocs.io/
 
 ## Paper
 Please cite the following paper when using this framework in a paper:
 
 [van der Struijk, Stef and Huang, Hung-Hsuan and Mirzaei, Maryam Sadat and Nishida, Toyoaki "FACSvatar: An Open Source Modular Framework for Real-Time FACS based Facial Animation" In Proceedings of 18th ACM International Conference on Intelligent Virtual Agents (pp. 159-164). ACM, 2018.](https://dl.acm.org/citation.cfm?id=3267918)
 
-DOI: https://doi.org/10.1145/10.1145/3267851.3267918
-ISBN: 978-1-4503-6013-5/18/11
+- DOI: https://doi.org/10.1145/10.1145/3267851.3267918
+- ISBN: 978-1-4503-6013-5/18/11
 
-## What is new
-### TODO v0.4.0-alpha (2020-07-??)
+## New in v0.4.0-alpha (2020-07-??)  TODO UNFINISHED
 
-* Complete re-write of the documentation
+* Complete re-write of the documentation; [Check it out!](https://facsvatar.readthedocs.io/)
 * Python modules:
     * Standardization pass over all modules / code clean-up
     * Consistency fix: ROUTER / DEALER sockets use JSON formatted data
@@ -67,25 +72,26 @@ ISBN: 978-1-4503-6013-5/18/11
 * Easy run: Docker container per module + Docker Compose
 * Demo video
 
-See [all changelogs]() (TODO)
+See [all changelogs](https://facsvatar.readthedocs.io/en/latest/changelog.html)
 
 
-# Quickstarts
+# Quickstart
 FACSvatar is tested on Ubuntu and Windows, but should work on MacOS.
 
-Build your own quickstart:
-1. Docker (recommended) OR Python
-2. Blender (recommended) OR Unity3D
+This quickstart has 2 parts:
+1. Start FACSvatar modules using Docker - modules in containers
+(see [here for Python instructions](https://facsvatar.readthedocs.io/en/latest/firstrun))
+2. Visualize in Unity3D or Blender
 
-## Docker
-<details><summary>Expand (CLICK ME)</summary>
-<p>
+## Dockerized modules
+<!-- <details><summary>Expand (CLICK ME)</summary>
+<p> -->
 
 0. Downloads - Go to the [release page of this GitHub repo](https://github.com/NumesSanguis/FACSvatar/releases) and download:
-    * openface_2.1.0_zeromq.zip
+    * (Real-time only) openface_2.1.0_zeromq.zip
         * Unzip and execute `download_models.sh or .ps1` to download trained models
-    * Windows 7 / 8 / 10 Home: unity_FACSvatar_standalone_docker-ip.zip
-    * Windows 10 Pro / Enterprise / Education: unity_FACSvatar_standalone.zip
+    * Windows 7 / 8 / 10 Home version <2004 : unity_FACSvatar_standalone_docker-ip.zip
+    * Windows 10 Home v2004+ / Pro / Enterprise / Education: unity_FACSvatar_standalone.zip
     * Windows / Linux / Mac: [Unity3D editor (documentation)](https://facsvatar.readthedocs.io/en/latest/defaultsetup.html#unity3d-game-engine)
     * Source code (zip / tar.gz) or download this repository with:
         * `git clone https://github.com/NumesSanguis/FACSvatar.git`
@@ -93,54 +99,51 @@ Build your own quickstart:
 
 1. Docker Install - Let's you execute applications without worrying about OS or programming language.
     * [General Docker instructions](https://docs.docker.com/install/#supported-platforms)
-    * [Docker Toolbox for Windows 7/8/10 Home](https://docs.docker.com/toolbox/overview/)
-    * [Docker for Windows 10  Pro, Enterprise or Education](https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install)
+    * [Docker Toolbox for Windows 7/8/10 Home version <2004](https://docs.docker.com/toolbox/overview/)
+    * [Docker for Windows 10 Home v2004+](https://docs.docker.com/docker-for-windows/install-windows-home/)
+    * [Docker for Windows 10 Pro, Enterprise or Education](https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install)
     * Ubuntu: [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [docker-compose](https://docs.docker.com/compose/install/) and `sudo usermod -a -G docker $USER`
 
 2. Docker Modules - Open a terminal (W7/8: cmd.exe / W10: PowerShell) and navigate to folder `FACSvatar/modules`, then execute:
     1. `docker-compose pull`  (Downloads FACSvatar Docker containers)
     2. `docker-compose up`  (Starts downloaded Docker containers)
     
-3. Facial Animation with Unity3D - Navigate inside folder unity_FACSvatar_standalone(_docker-ip) and Double-click `unity_FACSvatar.exe` / Press play button in Unity3D editor
+3.  See visualization engine instructions
 
 ### Offline version:
 
 4. Open a 2nd terminal in folder `FACSvatar/modules` and execute: `docker-compose exec facsvatar_facsfromcsv bash`
 5. Inside Docker container - Start facial animation with: `python main.py --pub_ip facsvatar_bridge`
 
-### With webcam for real-time (Windows only for now):
+### With webcam for real-time (Windows-only for now):
 
 4. Navigate inside folder `openface_x.x.x_zeromq`
-5. (Windows 7/8/10 Home - only) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
-6. (Windows 7/8/10 Home - only) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
+5. (Windows 7/8/10 Home version <2004 - only) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
+6. (Windows 7/8/10 Home version <2004 - only) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
 7. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
 
-</p>
-</details>
+<!--  </p>
+</details>  -->
 
-## Python (no Docker)
-<details><summary>Expand (CLICK ME)</summary>
-<p>
 
-TODO fill in
-
-</p>
-</details>
-
-## Visualization
-### FACSvatar Blender add-on
-Follow instructions here: https://github.com/NumesSanguis/FACSvatar-Blender
-
+## Visualization engines
 ### Unity3D
 Tested on version: 2018.2.20f1
 
 1. Open the folder `unity_FACSvatar` as a project with Unity3D
 2. Press play (now it's waiting for facial data)
 
+OR (Windows-only TODO):
+
+1. Navigate inside unzipped folder unity_FACSvatar_standalone(_docker-ip) and double-click `unity_FACSvatar.exe`
+
 Extra: Use the numbers 0, 1, 2 on your keyboard to change camera.
 
+### FACSvatar Blender add-on
+Follow instructions here: https://github.com/NumesSanguis/FACSvatar-Blender
+
 ## Quickstart video
-See the quickstart video (note that the **Blender part is outdated** due the new FACSvatar Blender add-on):
+See the quickstart video (:warning: note that the **Blender script part is outdated** (from 15:15) due the new FACSvatar Blender add-on):
 
 [![FACSvatar Quickstart 2019-01 (v0.3.4)](https://img.youtube.com/vi/OOoXDfkn8fk/0.jpg)](https://www.youtube.com/watch?v=OOoXDfkn8fk)
 

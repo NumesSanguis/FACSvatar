@@ -1,5 +1,5 @@
-Contribute
-==========
+How to contribute
+=================
 Add new trackers, additional data processing capability, or add support your avatar creation software.
 
 The main idea is that researchers/developers write their own micro modules with ZeroMQ and wrap them up as Docker containers.
