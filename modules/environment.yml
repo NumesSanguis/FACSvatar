@@ -12,7 +12,7 @@ dependencies:
   # Read the Docs theme
   - sphinx_rtd_theme
   # .md support for sphinx
-  - recommonmark
+  # - recommonmark
   - pip
   - pip:
       - sphinx-autodoc-typehints
