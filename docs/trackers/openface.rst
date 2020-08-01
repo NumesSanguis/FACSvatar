@@ -1,23 +1,48 @@
 OpenFace
 ========
 
-Offline
--------
-d
 
 Real-time GUI
 -------------
 d
 
 
+Offline
+-------
+d
+
+
 Use your own videos
 -------------------
-If you want to use your own FACS values extracted from a video do:
+If you want to use your own FACS values extracted from a video do (Python approach):
 
 1. ``OpenFaceOffline.exe`` --> menu: ``Recording settings`` --> ``Output location``
 #. ``OpenFaceOffline.exe`` --> menu: ``File`` --> ``Open Video``.
-#. Copy .csv from your output location to *your_path*/FACSvatar/modules/input_facsfromcsv/*some_folder*
+#. Copy .csv from your output location to: ``*your_path*/FACSvatar/modules/input_facsfromcsv/openface/*some_folder*``
+
+   .. warning:: NOT in a folder with ``_clean`` at the end (e.g. not ``default_clean``).
+     A ``some_folder_clean`` is automatically generated after e.g. ``some_folder/OF_output.csv`` has been been passed
+     as an argument to ``main.py``.
+
 #. Run OpenFace offline module with: ``python main.py --csv_folder some_folder --csv_arg -1``
+
+   * Execute ``python main.py -h`` to see more possible arguments, including explanations
+
+
+Docker
+^^^^^^
+If you're using Docker to run FACSvatar, you have to do 1 step more to give the container access to your new file.
+
+**Copy into container**:
+
+0. Follow the :doc:`Quickstart <../getting_started/README>`
+1. Copy the .csv into the container: ``docker cp foo.csv facsvatar_facsfromcsv:/openface/*your_folder*/foo.csv``
+#. Go inside Docker container: ``docker-compose exec facsvatar_facsfromcsv bash`` (same as Quickstart)
+#. Follow above ^ Python instructions
+
+**Give Docker access to folder on disk (TODO):**
+
+- TODO mount option in Docker file.
 
 
 Building yourself
@@ -29,6 +54,9 @@ d
 
 
 
+
+.. warning::
+   Documentation below is still under construction.
 
 
 
