@@ -37,7 +37,7 @@ FACSvatar is already operable with:
     * [MB-Lab](https://mb-lab-community.github.io/MB-Lab.github.io/) 3D avatar generation
   * [Unity3D](https://unity.com/)
   * [FACSHuman](https://www.michaelgilbert.fr/facshuman/)
-- Modules for additional data processing, and allowing m trackers - to - n avatars (`modules` folder)
+- Modules for additional data processing, and allowing `m trackers - to - n avatars` (`modules` folder)
 - [ZeroMQ](https://zeromq.org/): This framework's glue, allowing modules to communicate with each other.
 - [Containerization with Docker](https://www.docker.com/) to run FACSvatar modules everywhere.
 
@@ -48,7 +48,7 @@ but questions for guidance are always welcome (make a [GitHub issue](https://git
 For commercial usage, please check the [license page](https://facsvatar.readthedocs.io/en/latest/misc/license.html).
 Read more about FACSvatar's limitations (TODO doc link).
 
-##Full documentation
+## Full documentation
 Read the Docs: https://facsvatar.readthedocs.io/
 
 ## Paper
