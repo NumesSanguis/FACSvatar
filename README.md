@@ -41,10 +41,11 @@ FACSvatar is already operable with:
 - [ZeroMQ](https://zeromq.org/): This framework's glue, allowing modules to communicate with each other.
 - [Containerization with Docker](https://www.docker.com/) to run FACSvatar modules everywhere.
 
-**Disclaimer**: This is an open-source project, hopefully being flexible enough for your facial animation needs.
+**Disclaimers**: This is an open-source project, hopefully being flexible enough for your facial animation needs.
 This is not software supported by a company / commercially, but by users like you.
 If you need some new capability, you likely have to code it yourself (or ask/hire someone),
 but questions for guidance are always welcome (make a [GitHub issue](https://github.com/NumesSanguis/FACSvatar/issues))!
+For commercial usage, please check the [license page](https://facsvatar.readthedocs.io/en/latest/misc/license.html).
 Read more about FACSvatar's limitations (TODO doc link).
 
 ##Full documentation
@@ -60,7 +61,7 @@ Please cite the following paper when using this framework in a paper:
 
 ## New in v0.4.0-alpha (2020-07-??)  TODO UNFINISHED
 
-* Complete re-write of the documentation; [Check it out!](https://facsvatar.readthedocs.io/)
+* COMPLETE re-write of the documentation: [Check it out!](https://facsvatar.readthedocs.io/en/v0.4.0/)
 * Python modules:
     * Standardization pass over all modules / code clean-up
     * Consistency fix: ROUTER / DEALER sockets use JSON formatted data

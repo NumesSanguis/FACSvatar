@@ -40,14 +40,16 @@ We need two things for this: An engine that can render our 3D model and our 3D m
      :doc:`your own avatar <../avatars/custom_avatar>`
 
 
-Have fun!
----------
+Have fun! & disclaimers
+-----------------------
 I hope that FACSvatar serves as a great starting point for your avatar (facial) animation needs.
 For any issues or questions that this documentation does not answer, please create an
 `issue at the GitHub repository <https://github.com/NumesSanguis/FACSvatar/issues>`_ .
 Please **keep in mind** that this is an open source project without commercial support.
 It is now mostly maintained by `me <https://github.com/NumesSanguis>`_ in my free time.
 That means that feature request will likely have to be developed by user like you (or anyone you ask/hire).
+
+Want to use it for commercial projects? Make sure to check out the :doc:`../misc/license` page.
 
 You like the project and want to make it even better?
 Please see :doc:`../misc/contribute` on how you can improve this project.

@@ -1,5 +1,8 @@
-Multi-machine setups
+Multi-machines setup
 ====================
+The instructions on this page explain to you how you can let modules, that are running on multiple machines,
+send data to each other.
+
 .. warning::
    Instructions below untested
 
@@ -20,11 +23,12 @@ need to know the IP of the host PC where a module binds.
 
 Modules
 -------
+**TODO** Overview of which modules connect, and which modules bind to what port by default.
 
 Python
 ^^^^^^
 
-1. Setup Python on all machines involved, see :doc:`firstrun`.
+1. Setup Python on all machines involved, see :doc:`../modules/firstrun`.
 2. Navigate with a terminal inside a terminal folder, e.g. ``cd FACSvatar/modules/input_facsfromcsv``
 3. Add the IP of the machine that the module you want to **connect** to is running on (bind is always the host machine),
    e.g.: ``python main.py --pub_ip 192.168.xxx.xxx``.

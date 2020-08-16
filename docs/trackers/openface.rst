@@ -1,32 +1,107 @@
 OpenFace
 ========
 
+Download OpenFace (choose 1):
+
+* From the `official GitHub <https://github.com/TadasBaltrusaitis/OpenFace/releases>`_ (offline use only)
+* Download a `modified OpenFace v2.1.0 <https://github.com/NumesSanguis/FACSvatar/releases/download/v0.3.4-alpha-release/openface_2.1.0_zeromq.zip>`_
+  (offline or real-time use).
+* Build OpenFace with ZeroMQ component yourself, see: :ref:`trackers_openface_build`
+
+The modified version has ZeroMQ added to it's interface (C#), which is needed to get the AU values into FACSvatar.
+The GUI is only available for Windows, therefore real-time animation requires a Windows PC
+(you can still use e.g. Ubuntu for the other modules if you follow the :doc:`../advanced/multi_machines` instructions).
+
+.. note::
+
+   **Requested:** Help from a C++ programmer to implement a ZeroMQ component in the C++ part of OpenFace.
+   That would allow OpenFace to be used on any computer OS.
+   Starting point: https://github.com/TadasBaltrusaitis/OpenFace/issues/492#issuecomment-641814378
+   Please make an `issue on GitHub <https://github.com/NumesSanguis/FACSvatar/issues>`_ if you want to do this.
+
+.. warning::
+
+   The output of the Real-time approach is slightly different from the Offline approach.
+   Once OpenFace is done analyzing a video, it applies some post-processing, meaning the Offline approach is slightly
+   more accurate.
+   Therefore, **only use the Real-time approach for real-time use cases**.
+   Otherwise, use the generated .csv.
+
+.. warning::
+
+   All copyright of OpenFace belongs to Carnegie Mellon University.
+   By using this software, you agree to their licensing terms.
+   Check the :doc:`../misc/license` page to find out more (especially if you want to use it in **commercial projects**).
+
+
+Download OpenFace tracker models
+--------------------------------
+**TODO** Execute download scripts
+
+.. note::
+
+   Additional OpenFace instructions can be found here: https://github.com/TadasBaltrusaitis/OpenFace/wiki#installation
 
 Real-time GUI
 -------------
-d
+1. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
 
+Windows 7, 8 and 10 Home version <2004 - only
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. Navigate inside folder `openface_x.x.x_zeromq`
+#. (Windows 7/8/10 Home version <2004 - only) Get Docker machine ip by opening a 2nd terminal and execute: `docker-machine ip` (likely to be 192.168.99.100)
+#. (Windows 7/8/10 Home version <2004 - only) Open `config.xml`, change `<IP>127.0.0.1</IP>` to `<IP>machine ip from step 3</IP>` (`<IP>192.168.99.100</IP>`) and save and close.
+#. Double click `OpenFaceOffline.exe` –> menu: File –> Open Webcam
+
+.. warning::
+
+   Requires a Windows PC (for now). Also, it's pretty heavy on the CPU of the PC.
+
+.. _trackers_openface_offline:
 
 Offline
 -------
-d
+If you analyze a video with OpenFace, it will output a .csv file with the analysis results.
+FACSvatar only requires the AU values and ignores
 
+Python
+^^^^^^
+
+1. ``conda activate facsvatar``
+2. ``cd *your_path*/FACSvatar/modules/input_facsfromcsv``
+3. ``python main.py``
+
+   * Execute ``python main.py -h`` to see more possible arguments, including explanations
+
+Docker
+^^^^^^
+1.. Go inside Docker container: ``docker-compose exec facsvatar_facsfromcsv bash`` (same as Quickstart)
+#. ``python main.py``
+
+
+
+.. _trackers_openface_own-videos:
 
 Use your own videos
 -------------------
-If you want to use your own FACS values extracted from a video do (Python approach):
+If you want to use your own FACS values extracted from a video do:
 
 1. ``OpenFaceOffline.exe`` --> menu: ``Recording settings`` --> ``Output location``
 #. ``OpenFaceOffline.exe`` --> menu: ``File`` --> ``Open Video``.
+#. Wait for analysis to be completed and the .csv to be created.
+
+
+Python
+^^^^^^
 #. Copy .csv from your output location to: ``*your_path*/FACSvatar/modules/input_facsfromcsv/openface/*some_folder*``
 
    .. warning:: NOT in a folder with ``_clean`` at the end (e.g. not ``default_clean``).
      A ``some_folder_clean`` is automatically generated after e.g. ``some_folder/OF_output.csv`` has been been passed
      as an argument to ``main.py``.
 
-#. Run OpenFace offline module with: ``python main.py --csv_folder some_folder --csv_arg -1``
-
-   * Execute ``python main.py -h`` to see more possible arguments, including explanations
+#. Open a terminal and follow the steps under :ref:`trackers_openface_offline`, but tell it to check your "some_folder":
+   ``python main.py --csv_folder some_folder --csv_arg -1``
 
 
 Docker
@@ -37,56 +112,20 @@ If you're using Docker to run FACSvatar, you have to do 1 step more to give the 
 
 0. Follow the :doc:`Quickstart <../getting_started/README>`
 1. Copy the .csv into the container: ``docker cp foo.csv facsvatar_facsfromcsv:/openface/*your_folder*/foo.csv``
-#. Go inside Docker container: ``docker-compose exec facsvatar_facsfromcsv bash`` (same as Quickstart)
-#. Follow above ^ Python instructions
+#. Open a terminal and follow the Docker steps under :ref:`trackers_openface_offline`, but tell it
+   to check your "some_folder": ``python main.py --csv_folder some_folder --csv_arg -1``
 
-**Give Docker access to folder on disk (TODO):**
-
-- TODO mount option in Docker file.
-
-
-Building yourself
------------------
-d
+**TODO: Give Docker access to folder on disk through mounting that folder via the Docker file**
 
 
 
+.. _trackers_openface_build:
 
-
-
-
-.. warning::
-   Documentation below is still under construction.
-
-
-
-------------------------
-FACS input
-------------------------
-Animation can be either in real-time or in offline mode.
-For the moment, FACSvatar is only working with OpenFace,
-however any module that provides FACS based data could be used.
-
-Real-time allows for interactive systems, but at present the quality of FACS tracking from OpenFace
-is of lower quality in this mode.
-If interactivity is not your goal, the offline version is most likely a better choice.
-
-^^^^^^^^^^^^^^
-Real-time
-^^^^^^^^^^^^^^
-Note: Requires 1 Windows PC (due to ZeroMQ being integrated in the GUI)
-
-For the real-time version of FACSvatar we need to use a modified OpenFace which includes a ZeroMQ component
-to stream AU, gaze and head pose data out of it into.
-You can either
-
-* Download a `modified OpenFace v2.1.0 <https://github.com/NumesSanguis/FACSvatar/releases/download/v0.3.4-alpha-release/openface_2.1.0_zeromq.zip>`_
-   * All copyright of OpenFace belongs to Carnegie Mellon University. By using this software, you agree to their licensing terms found here: https://github.com/TadasBaltrusaitis/OpenFace/
-* Or build the modified version yourself following these instructions:
-
-""""""""""""""""""""""""""
 Build OpenFace with ZeroMQ
-""""""""""""""""""""""""""
+--------------------------
+.. warning::
+
+   Last tested with OpenFace v2.1.0
 
 - Download Source code OpenFace 2.1.0 from https://github.com/TadasBaltrusaitis/OpenFace/releases
 - Install Visial Studio 2015 / 2017
@@ -108,12 +147,3 @@ Build OpenFace with ZeroMQ
 #. Search for `json`; Install Newtonsoft.Json by James Newton-King v11.0.2
 #. Select OpenFaceOffline --> Release, x64, OpenFaceOffline --> Build --> (Re)build OpenFaceOffline
 #. Copy `config.xml` from FACSvatar GitHub and put it at `OpenFace\x64\Release\config.xml` # DON'T FORGET - otherwise crashes at startup
-
-
-
-^^^^^^^^^^^^^^
-Offline
-^^^^^^^^^^^^^^
-- (Windows GUI) Use the modified OpenFace found under the header `Real-time`_ or
-  Download OpenFace_2.0.6_win_xYY.zip from: https://github.com/TadasBaltrusaitis/OpenFace/releases
-- (Other) Follow instructions here: https://github.com/TadasBaltrusaitis/OpenFace/wiki#installation

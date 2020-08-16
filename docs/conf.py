@@ -32,6 +32,7 @@ release = '0.4.0-alpha'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    # todo not working?
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx.ext.githubpages',
