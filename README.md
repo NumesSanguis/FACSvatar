@@ -8,12 +8,12 @@ powered by the FACS representation.
 No more need to modify your avatar to support your tracking software.
 All written in your favorite programming language, on any OS, and across machines.
 
-TODO diagram FACS advantage.
+![Diagram FACS advantage](docs/img/why_FACS_trans.png "FACS advantage")
 
 - Facial Action Coding System (**FACS**): A description of how muscle groups in the human face contract/relax
   to make any facial configuration possible.
   ([learn more](https://facsvatar.readthedocs.io/en/latest/facs_theory.html)).
-  * Action Unit (**AU**): The amount of contraction of a single muscle group.
+  * Action Unit (**AU**): The strength of contraction of a single muscle group.
 - **Modular**: Software and OS independent. You only need to know what data goes in and what comes out.
 - **Extendable**: Write your code, add a ZeroMQ message socket, and let it talk to other modules.
 - **Real-time**: Create lively avatars that respond to your user.

@@ -1,2 +1,7 @@
 unity*/ filter=lfs diff=lfs merge=lfs -text
 modules/process_facsdnnfacs/models/mimicry_trained.h5 filter=lfs diff=lfs merge=lfs -text
+docs/img/why_FACS.svg filter=lfs diff=lfs merge=lfs -text
+docs/img/why_FACS_trans.png filter=lfs diff=lfs merge=lfs -text
+docs/img/why_FACS2.drawio filter=lfs diff=lfs merge=lfs -text
+docs/img/why_FACS.drawio filter=lfs diff=lfs merge=lfs -text
+docs/img/why_FACS.pdf filter=lfs diff=lfs merge=lfs -text
