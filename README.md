@@ -9,6 +9,7 @@ No more need to modify your avatar to support your tracking software.
 All written in your favorite programming language, on any OS, and across machines.
 
 ![Diagram FACS advantage](docs/img/why_FACS_control_trans.png "FACS advantage")
+Muscle [image source](https://pixabay.com/illustrations/skull-anatomy-skull-and-crossbones-3012250/).
 
 - Facial Action Coding System (**FACS**): A description of how muscle groups in the human face contract/relax
   to make any facial configuration possible.
