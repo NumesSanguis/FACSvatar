@@ -1,3 +1,11 @@
+Notes 2023-01-12
+- I wanted to simplify the quick start and smooth some rough edges before releasing version v0.4.0, but life held me up and I never merged this into master/main branch. This version is in all aspects better than v0.3.4, so I'm merging it after all in its current state.
+- Version v0.5.0 is on its way though (no release date yet). Small spoilers:
+    - Python version 3.10+
+    - Support for Blender 3.3 LTS
+    - Will have a proper GUI (written in Vue3 (JavaScript Framework)) that communicates with Python.
+
+
 # What is FACSvatar? (v0.4.0-Alpha)
 > FACSvatar is An Open Source Modular Framework for Real-Time FACS based Facial Animation
 
