@@ -1,7 +1,8 @@
 FACSvatar integrates many projects, which can contain different licenses.
 Everything in this repro that has been created by the project owner(s) of FACSvatar are under the GNU LGPLv3 where not conflicting with other licenses.
-Depending on which modules/parts you use / modify of this framework, different licening conditions may apply.
+Depending on which modules/parts you use / modify of this framework, different licencing conditions may apply.
+For example, OpenFace requires a license for commercial projects.
 
 If you make your modifications to the code and release it open source under a (L)GPL license, you do not have to worry.
 
-Please check https://facsvatar.readthedocs.io/en/latest/ for more information.
+Please check https://facsvatar.readthedocs.io/en/latest/misc/license.html for more information.

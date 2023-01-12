@@ -1,8 +1,16 @@
-====================
 Docker
-====================
+======
+Bend the Docker modules to your will.
+
+
+Port mapping
+------------
+
+
+
 
 Advanced Docker commands
+------------------------
 
 ------------------------
 Docker install
@@ -45,15 +53,7 @@ Docker machine bash completion:
      do
        sudo wget "$base/contrib/completion/bash/${i}" -P /etc/bash_completion.d
      done
-     
 
------------------------------------
-Docker own OpenFace .csv (untested)
------------------------------------
-If you want to use your own OpenFace .csv, you've obtained by running some video through OpenFace, in combination with Docker, you will need to do:
-   * Copy file from host to container: ``docker cp foo.csv facsvatar_facsfromcsv:/openface/*your_folder/foo.csv``
-   * Go inside Docker container: ``docker-compose exec facsvatar_facsfromcsv bash``
-   * Inside container: python main.py --pub_ip facsvatar_bridge --csv_folder openface/*your_folder* --csv_arg -1
 
 
 -------------------------

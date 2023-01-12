@@ -1,0 +1,24 @@
+# Reload add-on
+https://blender.stackexchange.com/questions/2691/is-there-a-way-to-restart-a-modified-addon
+
+# IDE support: From @stef in the #development channel in MB-Lab Discord group.
+1) Basic idea is that you pick the python that ships with blender (i.e., you don't install it from the ppa but from the homepage). Then in VSCode (.vscode/settings.json) you set "python.pythonPath": "/home/<user>/blender-2.80-542725d3e973-linux-glibc224-x86_64/2.80/python/bin/python3.7m", .. or wherever you unpacked the download
+2)  then in your home: 
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+./blender-2.80-542725d3e973-linux-glibc224-x86_64/2.80/python/bin/python3.7m  get-pip.py 
+./blender-2.80-542725d3e973-linux-glibc224-x86_64/2.80/python/bin/python3.7m  -m pip install pylint autopep8 rope
+
+This will give you linting and code formatting / refactoring in VSCode
+3)  Then following [this instructions](https://b3d.interplanety.org/en/using-microsoft-visual-studio-code-as-external-ide-for-writing-blender-scripts-add-ons/) , we get a [fake blender module](https://github.com/nutti/fake-bpy-module) and add these two lines to the settings.py
+    "python.autoComplete.extraPaths": [
+        "/home/stef/fake-bpy-module/premade_modules/2.80/e5e885d0ecb9430a73e0a904cdb6035a2ef77e98"
+    ],
+    "python.linting.pylintArgs": [
+        "--init-hook",
+        "import sys; sys.path.append('/home/stef/fake-bpy-module/premade_modules/2.80/e5e885d0ecb9430a73e0a904cdb6035a2ef77e98')"
+    ],
+    
+I replaced (temporarily) the pylintrc by my own
+Btw. regarding step 2) .. using this approach you can install and use any python package in blender addons (at least that worked in 2.79) .. I developed a (scientific robot editor) plugin at university and we used this to using numpy or similar packages
+... if we have intense array-based computations we can (fairly) easily compute on cuda/GPU .. at least for advanced users
+Alternatively, we can use pipenv and just point it at the  python binary

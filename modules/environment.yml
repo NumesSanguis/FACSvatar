@@ -1,0 +1,27 @@
+name: facsvatar
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.7
+  - numpy
+  - pandas
+  - pyzmq
+  # Jupyter notebook
+  - ipykernel
+  - ipywidgets
+  # documentation with .rst
+  - sphinx
+  # Read the Docs theme
+  - sphinx_rtd_theme
+  # .md support for sphinx
+  # - recommonmark
+  - pip
+  - pip:
+      - sphinx-autodoc-typehints
+      # ^ support typehints in docstring
+      # include .md documents outside doc/; m2r*2* fixes recommonmark & m2r conflict
+      # https://github.com/miyakogi/m2r/issues/51#issuecomment-571483212
+      # https://github.com/readthedocs/recommonmark/issues/191#issuecomment-650357578
+      - m2r2
+

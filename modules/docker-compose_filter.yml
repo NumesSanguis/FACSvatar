@@ -1,0 +1,37 @@
+version: "3"
+services:
+  facsvatar_bridge:
+    image: facsvatar/facsvatar_bridge:v0.3.4
+    build:
+      context: .
+      dockerfile: ./process_bridge/Dockerfile
+    ports:
+    - "5570:5570"  # map container internal 5570 port to publicly accessible 5570 port
+    - "5571:5571"
+
+  facsvatar_facstoblend:
+    image: facsvatar/facsvatar_facstoblend:v0.3.4
+    build:
+      context: .
+      dockerfile: ./process_facstoblend/Dockerfile
+    ports:
+      - "5572:5572"
+    # command: ["python", "main.py", "--pub_ip", "0.0.0.0", "--sub_ip", "facsvatar_filterdatachanges", "--sub_port", "5573"]
+      
+  facsvatar_filterdatachanges:
+    # image: facsvatar/facsvatar_facstoblend:v0.3.4
+    build:
+      context: .
+      dockerfile: ./process_filterdatachanges/Dockerfile
+    ports:
+      - "5573:5573"
+    command: ["python", "main.py", "--pub_ip", "*", "--sub_ip", "facsvatar_facstoblend"]
+
+  facsvatar_facsfromcsv:
+    image: facsvatar/facsvatar_facsfromcsv:v0.3.4
+    build:
+      context: .  # Docker context from folder of this file; needed to include requirement.txt
+      dockerfile: ./input_facsfromcsv/Dockerfile
+    #stdin_open: true  # same as docker -i (interactive)
+    #tty: true  # same as docker -t (tty); see if sub actually receives pub messages
+    command: tail -F anything  # prevents closure of container when no command is running
